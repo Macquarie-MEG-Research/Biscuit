@@ -126,6 +126,9 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
         existing_df = pd.read_csv(fname, sep='\t')
         df = existing_df.append(pd.DataFrame({'filename': ['%s' % raw_fname],
                                               'acq_time': [acq_time]}))
+        # maybe sort the data also?
+        df.sort_values(by='acq_time')
+        # not sure whether to sort by time or filename though...
     else:
         df = pd.DataFrame({'filename': ['%s' % raw_fname],
                        'acq_time': [acq_time]})

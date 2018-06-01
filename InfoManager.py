@@ -118,8 +118,8 @@ class InfoManager(Notebook):
         self._clear_tab(self.info_frame)
         # undraw the tab before filling it
         # print any file information
-        anything_displayed = False
         if not data_obj.display_raw:
+            anything_displayed = False
             if len(data_obj.info) != 0:
                 Label(self.info_frame, text="Information").grid(columnspan=2, sticky=W)
                 for data in data_obj.info.items():
@@ -133,7 +133,6 @@ class InfoManager(Notebook):
                     entry = self.generate_gui_element(self.info_frame, data)
                     # try and set the background of the entry if it needs to be:
                     try:
-                        #print(data[0], entry.value.get(), data_obj.bad_values.get(data[0], None))
                         if entry.value.get() in data_obj.bad_values.get(data[0])['values']:
                             entry.value.config({'background':"Red"})
                     except:
@@ -153,7 +152,7 @@ class InfoManager(Notebook):
             # have a final check to see if anything has actually been shown.
             # If not, show some message...
             if not anything_displayed:
-                Label(self.info_frame, text="No info to show about file sorry!").grid(column=0, row=0)
+                Label(self.info_frame, text="No info to show about file sorry!").grid(column=0, row=0, sticky=W)
         else:
             # create a Text widget and read in the file
             textentry = ScrolledText(self.info_frame, wrap=WORD)
@@ -170,11 +169,6 @@ class InfoManager(Notebook):
         else:
             self.info_frame.grid_columnconfigure(0, weight=1)
             self.info_frame.grid_columnconfigure(1, weight=3)
-
-        try:
-            print(data_obj.associated_mrks, 'mrks')
-        except:
-            pass
 
     def _display_unknown_file(self):
         self._clear_tab(self.info_frame)

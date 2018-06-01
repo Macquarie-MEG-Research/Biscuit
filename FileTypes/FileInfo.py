@@ -75,6 +75,13 @@ class FileInfo():
         """
         return []
 
+    def copy(self, new_id):
+        """
+        This can be called to create another version of the object.
+        This will be used when we create the BIDS folder so that the copied files already have all the info they need
+        """
+        pass
+
     def __repr__(self):
         # represent the object by its path
         # we will normalise the path to make sure the '/'s and '\'s are the same
