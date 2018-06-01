@@ -61,7 +61,7 @@ class main(Frame):
         self.selected_files = None          # the current set of selected files
         self.prev_selected_files = None     # the previous set. Keep as a buffer in case it is needed (it is for the file association!)
 
-        self.r_click_menu = RightClick(self.master, self)
+        self.r_click_menu = RightClick(self)
 
         self._create_widgets()
         self._create_menus()
@@ -405,16 +405,35 @@ class main(Frame):
     def _quit(self):
         self.master.destroy()
 
-class RightClick():
-    def __init__(self, master, parent):
+class ProgressPopup(Toplevel):
+    def __init__(self, master, progress_var):
         self.master = master
+        Toplevel.__init__(self, self.master)
+
+        self.progress_var = progress_var
+
+        self._create_widgets()
+
+    def _create_widgets(self):
+        main_frame = Frame(self)
+        Label(main_frame, text="Progress: ").grid(column=0, row=0)
+        Label(main_frame, textvariable=self.progress_var).grid(column=1, row=0)
+        main_frame.grid()
+        #self.grid()
+        print('woahh!!')
+
+class RightClick():
+    def __init__(self, parent):
         self.parent = parent
 
         # create a popup menu
-        self.popup_menu = Menu(self.master, tearoff=0, postcommand=self._determine_entries)
+        self.popup_menu = Menu(self.parent, tearoff=0, postcommand=self._determine_entries)
 
         self.prev_selection = ()
         self.curr_selection = ()
+
+        self.progress = StringVar()
+        self.progress.set('None')
 
     def set_current_selected(self):
         # keep track of the files selected each time a right-click occurs
@@ -429,7 +448,8 @@ class RightClick():
             entry = self.parent.preloaded_data[self.curr_selection[0]]
             if isinstance(entry, InfoContainer):
                 if entry.check_bids_ready():
-                    self.popup_menu.add_command(label="Convert to BIDS", command=self._folder_to_bids)
+                    self.popup_menu.add_command(label="Convert to BIDS", command=self._folder_to_bids_threaded)
+                    self.popup_menu.add_command(label="See progress", command=self.check_progress)
 
     def _add_options(self):
         # a context dependent function to only add options that are applicable to the current situation
@@ -445,13 +465,23 @@ class RightClick():
                 #self.popup_menu.add_command(label="Convert to BIDS", command=self._folder_to_bids)
         elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
             self.popup_menu.add_command(label="Associate", command=self._associate_mrk)
+    
+    def check_progress(self):
+        # we will have problems if this is called while it already exists... maybe??
+        self.progress_popup = ProgressPopup(self.parent, self.progress)
 
-    def _folder_to_bids(self):
-
+    def _folder_to_bids_threaded(self):
         sid = self.parent.file_treeview.selection()[0]
+        self.progress_popup = ProgressPopup(self.parent, self.progress)
+        t = threading.Thread(target=self._folder_to_bids, args=[sid])
+        t.start()
+
+    def _folder_to_bids(self, sid):
         selected_IC = self.parent.preloaded_data[sid]
         print(selected_IC.extra_data, 'extra data')
+        # put the entire process in a thread because it takes a little while...
         for acq, raw_kit in selected_IC.raw_files.items():
+            self.progress.set("Working on acquisition {0}".format(acq))
             target_folder = self.parent.file_treeview.item(sid)['values'][1]+'_BIDS'
             folder_parent = self.parent.file_treeview.parent(sid)
             raw_to_bids(selected_IC.subject_ID[1].get(),
@@ -463,6 +493,13 @@ class RightClick():
                         extra_data=selected_IC.extra_data[acq])
             new_folder_sid = self.parent.file_treeview.ordered_insert(folder_parent, text=path.basename(target_folder), values=['', target_folder])
             self.parent._fill_file_tree(new_folder_sid, target_folder)
+            # set the message to done, but also close the window if it hasn't already been closed
+        self.progress.set("Done")
+        try:
+            self.progress_popup.destroy()
+        except:
+            pass
+
 
     def _create_folder(self):
         """
