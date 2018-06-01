@@ -372,7 +372,6 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         # is absolute. Otherwise will be the full relative path to the raw file
         raw_file_bids_abs = namer.get_filename(raw_fname, output_path)
         # check to make sure that the folder exists that we want to put the file in
-        print(raw_file_bids_abs, 'hellooooooooooooooooooooooooooooooooooooo')
         if os.path.exists(raw_file_bids_abs):
             if overwrite:
                 # do we really want to remove it?

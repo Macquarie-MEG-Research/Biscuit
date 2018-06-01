@@ -108,12 +108,10 @@ class BIDSName():
                 fields.append("{0}-{1}".format(key, val))
         
         if rawfile:
-            print('bloop')
             # the raw files are (currently) put in a sub directory.
             # the name of this is the same as the file name.
             foldername = "_".join(fields) + "_" + self.kind
             filename = foldername + self._get_ext(file)
-            print(foldername, filename)
         else:
             filename = "_".join(fields) + "_" + file
 
