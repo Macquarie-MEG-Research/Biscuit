@@ -105,3 +105,5 @@ venv.bak/
 
 #vscode directory
 .vscode/
+.DS_Store
+settings.pkl

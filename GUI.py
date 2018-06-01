@@ -43,7 +43,11 @@ class main(Frame):
             if os_name() == 'Windows':
                 self.master.iconbitmap('biscuit_icon_windows.ico')
             else:
-                self.master.iconbitmap('biscuit_icon_mac.icns')
+                # this doesn't work :'(
+                img = PhotoImage(file='biscuit.png')
+                #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+                self.master.wm_iconphoto(True, img)
+                #self.master.wm_iconbitmap(img)
         except:
             pass
         Frame.__init__(self, self.master)
