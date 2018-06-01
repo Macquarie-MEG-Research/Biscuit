@@ -9,7 +9,7 @@ class generic_file(FileInfo):
         self._type = 'generic'
         # any data tpe in the following list will automatically be assigned the .display_raw = True property
         # they will also be not be specificed as unknown
-        self.types_to_display_raw = ['.txt']
+        self.types_to_display_raw = ['.txt', '.m']
 
     def read_info(self):
         pass

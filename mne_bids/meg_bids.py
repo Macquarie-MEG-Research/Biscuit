@@ -119,7 +119,15 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
         acq_time = datetime.fromtimestamp(
             meas_date).strftime('%Y-%m-%dT%H:%M:%S')
 
-    df = pd.DataFrame({'filename': ['%s' % raw_fname],
+    # check to see if the file already exists.
+    # If it does we will want to determine whether or not the data
+    # is already there, and if not append it.
+    if os.path.exists(fname):
+        existing_df = pd.read_csv(fname, sep='\t')
+        df = existing_df.append(pd.DataFrame({'filename': ['%s' % raw_fname],
+                                              'acq_time': [acq_time]}))
+    else:
+        df = pd.DataFrame({'filename': ['%s' % raw_fname],
                        'acq_time': [acq_time]})
 
     df.to_csv(fname, sep='\t', index=False)
