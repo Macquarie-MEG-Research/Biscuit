@@ -4,7 +4,7 @@ from collections import OrderedDict
 
 from struct import unpack
 
-from .FileInfo import FileInfo #.FileInfo
+from .FileInfo import FileInfo
 
 GAINS = [1, 2, 5, 10, 20, 50, 100, 200]
 

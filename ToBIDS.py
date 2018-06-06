@@ -2,7 +2,7 @@
 # we are interested in MEG data here, so we consider the MEG specifications for the BIDS format:
 
 import mne
-from mne_bids import raw_to_bids
+#from mne_bids import raw_to_bids
 import os.path as path
 from os import listdir, scandir
 from sys import version_info
@@ -89,8 +89,8 @@ if __name__ == "__main__":
                             hsp = path.join(p, '2630_RS_PI160_2017_08_04.hsp'))
     #print(a.info['line_freq'])
     print('hi')
-    print(a.info)
-    print(a.info['description'])
-    print(a.info['experimenter'])
-    print(a.info['proj_name'])
+    print(a.info['dig'])
+    print(a.info['hpi_meas'])
+    print(a.info['hpi_results'])
+    print(a.info['hpi_subsystem'])
     #raw_to_bids('CONTROL01', 'TASK01', a, path.join(p, 'newpath'), session_id='01', run=1)

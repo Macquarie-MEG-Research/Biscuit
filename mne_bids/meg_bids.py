@@ -213,9 +213,9 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
         ('PowerLineFrequency', powerlinefrequency)]
     ch_info_json_meg = [
         ('SamplingFrequency', sfreq),
-        ("DewarPosition", "XXX"),
-        ("DigitizedLandmarks", False),
-        ("DigitizedHeadPoints", False),
+        ("DewarPosition", extra_data.get("DewarPosition", "XXX")),
+        ("DigitizedLandmarks", extra_data.get("DigitizedLandmarks", False)),    # ("DigitizedLandmarks", True if raw.info.get("dig", None) is not None else False), #possibly?
+        ("DigitizedHeadPoints", extra_data.get("DigitizedHeadPoints", False)),
         ("SoftwareFilters", "n/a"),
         ('MEGChannelCount', n_megchan),
         ('MEGREFChannelCount', n_megrefchan)]
@@ -322,6 +322,11 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         raise ValueError('raw_file must be an instance of str or BaseRaw, '
                          'got %s' % type(raw_file))
 
+    # this will only work if the user specifies the electrode and hsp files, which you wouldn't normally do if you just provide a raw
+    # If raw files were to store all the 
+    extra_data["DigitizedLandmarks"] = (True if electrode is not None else False)
+    extra_data["DigitizedHeadPoints"] = (True if hsp is not None else False)
+
     #create a BIDSName object for the files
     namer = BIDSName(subject=subject_id, session=session_id,
                      task=task, run=run, kind=kind, acquisition=acquisition)
@@ -365,7 +370,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         _coordsystem_json(raw, unit, orient, manufacturer, coordsystem_fname,
                           verbose)
 
-    make_dataset_description(output_path, name=" ",
+    make_dataset_description(output_path, name=extra_data.get("Name", " "),
                              verbose=verbose)
     _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose, **extra_data)
     _channels_tsv(raw, channels_fname, verbose)

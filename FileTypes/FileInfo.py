@@ -40,7 +40,7 @@ class FileInfo():
         # want it false if the load procedure takes a reasonable amount of time.
         # In this case we will want the info tab to have a button to press to begin the data
         # generation.
-        """ Only override if required to be Fase """
+        """ Only override if required to be False """
         self._auto_preload_data = auto_load
 
         if self._auto_preload_data:
@@ -79,8 +79,15 @@ class FileInfo():
         """
         This can be called to create another version of the object.
         This will be used when we create the BIDS folder so that the copied files already have all the info they need
+        Creating it as a method like this instead of a __copy__ so that we can create a copy with a different id
         """
-        pass
+        obj = type(self)(new_id, self._file, parent=self.parent, auto_load=self.auto_preload_data)
+        obj.info = self.info
+        obj.required_info = self.required_info
+        obj.optional_info = self.optional_info
+        obj._type = self._type
+        obj.unknown_type = self.unknown_type
+        return obj
 
     def __repr__(self):
         # represent the object by its path

@@ -51,8 +51,8 @@ class InfoContainer():
         # this function needs to be modified to take in the parent id from the treeview instead
         # this way it can get the ids of the children files to associate with the FileInfo objects
         #self.contained_files, self.is_valid = process_folder(self.folder, validate=True)
-
-        self._set_required_inputs()
+        if self.is_valid:
+            self._set_required_inputs()
 
         self.raw_files = dict()
         self.extra_data = dict()
@@ -145,7 +145,9 @@ class InfoContainer():
                                                    hsp = self.contained_files['.hsp'][0].file)        # ... and one .hsp file in the folder
                 # also populate the extra data dictionary so that it can be used when producing bids data
                 self.extra_data[acq] = {'InstitutionName': con_files[0].info['Insitution name'],
-                                        'ManufacturersModelName':con_files[0].info['Model name']}
+                                        'ManufacturersModelName':con_files[0].info['Model name'],
+                                        'DewarPosition': self.dewar_position[1].get(),
+                                        'Name': self.proj_name[1].get()}
 
     def check_bids_ready(self):
         """
@@ -177,9 +179,15 @@ class InfoContainer():
 
     def _set_required_inputs(self):
         # we have a number of basic properties that we need:
+        proj_name = self.parent.file_treeview.item(self._id)['text'].split('_')[2]
+        self.proj_name = ("Project name", StringVar())
+        self.proj_name[1].set(proj_name)
+        sub_name = self.parent.file_treeview.item(self._id)['text'].split('_')[0]
         self.subject_ID = ("Subject ID", StringVar())
+        self.subject_ID[1].set(sub_name)
         self.task_name = ("Task name", StringVar())
         self.session_ID = ("Session ID", StringVar())
+        self.dewar_position = ("Dewar Position", StringVar(value="upright"))
 
     def get(self, name):
         print(name)

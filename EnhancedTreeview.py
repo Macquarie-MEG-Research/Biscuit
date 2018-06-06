@@ -107,9 +107,13 @@ class EnhancedTreeview(Treeview):
         self.bind("<<TreeviewSelect>>", self.leftclick_func, add='+')
 
     def ordered_insert(self, parent, *args, **kwargs):
-        # allows for objects to be inserted in the correct location alphabetically
-        # they will be sorted by their text fields
-        # this should be extended so that it is sorted by text > then any values in order
+        """
+        Allows for objects to be inserted in the correct location alphabetically
+        they will be sorted by their text fields
+        this should be extended so that it is sorted by text > then any values in order
+
+        Returns the id of the object that has been inserted
+        """
         sort_text = kwargs.get('text', None)
         if sort_text is not None:
             # only iterate over the children that are folders

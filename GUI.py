@@ -7,7 +7,7 @@ from tkinter.ttk import *
 
 import pickle
 import os.path as path
-from os import listdir, getcwd
+from os import listdir, getcwd, makedirs
 import datetime
 import threading
 
@@ -60,7 +60,7 @@ class main(Frame):
 
         self._load_settings()
 
-        self.context = None                 # the type of data selected
+        self.context = ()                   # the type of data selected
 
         self.selected_files = None          # the current set of selected files
         self.prev_selected_files = None     # the previous set. Keep as a buffer in case it is needed (it is for the file association!)
@@ -100,21 +100,24 @@ class main(Frame):
 
         # we want to put folders above files (it looks nicer!!)
         num_folders = 0
+        try:
+            for file in listdir(dir_):
+                fname, ext = path.splitext(file)
 
-        for file in listdir(dir_):
-            fname, ext = path.splitext(file)
-
-            fullpath = path.join(dir_, file)
-            
-            if path.isdir(fullpath):
-                folder = self.file_treeview.insert(parent, num_folders,
-                                                   values=['', fullpath],
-                                                   text=fname, open=False)
-                num_folders += 1
-                self._fill_file_tree(folder, directory=fullpath)
-            else:
-                self.file_treeview.insert(parent, 'end', values=[ext, fullpath],
-                                          text=fname, open=False, tags=(ext))
+                fullpath = path.join(dir_, file)
+                
+                if path.isdir(fullpath):
+                    folder = self.file_treeview.insert(parent, num_folders,
+                                                    values=['', fullpath],
+                                                    text=fname, open=False)
+                    num_folders += 1
+                    self._fill_file_tree(folder, directory=fullpath)
+                else:
+                    self.file_treeview.insert(parent, 'end', values=[ext, fullpath],
+                                            text=fname, open=False, tags=(ext))
+        except PermissionError:
+            # user doesn't have sufficient permissions to open folder so it won't be included
+            pass
 
     def _load_settings(self):
         # first, attempt to load the settings file:
@@ -136,7 +139,7 @@ class main(Frame):
             # the specified path for the data doesn't exist.
             # this is probably due to changing computer or something...
             # get the user to enter a new path
-            self._get_data_location()
+            self._get_data_location_initial()
         if not path.exists(self.settings["MATLAB_PATH"]):
             self._get_matlab_location()
 
@@ -155,7 +158,7 @@ class main(Frame):
         self.menu_bar.add_cascade(label="Options", menu=self.options_menu)
 
         # add options to the options menu:
-        self.options_menu.add_command(label="Root directory", command=self._get_data_location)
+        self.options_menu.add_command(label="Set data directory", command=self._get_data_location)
         self.options_menu.add_command(label="Matlab path", command=self._get_matlab_location)
 
         # finally, tell the GUI to include the menu bar
@@ -168,7 +171,7 @@ class main(Frame):
         main_frame = Frame(self.master)
         self.pw = tkPanedWindow(main_frame, orient=HORIZONTAL, sashrelief=RIDGE, sashpad=1, sashwidth=4)
         # frame for the treeview
-        treeview_frame = Frame(self.pw, width=1000, height=400)
+        treeview_frame = Frame(self.pw)
         self.file_treeview = EnhancedTreeview(treeview_frame,
                                       columns = ["dtype", "filepath"],
                                       selectmode = 'extended',
@@ -193,16 +196,15 @@ class main(Frame):
         self.file_treeview.root_path = self.settings["DATA_PATH"]
 
         # frame for the notebook panel
-        #notebook_frame = Frame(main_frame, width=100, height=300)
-        self.info_notebook = InfoManager(self.pw)
+        notebook_frame = Frame(self.pw)
+        self.info_notebook = InfoManager(notebook_frame)
         self.info_notebook.draw()
-        # info frame
-        #self.info_frame = Frame(notebook_frame)
+        self.info_notebook.pack(side=LEFT, fill=BOTH, expand=1)
+        notebook_frame.grid(row=0, column=1, sticky="nsew")
 
         #self.info_notebook.grid(column=1, row=0, sticky="nsew")
-        self.pw.add(self.info_notebook)
-        self.info_notebook.grid_propagate(0)
-        #self.info_notebook.pack(fill=BOTH, expand=1)
+        self.pw.add(notebook_frame)
+        #self.info_notebook.grid_propagate(0)
         #treeview_frame.grid(row=0, column=0, sticky="nsew")
         #notebook_frame.grid(row=0, column=1, sticky="nsew")
         #notebook_frame.pack(side=LEFT, fill=BOTH, expand=1)
@@ -219,7 +221,6 @@ class main(Frame):
         self.master.rowconfigure(0, weight=1)
         main_frame.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
-        main_frame.columnconfigure(1, weight=1)
     
     # not gonna worry about this for now...
     def column_check(self, event):
@@ -288,8 +289,9 @@ class main(Frame):
         sids = self.file_treeview.selection()
         self.set_context()
         self._clear_tags(event)
-        t = threading.Thread(target=self._preload_data, args=[sids])
-        t.start()
+        self._preload_data(sids)
+        #t = threading.Thread(target=self._preload_data, args=[sids])
+        #t.start()
 
         # we won't have a problem with this yet since the data *has* to be preloaded
         # before we can do assignment of mrk's to con's
@@ -356,8 +358,9 @@ class main(Frame):
             else:
                 self.context = ('FOLDER',)
         else:
-            self.context = None
+            self.context = ()
 
+    @threaded
     def _preload_data(self, sids):
         # this function will load the file information
         # we have this as a separate function so it can be threaded to avoid locking up the GUI's main thread
@@ -389,9 +392,17 @@ class main(Frame):
                         self.preloaded_data[id_] = obj
         self._populate_info_panel(sids)
 
-    def _get_data_location(self):
+    def _get_data_location_initial(self):
         self.settings["DATA_PATH"] = filedialog.askdirectory(title = "Select the parent folder containing the data")
         self._write_settings()
+
+    def _get_data_location(self):
+        # get the path
+        if messagebox.askokcancel("Warning", "Warning! Continuing will cause any save data to be erased. This will hopefully be fixed at some later date, but for now, only continue if you are sure."):
+            self._get_data_location_initial()
+            # but now we want to re-draw the treeview after clearing it
+            self.file_treeview.delete(*self.file_treeview.get_children())
+            self._fill_file_tree('')
 
     def _get_matlab_location(self):
         self.settings["MATLAB_PATH"] = filedialog.askopenfilename(title = "Select the matlab executable")#, filetypes=(("exe", "*.exe")))
@@ -447,13 +458,18 @@ class RightClick():
         # now get the current set of selected files
         self.curr_selection = self.parent.file_treeview.selection()
 
+    """ Need to consolidate the _determine_entries and _add_options functions at some point """
+
     def _determine_entries(self):
         if "FOLDER" in self.parent.context:
             entry = self.parent.preloaded_data[self.curr_selection[0]]
             if isinstance(entry, InfoContainer):
                 if entry.check_bids_ready():
-                    self.popup_menu.add_command(label="Convert to BIDS", command=self._folder_to_bids_threaded)
+                    self.popup_menu.add_command(label="Convert to BIDS", command=self._folder_to_bids)
                     self.popup_menu.add_command(label="See progress", command=self.check_progress)
+        # give the option to associate one or more mrk files with all con files
+        if ".MRK" in self.parent.context and not self.parent.treeview_select_mode.startswith("ASSOCIATE"):
+            self.popup_menu.add_command(label="Associate with all", command=lambda: self._associate_mrk(all_=True))
 
     def _add_options(self):
         # a context dependent function to only add options that are applicable to the current situation
@@ -461,7 +477,7 @@ class RightClick():
         self.popup_menu.delete(0, self.popup_menu.index("end"))
         # now, draw the manu elements required depending on context
         if self.parent.treeview_select_mode == "NORMAL":
-            if "FOLDER" not in self.parent.context:
+            if "FOLDER" not in self.parent.context and self.parent.context != ():
                 self.popup_menu.add_command(label="Associate", command=self._associate_mrk)
                 self.popup_menu.add_command(label="Create Folder", command=self._create_folder)
             else:
@@ -474,30 +490,47 @@ class RightClick():
         # we will have problems if this is called while it already exists... maybe??
         self.progress_popup = ProgressPopup(self.parent, self.progress)
 
-    def _folder_to_bids_threaded(self):
+    def _folder_to_bids(self):
         sid = self.parent.file_treeview.selection()[0]
         self.progress_popup = ProgressPopup(self.parent, self.progress)
-        t = threading.Thread(target=self._folder_to_bids, args=[sid])
-        t.start()
+        self._make_bids_folders(sid)
+        #t = threading.Thread(target=self._folder_to_bids, args=[sid])
+        #t.start()
 
-    def _folder_to_bids(self, sid):
+    @threaded
+    def _make_bids_folders(self, sid):
         selected_IC = self.parent.preloaded_data[sid]
-        print(selected_IC.extra_data, 'extra data')
-        # put the entire process in a thread because it takes a little while...
+        #new_folder_sid = None
+        bids_folder_sid = None
+        bids_folder_path = path.join(self.parent.settings['DATA_PATH'], 'BIDS')
+        for sid in self.parent.file_treeview.get_children():
+            if self.parent.file_treeview.item(sid)['text'] == 'BIDS':
+                bids_folder_sid = sid
+                break
+        if bids_folder_sid is None:
+            # in this case it doesn't exist so make a new folder
+            makedirs(bids_folder_path)
+            bids_folder_sid = self.parent.file_treeview.ordered_insert('', text='BIDS', values=('', bids_folder_path))
+        
         for acq, raw_kit in selected_IC.raw_files.items():
             self.progress.set("Working on acquisition {0}".format(acq))
-            target_folder = self.parent.file_treeview.item(sid)['values'][1]+'_BIDS'
-            folder_parent = self.parent.file_treeview.parent(sid)
+            target_folder = path.join(bids_folder_path, selected_IC.proj_name[1].get())
+            #folder_parent = self.parent.file_treeview.parent(sid)
             raw_to_bids(selected_IC.subject_ID[1].get(),
                         selected_IC.task_name[1].get(),
                         raw_kit,
                         target_folder,
+                        electrode=selected_IC.contained_files['.elp'][0].file,
+                        hsp=selected_IC.contained_files['.hsp'][0].file,
                         session_id=selected_IC.session_ID[1].get(),
                         acquisition=acq,
                         extra_data=selected_IC.extra_data[acq])
-            new_folder_sid = self.parent.file_treeview.ordered_insert(folder_parent, text=path.basename(target_folder), values=['', target_folder])
-            self.parent._fill_file_tree(new_folder_sid, target_folder)
-            # set the message to done, but also close the window if it hasn't already been closed
+            # if this is the first folder set new_folder_sid, otherwise keep the old one
+            #if new_folder_sid is None:
+            #    new_folder_sid = self.parent.file_treeview.ordered_insert(folder_parent, text=path.basename(target_folder), values=['', target_folder])
+        # fill the tree all at once??
+        self.parent._fill_file_tree(bids_folder_sid, target_folder)
+        # set the message to done, but also close the window if it hasn't already been closed
         self.progress.set("Done")
         try:
             self.progress_popup.destroy()
@@ -536,44 +569,60 @@ class RightClick():
             else:
                 print('Folder already exists!')
 
-    def _associate_mrk(self):
+    def _associate_mrk(self, all_=False):
         # allow the user to select an .mrk file if a .con file has been selected
         # (or vice-versa) and associate the mrk file with the con file
-        if self.parent.treeview_select_mode == "NORMAL":
-            # initialise the association process
-            if '.MRK' in self.parent.context:
-                messagebox.showinfo("Select", "Please select the .con file(s) associated with this file.\nOnce you have selected all required files, right click and press 'associate' again")
-                self.parent.set_treeview_mode("ASSOCIATE-CON")
-            elif '.CON' in self.parent.context:
-                messagebox.showinfo("Select", "Please select the .mrk file(s) associated with this file.\nOnce you have selected all required files, right click and press 'associate' again")
-                self.parent.set_treeview_mode("ASSOCIATE-MRK")
-            else:
-                messagebox.showerror("Error", "Invalid file selection")
-        elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
-            # complete the association process
-            cont = False
-            if self.parent.treeview_select_mode == "ASSOCIATE-CON":
-                # in this case expect the user to have selected one or more .mrk files
-                if ".CON" in self.parent.context:
-                    # the previously selected files will be .mrk files:
-                    mrk_files = [self.parent.preloaded_data[sid] for sid in self.prev_selection]
-                    con_files = [self.parent.preloaded_data[sid] for sid in self.curr_selection]
+        con_files = []
+        if all_ and self.parent.treeview_select_mode == "NORMAL":
+            mrk_files = [self.parent.preloaded_data[sid] for sid in self.curr_selection]
+            # get the parent folder and then find all .con file children
+            parent = self.parent.file_treeview.parent(mrk_files[0].ID)
+            IC = self.parent.preloaded_data[parent]
+            for con_file in IC.contained_files['.con']:
+                con_file.required_info['associated_mrks'] = mrk_files
+        else:
+            if self.parent.treeview_select_mode == "NORMAL":
+                # initialise the association process
+                if '.MRK' in self.parent.context:
+                    messagebox.showinfo("Select", "Please select the .con file(s) associated with this file.\nOnce you have selected all required files, right click and press 'associate' again")
+                    self.parent.set_treeview_mode("ASSOCIATE-CON")
+                elif '.CON' in self.parent.context:
+                    messagebox.showinfo("Select", "Please select the .mrk file(s) associated with this file.\nOnce you have selected all required files, right click and press 'associate' again")
+                    self.parent.set_treeview_mode("ASSOCIATE-MRK")
                 else:
-                    cont = messagebox.askretrycancel("Error", "The files you selected are not valid.\nWould you like to select the correct .con files, or cancel?")
-            elif self.parent.treeview_select_mode == "ASSOCIATE-MRK":
-                # in this case expect the user to have selected one or more .mrk files
-                if ".MRK" in self.parent.context:
-                    # the previously selected files will be .con files:
-                    con_files = [self.parent.preloaded_data[sid] for sid in self.prev_selection]
-                    mrk_files = [self.parent.preloaded_data[sid] for sid in self.curr_selection]
-                else:
-                    cont = messagebox.askretrycancel("Error", "The files you selected are not valid.\nWould you like to select the correct .mrk files, or cancel?")
+                    messagebox.showerror("Error", "Invalid file selection")
+            elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
+                # complete the association process
+                cont = None
+                if self.parent.treeview_select_mode == "ASSOCIATE-CON":
+                    # in this case expect the user to have selected one or more .mrk files
+                    if ".CON" in self.parent.context:
+                        # the previously selected files will be .mrk files:
+                        mrk_files = [self.parent.preloaded_data[sid] for sid in self.prev_selection]
+                        con_files = [self.parent.preloaded_data[sid] for sid in self.curr_selection]
+                    else:
+                        cont = messagebox.askretrycancel("Error", "The files you selected are not valid.\nWould you like to select the correct .con files, or cancel?")
+                elif self.parent.treeview_select_mode == "ASSOCIATE-MRK":
+                    # in this case expect the user to have selected one or more .mrk files
+                    if ".MRK" in self.parent.context:
+                        # the previously selected files will be .con files:
+                        con_files = [self.parent.preloaded_data[sid] for sid in self.prev_selection]
+                        mrk_files = [self.parent.preloaded_data[sid] for sid in self.curr_selection]
+                    else:
+                        cont = messagebox.askretrycancel("Error", "The files you selected are not valid.\nWould you like to select the correct .mrk files, or cancel?")
 
-            # now associate the mrk files with the con files:
-            for con_file_ in con_files:
-                con_file_.required_info['associated_mrks'] = mrk_files
-            if not cont:
-                self.parent.set_treeview_mode("NORMAL") 
+                # now associate the mrk files with the con files:
+                if cont is None:
+                    for con_file_ in con_files:
+                        con_file_.required_info['associated_mrks'] = mrk_files
+                    # check if the con file is the currently selected file
+                    if self.parent.treeview_select_mode == "ASSOCIATE-CON":
+                        # if so, redraw the info panel and call the mrk association function so GUI is updated
+                        self.parent.info_notebook.draw()
+                        self.parent._highlight_associated_mrks(None)
+                    self.parent.set_treeview_mode("NORMAL") 
+                if cont == False:
+                    self.parent.set_treeview_mode("NORMAL") 
 
     def popup(self, event):
         self._add_options()

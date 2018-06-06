@@ -12,3 +12,15 @@ def get_object_class(dtype):
         return map_.get(dtype, generic_file)
     else:
         return 'folder'     # maybe??
+
+def threaded(func):
+    """
+    Simple function to be used as a decorator to allow the
+    decorated function to be threaded automatically
+    """
+    from threading import Thread
+    def wrapper(*args, **kwargs):
+        thread = Thread(target = func, args=args, kwargs=kwargs)
+        thread.start()
+        return thread
+    return wrapper

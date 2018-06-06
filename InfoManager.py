@@ -37,12 +37,14 @@ class InfoManager(Notebook):
         # finally some objects other widgets that we may like to modify externally
         # by defining them here they will be persistent, so we can draw/undraw them.
         self.raw_gen_btn = Button(self.info_frame, text="Initialise Data", command=self._create_raws, state=DISABLED)
+        self.bids_gen_btn = Button(self.info_frame, text="Generate BIDS", command=self._create_raws, state=DISABLED)
 
         self._data = None
         self.requires_update = True
 
     def _create_raws(self):
         self._data[0]._create_raws()
+        self.bids_gen_btn.config(state=NORMAL)
 
     """
     Each tab type will have it's own function to fill it with data
@@ -60,9 +62,11 @@ class InfoManager(Notebook):
         data.check_bids_ready()
 
         if data is not None:
+            self.info_frame_entries.append(InfoEntry(self.info_frame, data.proj_name))
             self.info_frame_entries.append(InfoEntry(self.info_frame, data.subject_ID))
             self.info_frame_entries.append(InfoEntry(self.info_frame, data.task_name))
             self.info_frame_entries.append(InfoEntry(self.info_frame, data.session_ID))
+            self.info_frame_entries.append(InfoEntry(self.info_frame, data.dewar_position))
             #self.info_frame_entries.append(InfoEntry(self.info_frame, data.run_number))
             #self.info_frame_entries.append(InfoLabel(self.info_frame, data.measurement_time))
             #self.info_frame_entries.append(InfoLabel(self.info_frame, data.measurement_length))
@@ -96,7 +100,9 @@ class InfoManager(Notebook):
         for entry in self.info_frame_entries:
             self.add_gridrow(entry)
         # add a button that can be pressed to generate the RAW objects
-        self.raw_gen_btn.grid(row=entry.master.grid_size()[1], column=0)
+        btn_row = row=entry.master.grid_size()[1]
+        self.raw_gen_btn.grid(row=btn_row, column=0)
+        self.bids_gen_btn.grid(row=btn_row, column=1)
         self.info_frame.grid(sticky="nsew")
 
     def _display_nothing(self):
@@ -152,7 +158,7 @@ class InfoManager(Notebook):
             # have a final check to see if anything has actually been shown.
             # If not, show some message...
             if not anything_displayed:
-                Label(self.info_frame, text="No info to show about file sorry!").grid(column=0, row=0, sticky=W)
+                Label(self.info_frame, text="No info to show about file sorry!").grid(sticky=W)
         else:
             # create a Text widget and read in the file
             textentry = ScrolledText(self.info_frame, wrap=WORD)
@@ -165,6 +171,7 @@ class InfoManager(Notebook):
         self.info_frame.grid(sticky="nsew")
         if data_obj.display_raw:
             self.info_frame.grid_columnconfigure(0, weight=1)
+            self.info_frame.grid_columnconfigure(1, weight=0)
             self.info_frame.grid_rowconfigure(0, weight=1)
         else:
             self.info_frame.grid_columnconfigure(0, weight=1)
@@ -220,6 +227,8 @@ class InfoManager(Notebook):
                     return InfoEntry(master, (key, value))
                 elif isinstance(value, BooleanVar):
                     return InfoChoice(master, (key, value))
+                #elif isinstance(value, ListVar):
+                #    return InfoList(master, (key, value))
             else:
                 print('Error!!', data)
         else:
@@ -234,6 +243,7 @@ class InfoManager(Notebook):
             # otherwise we don't need to populate anything
 
     def draw(self):
+        print(self._data)
         if self._data is None:
             self._display_nothing()
         else:
@@ -250,7 +260,8 @@ class InfoManager(Notebook):
                         self._display_known_file()
                     else:
                         self._display_unknown_file()
-                    
+            elif len(self._data) == 0:
+                self._display_nothing()
             else:
                 self._display_multiple_types()
             
