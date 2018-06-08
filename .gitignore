@@ -109,3 +109,4 @@ venv.bak/
 settings.pkl
 ListVar.py
 thread_test.py
+mne_bids/MNEExceptions.py

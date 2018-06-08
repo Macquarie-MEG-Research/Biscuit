@@ -24,6 +24,9 @@ class con_file(FileInfo):
 
         # set any optional info
         self.optional_info['Is Junk'] = BooleanVar()
+        self.optional_info['Is empty room'] = BooleanVar()
+        if 'emptyroom' in self.file:
+            self.optional_info['Is empty room'].set(True)
 
         # set any required info
         self.required_info['Acquisition'] = StringVar()
@@ -31,7 +34,7 @@ class con_file(FileInfo):
 
         # set any particular bad values
         # The keys of this dictionary must match the keys in the required info
-        self.bad_values['Acquisition'] = {'values':['']}       # remove dtypes??
+        self.bad_values['Acquisition'] = {'values':['']}
         self.bad_values['associated_mrks'] = {'values':[[]]}
 
 
@@ -63,27 +66,10 @@ class con_file(FileInfo):
     
     def check_complete(self):
         """
-        This returns the list of bad values.
-        If there are none then an empty list will be returned
-
-        Actually, may be able to get this to be generic by using the bad_values dictionary...
+        Check there are no bad values
         """
 
-        # personalised check function for .con files
-        # we need to make sure that the run number is not equal to 0:
-        bads = []
-        for key in self.bad_values:
-            data = self.required_info.get(key, None)
-            if data is not None:
-                if isinstance(data, Variable):
-                    # handle the Variable style objects differently as we need to call .get() on them
-                    try:
-                        if data.get() in self.bad_values[key]['values']:
-                            bads.append((key, data.get()))
-                    except TclError:
-                        # getting an invalid value. Add to bads
-                        bads.append((key, ''))
-                else:
-                    if data in self.bad_values[key]['values']:
-                        bads.append((key, data))
-        return bads
+        # if the con file is junk or the empty room file then we consider it complete
+        if self.optional_info['Is Junk'].get() == True or self.optional_info['Is empty room'].get() == True:
+            return []
+        return super(con_file, self).check_complete()

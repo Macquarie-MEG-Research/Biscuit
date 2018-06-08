@@ -126,6 +126,8 @@ class InfoContainer():
         acqs = dict()
         for con_file in self.contained_files['.con']:
             acq = con_file.required_info['Acquisition'].get()
+            if con_file.optional_info['Is empty room'].get():
+                acq = 'emptyroom'
             if acq in acqs:
                 acqs[acq].append(con_file)
             else:
@@ -139,10 +141,14 @@ class InfoContainer():
                 pass
             elif len(con_files) == 1:
                 # in this case we have a single con file per acq, and some number of mrk files
-                self.raw_files[acq] = read_raw_kit(con_files[0].file,
-                                                   mrk = [mrk_file.file for mrk_file in con_files[0].required_info['associated_mrks']],    # construct a list of the file paths
-                                                   elp = self.contained_files['.elp'][0].file,        # we should only have 1 .elp...
-                                                   hsp = self.contained_files['.hsp'][0].file)        # ... and one .hsp file in the folder
+                if acq == 'emptyroom':
+                    # in this case we don't have/need hsp, elp or mrk files:
+                    self.raw_files[acq] = read_raw_kit(con_files[0].file)
+                else:
+                    self.raw_files[acq] = read_raw_kit(con_files[0].file,
+                                                    mrk = [mrk_file.file for mrk_file in con_files[0].required_info['associated_mrks']],    # construct a list of the file paths
+                                                    elp = self.contained_files['.elp'][0].file,        # we should only have 1 .elp...
+                                                    hsp = self.contained_files['.hsp'][0].file)        # ... and one .hsp file in the folder
                 # also populate the extra data dictionary so that it can be used when producing bids data
                 self.extra_data[acq] = {'InstitutionName': con_files[0].info['Insitution name'],
                                         'ManufacturersModelName':con_files[0].info['Model name'],

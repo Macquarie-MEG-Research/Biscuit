@@ -6,6 +6,7 @@ import mne
 import os.path as path
 from os import listdir, scandir
 from sys import version_info
+from datetime import datetime
 
 def process_folder(folder, prefix='', validate=False):
     """
@@ -89,8 +90,10 @@ if __name__ == "__main__":
                             hsp = path.join(p, '2630_RS_PI160_2017_08_04.hsp'))
     #print(a.info['line_freq'])
     print('hi')
-    print(a.info['dig'])
-    print(a.info['hpi_meas'])
-    print(a.info['hpi_results'])
-    print(a.info['hpi_subsystem'])
+    date = a.info['meas_date']
+    f = datetime.fromtimestamp(date).strftime('%Y%m%d')
+    print(f)
+    #print(a.info['hpi_meas'])
+    #print(a.info['hpi_results'])
+    #print(a.info['hpi_subsystem'])
     #raw_to_bids('CONTROL01', 'TASK01', a, path.join(p, 'newpath'), session_id='01', run=1)

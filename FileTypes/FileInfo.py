@@ -73,7 +73,22 @@ class FileInfo():
         If the file has all the required information then return an empty list (no bad values).
         Otherwise return the list of keys that require completing
         """
-        return []
+        bads = []
+        for key in self.bad_values:
+            data = self.required_info.get(key, None)
+            if data is not None:
+                if isinstance(data, Variable):
+                    # handle the Variable style objects differently as we need to call .get() on them
+                    try:
+                        if data.get() in self.bad_values[key]['values']:
+                            bads.append((key, data.get()))
+                    except TclError:
+                        # getting an invalid value. Add to bads
+                        bads.append((key, ''))
+                else:
+                    if data in self.bad_values[key]['values']:
+                        bads.append((key, data))
+        return bads
 
     def copy(self, new_id):
         """

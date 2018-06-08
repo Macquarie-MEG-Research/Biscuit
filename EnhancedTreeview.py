@@ -111,19 +111,24 @@ class EnhancedTreeview(Treeview):
         Allows for objects to be inserted in the correct location alphabetically
         they will be sorted by their text fields
         this should be extended so that it is sorted by text > then any values in order
+        This will also only allow for insertion of folders in the correct place
 
         Returns the id of the object that has been inserted
         """
         sort_text = kwargs.get('text', None)
         if sort_text is not None:
             # only iterate over the children that are folders
-            for i, child in enumerate([i for i in self.get_children(parent) if isdir(self.item(i)['values'][1])]):
-                print(self.item(child)['text'], sort_text, sort_text < self.item(child)['text'])
-                if sort_text < self.item(child)['text']:
-                    index = i
-                    break
+            child_folders = [i for i in self.get_children(parent) if isdir(self.item(i)['values'][1])]
+            if len(child_folders) != 0:
+                for i, child in enumerate(child_folders):
+                    print(self.item(child)['text'], sort_text, sort_text < self.item(child)['text'])
+                    if sort_text < self.item(child)['text']:
+                        index = i
+                        break
+                else:
+                    index = i + 1
             else:
-                index = i + 1
+                index = 0
             
             return self.insert(parent, index, *args, **kwargs)
 

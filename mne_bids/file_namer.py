@@ -4,9 +4,9 @@
 
 from collections import OrderedDict
 from mne.externals.six import string_types
-from os.path import join, splitext
+from os.path import join
 
-from .utils import _check_types, _check_key_val
+from .utils import _check_types, _check_key_val, _mkdir_p, _get_ext
 
 # for now this is only MEG compatible
 class BIDSName():
@@ -57,7 +57,9 @@ class BIDSName():
                                             'meg.json':['task', 'ses', 'acq', 'run', 'proc'],
                                             'scans.tsv':['ses'],
                                             'events.tsv':['ses', 'task'],
-                                            '_rawfiles':['task', 'ses', 'acq', 'run', 'proc']}
+                                            'headshape':['ses'],            # this should *technically* have acq, acq for this is different to acq for data runs
+                                            'rawfiles':['task', 'ses', 'acq', 'run', 'proc'],
+                                            'folder':['task', 'ses', 'acq', 'run', 'proc']}
 
         if self.order['run'] is not None and not isinstance(self.order['run'], string_types):
             # Ensure that run is a string
@@ -74,9 +76,52 @@ class BIDSName():
         else:
             self._basepath = join("sub-{0}".format(subject))
 
-    def get_filename(self, file=None, parent_directory=""):
+    def get_filename(self, file='folder'):
         """
-        This will return the filename associated with the file
+        This will return the bids-compatible filename associated with the file
+
+        Parameters
+        ----------
+        file : str | "folder"
+            The type of file to produce the name and path of.
+            One of ('coordsystem.json', 'channels.tsv', 'meg.json', 'scans.tsv')
+            for a specific file, or, to produce the names of raw files the original name,
+            or even just file type may be entered (eg. 'data.con', or '.con')
+            This parameter is "folder" by default, indicating the function will return the
+            name of the data sub-folder (for MEG for example)
+
+        Returns:
+        filename : str
+            A bids-compatible file name for the required file
+        """
+        if file in self._file_specific_requirements:
+            required_fields = self._required_fields + self._file_specific_requirements[file]
+            _rawfile = False
+        else:
+            # assume that the default file name is required.
+            # This is the going to be the same as the meg.json file so that this
+            # name can be used to rename manufacturer specific files
+            required_fields = self._required_fields + self._file_specific_requirements['rawfiles']
+            _rawfile = True
+        
+        fields = []
+        for key, val in self.order.items():
+            if val is not None and key in required_fields:
+                _check_key_val(key, val)
+                fields.append("{0}-{1}".format(key, val))
+        
+        if _rawfile:
+            filename = "_".join(fields) + "_" + self.kind + _get_ext(file)
+        elif file == 'folder':
+            filename = "_".join(fields) + "_" + self.kind
+        else:
+            filename = "_".join(fields) + "_" + file
+
+        return filename
+
+    def get_filepath(self, file=None, root=""):
+        """
+        This will return the full file path associated with the file
         By default we will simply want the relative path, however, if a
         parent directory is specified it will be appended to the front of the path.
 
@@ -87,51 +132,46 @@ class BIDSName():
             One of ('coordsystem.json', 'channels.tsv', 'meg.json', 'scans.tsv')
             for a specific file, or, to produce the names of raw files the original name,
             or even just file type may be entered (eg. 'data.con', or '.con')
-        parent_directory : str | ""
+        root : str | ""
             The parent directory to set all sub-folders relative to.
             Only needed when creating absolute paths.
         """
-        if file in self._file_specific_requirements:
-            required_fields = self._required_fields + self._file_specific_requirements[file]
-            rawfile = False
-        else:
-            # assume that the default file name is required.
-            # This is the going to be the same as the meg.json file so that this
-            # name can be used to rename manufacturer specific files
-            required_fields = self._required_fields + self._file_specific_requirements['_rawfiles']
-            rawfile = True
-        
-        fields = []
-        for key, val in self.order.items():
-            if val is not None and key in required_fields:
-                _check_key_val(key, val)
-                fields.append("{0}-{1}".format(key, val))
-        
-        if rawfile:
-            # the raw files are (currently) put in a sub directory.
-            # the name of this is the same as the file name.
-            foldername = "_".join(fields) + "_" + self.kind
-            filename = foldername + self._get_ext(file)
-        else:
-            filename = "_".join(fields) + "_" + file
+        if file is not None:
+            filename = self.get_filename(file)
 
-        if file != 'scans.tsv':
-            if rawfile:
-                path = join(parent_directory, self._basepath, self.kind, foldername, filename)
+            if file in self._file_specific_requirements:
+                _rawfile = False
             else:
-                path = join(parent_directory, self._basepath, self.kind, filename)
-        else:
-            path = join(parent_directory, self._basepath, filename)
-        return path
+                _rawfile = True
 
-    def _get_ext(self, fname):
-        """ Get the extension for the file specified by fname """
-        name, ext = splitext(fname)
-        if ext == '':
-            # in this case fname is simply the extension (possibly without the period, so fix this if needed)
-            if name[0] == '.':
-                return name
+            # this is currently just for MEG data, but should be able to be generalised easily
+            if file != 'scans.tsv':
+                if _rawfile:
+                    path = join(root, self._basepath, self.kind, self.get_filename('folder'), filename)
+                else:
+                    path = join(root, self._basepath, self.kind, filename)
             else:
-                return '.{0}'.format(name)
+                path = join(root, self._basepath, filename)
+            return path
         else:
-            return ext
+            # just return the base path
+            return self._basepath
+
+    def create_folders(self, root=None):
+        """
+        Create a BIDS folder hierarchy.
+
+        This creates a hierarchy of folders *within* a BIDS dataset. You should
+        plan to create these folders *inside* the root folder of the dataset.
+        The names are generated automatically based on the 
+
+        Parameters:
+        root : str | None
+            The root for the folders to be created. If None, folders will be
+            created in the current working directory.
+        """
+
+        if self.kind == 'meg':
+            _mkdir_p(join(root, self._basepath, self.kind, self.get_filename('folder')))
+        else:
+            _mkdir_p(join(root, self._basepath, self.kind))

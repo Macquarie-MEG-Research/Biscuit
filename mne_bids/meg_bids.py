@@ -22,9 +22,11 @@ from datetime import datetime
 from warnings import warn
 
 from .utils import (make_bids_filename, make_bids_folders,
-                    make_dataset_description, _write_json)
+                    make_dataset_description, _write_json, _get_ext)
 from .io import _parse_ext, _read_raw
 from .file_namer import BIDSName
+
+from .MNEExceptions import SessionError
 
 ALLOWED_KINDS = ['meg', 'ieeg']
 orientation = {'.sqd': 'ALS', '.con': 'ALS', '.fif': 'RAS', '.gz': 'RAS',
@@ -177,6 +179,7 @@ def _coordsystem_json(raw, unit, orient, manufacturer, fname, verbose):
 
 
 def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
+    """ Sidecar json """
 
     sfreq = raw.info['sfreq']
     rectime = int(round(raw.times[-1]))      # for continuous data I think...
@@ -251,8 +254,8 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
 
 def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                 acquisition=None, run=None, kind='meg', events_data=None,
-                event_id=None, hpi=None, electrode=None, hsp=None,
-                config=None, overwrite=True, verbose=True, extra_data=dict()):
+                event_id=None, hpi=None, electrode=None, hsp=None, emptyroom=False,
+                config=None, overwrite=False, verbose=True, extra_data=dict()):
     """Walk over a folder of files and create bids compatible folder.
 
     Parameters
@@ -291,6 +294,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     hsp : None | str | array, shape = (n_points, 3)
         Digitizer head shape points, or path to head shape file. If more than
         10`000 points are in the head shape, they are automatically decimated.
+    emptyroom : False | bool
+        Whether or not the supplied file is for the empty room measurement
     config : str | None
         A path to the configuration file to use if the data is from a BTi
         system.
@@ -323,15 +328,17 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                          'got %s' % type(raw_file))
 
     # this will only work if the user specifies the electrode and hsp files, which you wouldn't normally do if you just provide a raw
-    # If raw files were to store all the 
-    extra_data["DigitizedLandmarks"] = (True if electrode is not None else False)
-    extra_data["DigitizedHeadPoints"] = (True if hsp is not None else False)
+    # If raw files were to store all the paths we wouldn't need to do this (other than empty room override...)
+    extra_data["DigitizedLandmarks"] = (True if (electrode is not None and not emptyroom) else False)
+    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and not emptyroom) else False)
 
     #create a BIDSName object for the files
     namer = BIDSName(subject=subject_id, session=session_id,
                      task=task, run=run, kind=kind, acquisition=acquisition)
 
     # the pathing can be improved too with this new namer object
+    namer.create_folders(root=output_path)
+    """
     data_path = make_bids_folders(subject=subject_id, session=session_id,
                                   kind=kind, root=output_path,
                                   overwrite=overwrite,
@@ -343,16 +350,18 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                                      root=output_path,
                                      overwrite=False,
                                      verbose=verbose)
+    """
 
     # create filenames
     # it would be better to get these as absolute paths then pass
     # the output path and relative path to the functions maybe?
-    scans_fname = namer.get_filename('scans.tsv', output_path)
-    coordsystem_fname = namer.get_filename('coordsystem.json', output_path)
-    data_meta_fname = namer.get_filename('{0}.json'.format(kind), output_path)
-    raw_file_bids = namer.get_filename(raw_fname)
-    events_tsv_fname = namer.get_filename('events.tsv', output_path)
-    channels_fname = namer.get_filename('channels.tsv', output_path)
+    scans_fname = namer.get_filepath('scans.tsv', output_path)
+    coordsystem_fname = namer.get_filepath('coordsystem.json', output_path)
+    data_meta_fname = namer.get_filepath('{0}.json'.format(kind), output_path)
+    raw_file_bids = namer.get_filepath(raw_fname)   # only need the relative path here (used for scans.tsv)
+    events_tsv_fname = namer.get_filepath('events.tsv', output_path)
+    channels_fname = namer.get_filepath('channels.tsv', output_path)
+    headshape_fname = namer.get_filepath('headshape', output_path)
 
     # Read in Raw object and extract metadata from Raw object if needed
     if kind == 'meg':
@@ -367,17 +376,20 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     # save stuff
     if kind == 'meg':
         _scans_tsv(raw, raw_file_bids, scans_fname, verbose)
-        _coordsystem_json(raw, unit, orient, manufacturer, coordsystem_fname,
-                          verbose)
+        if not emptyroom:
+            _coordsystem_json(raw, unit, orient, manufacturer, coordsystem_fname,
+                              verbose)
 
     make_dataset_description(output_path, name=extra_data.get("Name", " "),
                              verbose=verbose)
     _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose, **extra_data)
-    _channels_tsv(raw, channels_fname, verbose)
 
-    events = _read_events(events_data, raw)
-    if len(events) > 0:
-        _events_tsv(events, raw, events_tsv_fname, event_id, verbose)
+    if not emptyroom:
+        _channels_tsv(raw, channels_fname, verbose)
+
+        events = _read_events(events_data, raw)
+        if len(events) > 0:
+            _events_tsv(events, raw, events_tsv_fname, event_id, verbose)
 
     # for FIF, we need to re-save the file to fix the file pointer
     # for files with multiple parts
@@ -386,7 +398,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     else:
         # "absolute" file path. Will be actually absolute if the output path
         # is absolute. Otherwise will be the full relative path to the raw file
-        raw_file_bids_abs = namer.get_filename(raw_fname, output_path)
+        raw_file_bids_abs = namer.get_filepath(raw_fname, output_path)
         # check to make sure that the folder exists that we want to put the file in
         if os.path.exists(raw_file_bids_abs):
             if overwrite:
@@ -399,11 +411,18 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                                  ' True.' % raw_file_bids)
         else:
             # ensure the sub-folder exists
-            # this wouldn't be needed if we merged the folder creation process into the naming function.
             if not os.path.exists(os.path.dirname(raw_file_bids_abs)):
                 os.makedirs(os.path.dirname(raw_file_bids_abs))
             # copy the file
             sh.copyfile(raw_fname, raw_file_bids_abs)
+
+    # check to see if there is a headspace (hsp) or electrode placement (electrode) provided.
+    # if so, copy it to the correct location
+    if not emptyroom:
+        for f in (electrode, hsp):
+            if f is not None:
+                sh.copyfile(f, headshape_fname + _get_ext(f))
+
 
     return output_path
 

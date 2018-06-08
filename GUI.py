@@ -8,7 +8,7 @@ from tkinter.ttk import *
 import pickle
 import os.path as path
 from os import listdir, getcwd, makedirs
-import datetime
+from datetime import datetime
 import threading
 
 from platform import system as os_name
@@ -85,10 +85,13 @@ class main(Frame):
 
         # set some tag configurations
         self.file_treeview.tag_configure('ASSOC_FILES', foreground="Green")
+        self.file_treeview.tag_configure('BAD_FILE', foreground="Red")
 
     def _fill_file_tree(self, parent, directory = None):
         """
         Iterate over the folder structure and list all the files in the treeview
+
+        parent is the parent entry in the treeview ('' if the root)
 
         This function will need to be improved so that when multiple acquisitions are in a single folder it doesn't create multiple folders
         """
@@ -98,23 +101,29 @@ class main(Frame):
         else:
             dir_ = directory
 
+        # create a mapping of full paths to id's
+        curr_children = self.file_treeview.get_children(parent)
+        file_list = dict(zip([self.file_treeview.item(child)['values'][1] for child in curr_children],
+                             curr_children))
+
         # we want to put folders above files (it looks nicer!!)
-        num_folders = 0
         try:
             for file in listdir(dir_):
                 fname, ext = path.splitext(file)
-
                 fullpath = path.join(dir_, file)
-                
+
+                # need to check to see whether or not the file/folder already exists in the tree:
+                exists_id = file_list.get(fullpath, None)
                 if path.isdir(fullpath):
-                    folder = self.file_treeview.insert(parent, num_folders,
-                                                    values=['', fullpath],
-                                                    text=fname, open=False)
-                    num_folders += 1
-                    self._fill_file_tree(folder, directory=fullpath)
+                    if exists_id is None:
+                        exists_id = self.file_treeview.ordered_insert(parent,
+                                                                      values=['', fullpath],
+                                                                      text=fname, open=False)
+                    self._fill_file_tree(exists_id, directory=fullpath)
                 else:
-                    self.file_treeview.insert(parent, 'end', values=[ext, fullpath],
-                                            text=fname, open=False, tags=(ext))
+                    if exists_id is None:
+                        self.file_treeview.insert(parent, 'end', values=[ext, fullpath],
+                                                  text=fname, open=False, tags=(ext))
         except PermissionError:
             # user doesn't have sufficient permissions to open folder so it won't be included
             pass
@@ -378,7 +387,10 @@ class main(Frame):
                     # create the info container
                     IC = InfoContainer(id_, path_, self)
                     # then add it to the list of preloaded data
-                    self.preloaded_data[id_] = IC
+                    if IC.is_valid:
+                        self.preloaded_data[id_] = IC
+                    else:
+                        self.preloaded_data[id_] = None
                 else:
                     # get the class for the extension
                     cls_ = get_object_class(ext)
@@ -515,21 +527,38 @@ class RightClick():
         for acq, raw_kit in selected_IC.raw_files.items():
             self.progress.set("Working on acquisition {0}".format(acq))
             target_folder = path.join(bids_folder_path, selected_IC.proj_name[1].get())
-            #folder_parent = self.parent.file_treeview.parent(sid)
-            raw_to_bids(selected_IC.subject_ID[1].get(),
-                        selected_IC.task_name[1].get(),
+
+            # get the variables for the raw_to_bids conversion function:
+            subject_id = selected_IC.subject_ID[1].get()
+            task_name = selected_IC.task_name[1].get()
+            sess_id = selected_IC.session_ID[1].get()
+            emptyroom = False
+
+            extra_data = selected_IC.extra_data[acq]
+
+            if sess_id == '':
+                sess_id = None
+            if acq == 'emptyroom':
+                # session, subject and task are all specified by the bids format
+                sess_id = datetime.fromtimestamp(raw_kit.info['meas_date']).strftime('%Y%m%d')
+                subject_id = 'emptyroom'
+                task_name = 'noise'
+                acq=None    # set back to None as we don't actually want to display it
+                emptyroom = True
+            
+            # finally, run the actual conversion
+            raw_to_bids(subject_id,
+                        task_name,
                         raw_kit,
                         target_folder,
                         electrode=selected_IC.contained_files['.elp'][0].file,
                         hsp=selected_IC.contained_files['.hsp'][0].file,
-                        session_id=selected_IC.session_ID[1].get(),
+                        session_id=sess_id,
                         acquisition=acq,
-                        extra_data=selected_IC.extra_data[acq])
-            # if this is the first folder set new_folder_sid, otherwise keep the old one
-            #if new_folder_sid is None:
-            #    new_folder_sid = self.parent.file_treeview.ordered_insert(folder_parent, text=path.basename(target_folder), values=['', target_folder])
+                        emptyroom=emptyroom,
+                        extra_data=extra_data)
         # fill the tree all at once??
-        self.parent._fill_file_tree(bids_folder_sid, target_folder)
+        self.parent._fill_file_tree(bids_folder_sid, bids_folder_path)
         # set the message to done, but also close the window if it hasn't already been closed
         self.progress.set("Done")
         try:
