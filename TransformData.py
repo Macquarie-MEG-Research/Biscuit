@@ -76,9 +76,9 @@ class GUI(Frame):
             t = self.MEG_data[prefix].info['dev_head_t']
             trans = t['trans']
             orig_data = asarray([ch['loc'][:3] for ch in self.MEG_data[prefix].info['chs']])
-            orig_names = ['MEG {0}'.format(str(i).zfill(3)) for i in range(1,161)]
+            orig_names = ['MEG {0}'.format(str(i).zfill(3)) for i in range(1, 161)]
             new_data = asarray([dot(trans, append(ch['loc'][:3], [0])) for ch in self.MEG_data[prefix].info['chs']])
-            new_names = ['MEG new {0}'.format(str(i).zfill(3)) for i in range(1,161)]
+            new_names = ['MEG new {0}'.format(str(i).zfill(3)) for i in range(1, 161)]
 
             fig = plt.figure()
             ax = fig.add_subplot(111, projection='3d')

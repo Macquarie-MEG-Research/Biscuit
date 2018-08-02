@@ -1,4 +1,5 @@
 from tkinter import *
+from tkinter import Entry as tkEntry
 from tkinter.ttk import *
 import threading
 import shutil
@@ -7,12 +8,17 @@ from platform import system as os_name
 
 from os.path import isdir, basename, join
 
+
 class EnhancedTreeview(Treeview):
     def __init__(self, master, *args, **kwargs):
         self.master = master
         super(EnhancedTreeview, self).__init__(self.master, *args, **kwargs)
 
+        self.columns = ['#0'] + kwargs.get('displaycolumns', [])
+        self.editable_columns = []
+
         self.root_path = ""
+        self.entryPopup = None
 
     def enhance(self, *args, **kwargs):
         # main function that allows for extra functionality to be built on.
@@ -33,6 +39,79 @@ class EnhancedTreeview(Treeview):
         self._add_dnd()
         self.scrollbars = kwargs.get("scrollbars", [])
         self._add_scrollbars()
+        sortable = kwargs.get("sortable", False)
+        if sortable:
+            # sortable can either just be a list of columns, or if just True then the automatically determined visible columns are set as sortable
+            if not isinstance(sortable, list):
+                for column in self.columns:
+                    self.heading(column, command=lambda _col=column: self.treeview_sort_column(_col, False))
+            else:
+                for column in sortable:
+                    self.heading(column, command=lambda _col=column: self.treeview_sort_column(_col, False))
+        editable = kwargs.get("editable", False)
+        if editable:
+            # editable can either just be True (all entries editable), or a list of column names
+            if isinstance(editable, list):
+                self.editable_columns = editable
+            else:
+                # set as list of default columns
+                self.editable_columns = self.columns
+            # also bind the double click method
+            self.bind("<Double-1>", self.doubleclick_func)
+            # add to the treeview select bind to close the currently open entry?
+            self.bind("<<TreeviewSelect>>", self._close_entry, add='+')
+
+        """
+        could do check boxes using the unicode characters u"\u2610" and u"\u2611", but will look bad
+        self.check_columns = kwargs.get("check_columns", [])
+        if self.check_columns != []:
+            self.im_checked = PhotoImage(file='assets/checked.png')
+            self.im_unchecked = PhotoImage(file='assets/unchecked.png')
+            self.tag_configure("checked", image=self.im_checked)
+            self.tag_configure("unchecked", image=self.im_unchecked)
+            self.bind("<Button-1>>", self._toggle_checkbox, add='+')
+        """
+
+    def all_children(self, item=''):
+        """
+        This is a generator that will yield the ids of all the children
+        of the treeview recursively
+        They will not necessarily be in order. The folders will be after the
+        files listed in the folder
+        """
+        children = self.get_children(item)
+        if len(children) != 0:
+            for sid in children:
+                for child in self.all_children(sid):
+                    yield child
+            yield item
+        else:
+            yield item
+
+    def add_tags(self, id_, tags):
+        """
+        Add the tag specified to the list of tags for the object with id_
+        """
+        curr_tags = list(self.item(id_, option='tags'))
+        if isinstance(tags, list):
+            for t in tags:
+                if t not in curr_tags:
+                    curr_tags.append(t)
+        else:
+            if tags not in curr_tags:
+                curr_tags.append(t)
+        self.item(id_, tags=curr_tags)
+
+    def remove_tags(self, id_, tags):
+        curr_tags = list(self.item(id_, option='tags'))
+        if isinstance(tags, list):
+            for t in tags:
+                if t in curr_tags:
+                    curr_tags.remove(t)
+        else:
+            if tags in curr_tags:
+                curr_tags.remove(t)
+        self.item(id_, tags=curr_tags)
 
     def get_dnd_selection(self):
         # this will currently get the previously selected entry
@@ -74,20 +153,42 @@ class EnhancedTreeview(Treeview):
     def _add_scrollbars(self):
         for orient in self.scrollbars:
             if orient == 'x':
-                xsb = Scrollbar(self.master, orient = HORIZONTAL, command = self.xview)
-                xsb.pack(side = BOTTOM, fill = X)
+                xsb = Scrollbar(self.master, orient=HORIZONTAL, command=self.xview)
+                xsb.pack(side=BOTTOM, fill=X)
                 #xsb.grid(row=2,column=10, rowspan=10, sticky="ns", in_=self.master)
                 self.configure(xscroll=xsb.set)
             if orient == 'y':
-                ysb = Scrollbar(self.master, orient = VERTICAL, command = self.yview)
+                ysb = Scrollbar(self.master, orient=VERTICAL, command=self.yview)
                 #ysb.grid(row=14,column=0, rowspan=2, sticky="ew", in_=self.master)
-                ysb.pack(side = RIGHT, fill = Y)
+                ysb.pack(side=RIGHT, fill=Y)
                 self.configure(yscroll=ysb.set)
+
+    def _close_entry(self, event):
+        """ un-draw an open entry if there is one """
+        print('popup', self.entryPopup)
+        if self.entryPopup is not None:
+            try:
+                self.entryPopup.onExit(event)
+            except (AttributeError, TclError):
+                # In this case I dunno, but just pass
+                pass
+    """
+    def _toggle_checkbox(self, event):
+        # find out what row and column was clicked on
+        rowid = self.identify_row(event.y)
+        column_num = self.identify_column(event.x)
+        column = self.column(column_num, option='id')
+        if column_num == '#0':
+            column = column_num
+        # we only want to allow editing if the user has specified the column should be editable
+        if column in self.check_columns or column_num in self.check_columns:
+            pass
+    """
 
     @property
     def OnRightClick(self):
         return self.rightclick_func
-    
+
     @OnRightClick.setter
     def OnRightClick(self, func):
         # set the event to be processed when an entry is right-clicked
@@ -105,6 +206,66 @@ class EnhancedTreeview(Treeview):
     def OnLeftClick(self, value):
         # set the event to be processed when an entry is clicked
         self.bind("<<TreeviewSelect>>", self.leftclick_func, add='+')
+
+    def doubleclick_func(self, event):
+        ''' Executed, when a row is double-clicked. Opens 
+        read-only EntryPopup above the item's column, so it is possible
+        to select text '''
+        print('double clicked')
+
+        # close previous popups
+        #self.master.destroyPopups()
+
+        # what row and column was clicked on
+        rowid = self.identify_row(event.y)
+        column_num = self.identify_column(event.x)
+        column = self.column(column_num, option='id')
+        if column_num == '#0':
+            column = column_num
+        # we only want to allow editing if the user has specified the column should be editable
+        if column in self.editable_columns:
+            # get column position info
+            x, y, width, height = self.bbox(rowid, column)
+
+            # y-axis offset
+            pady = height // 2
+
+            # place Entry popup properly
+            if column == '#0':
+                text = self.item(rowid, 'text')
+            else:
+                text = self.item(rowid, 'values')[int(column_num[1:]) - 1]
+            if text == '':
+                text = u"\u2611"
+            self.entryPopup = EntryPopup(self, text, (rowid, column_num))
+            self.entryPopup.place(x=x, y=y + pady, width=width, anchor=W)
+
+    def treeview_sort_column(self, col, reverse):
+        # first, get the list of all open folders
+        sort_folders = [''] + self._get_open_folders()
+
+        for fid in sort_folders:
+            if col != '#0':
+                lst = [(self.set(k, col), k) for k in self.get_children(fid)]
+            else:
+                lst = [(self.item(sid, option='text'), sid) for sid in self.get_children(fid)]
+            lst.sort(reverse=reverse)
+
+            # rearrange items in sorted positions
+            for index, (_, k) in enumerate(lst):
+                self.move(k, fid, index)
+
+        # reverse sort next time
+        self.heading(col, command=lambda: self.treeview_sort_column(col, not reverse))
+
+    def _get_open_folders(self, parent=''):
+        open_folders = []
+        for sid in self.get_children(parent):
+            if self.item(sid, option='open'):
+                # check if the children of the open folder itself has any open folders
+                open_folders.append(self._get_open_folders(sid))
+                open_folders.append(sid)
+        return open_folders
 
     def ordered_insert(self, parent, *args, **kwargs):
         """
@@ -129,7 +290,7 @@ class EnhancedTreeview(Treeview):
                     index = i + 1
             else:
                 index = 0
-            
+
             return self.insert(parent, index, *args, **kwargs)
 
     def _get_insertion_index(self, child_sid, parent_sid):
@@ -142,6 +303,44 @@ class EnhancedTreeview(Treeview):
                 return index
         else:
             return index + 1        # one more than the total length of the list
+
+
+class EntryPopup(tkEntry):
+
+    def __init__(self, master, text, entry_index, **kw):
+        ''' Simple entry to go over the box in the treeview to allow entries to be edited
+        parent is the treeview parent
+        parent is a tuple of the format (row, column_id) so we can set the new value '''
+        super().__init__(master, **kw)
+        self.entry_index = entry_index
+
+        self.insert(0, text)
+        self['selectbackground'] = '#1BA1E2'
+        self['exportselection'] = False
+
+        self.focus_force()
+        self.bind("<Control-a>", self.selectAll)
+        self.bind("<Return>", self.onExit)
+
+    def selectAll(self, event):
+        ''' Set selection on the whole text '''
+        self.selection_range(0, 'end')
+
+        # returns 'break' to interrupt default key-bindings
+        return 'break'
+
+    def onExit(self, event):
+        ''' Write the current value in the entry to the value and un-draw it '''
+        value = self.get()
+        if self.entry_index[1] == '#0':
+            self.master.item(self.entry_index[0], text=value)
+        else:
+            old_vals = list(self.master.item(self.entry_index[0], 'values'))
+            old_vals[int(self.entry_index[1][1:]) - 1] = value
+            self.master.item(self.entry_index[0], values=old_vals)
+
+        self.destroy()
+
 
 class DNDManager():
     """
@@ -176,11 +375,11 @@ class DNDManager():
         self.start_widget = event.widget.winfo_containing(*event.widget.winfo_pointerxy())
         self.initial_selection = self.start_widget.get_dnd_selection()
         self.popup = Toplevel(bd=1, background='lightblue')
-        self.popup.wm_attributes('-alpha',0.9)
+        self.popup.wm_attributes('-alpha', 0.9)
         #self.popup.transient()
         self.popup.overrideredirect(1)      # forces the top level to have no border etc
         self.popup.withdraw()
-        xy = event.x_root+16, event.y_root+10
+        xy = event.x_root + 16, event.y_root + 10
         self.popup.geometry("+%d+%d" % xy)
         self.popup.deiconify()
         self.popup.lift()
@@ -194,7 +393,7 @@ class DNDManager():
         #print("What a drag!")
         try:
             # this can throw an error if the user very quickly clicks and moves the mouse
-            xy = event.x_root+16, event.y_root+10
+            xy = event.x_root + 16, event.y_root + 10
             self.popup.geometry("+%d+%d" % xy)
         except:
             # if this happens we want to just ignore it
@@ -216,6 +415,6 @@ class DNDManager():
             self.finish_widget.get_dnd_drop(self.start_widget, self.initial_selection, event)
             #except:
             #    print("widget you dropped on doesn't support DND!")
-        
+
         # finish up by setting the DNDManager to inactive again
         self.activated = False

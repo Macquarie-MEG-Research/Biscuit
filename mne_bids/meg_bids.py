@@ -21,12 +21,11 @@ from mne.externals.six import string_types
 from datetime import datetime
 from warnings import warn
 
+from .pick import coil_type
 from .utils import (make_bids_filename, make_bids_folders,
-                    make_dataset_description, _write_json, _get_ext)
+                    make_dataset_description, _write_json)
 from .io import _parse_ext, _read_raw
-from .file_namer import BIDSName
-
-from .MNEExceptions import SessionError
+#from .file_namer import BIDSName
 
 ALLOWED_KINDS = ['meg', 'ieeg']
 orientation = {'.sqd': 'ALS', '.con': 'ALS', '.fif': 'RAS', '.gz': 'RAS',
@@ -39,28 +38,48 @@ manufacturers = {'.sqd': 'KIT/Yokogawa', '.con': 'KIT/Yokogawa',
                  '.fif': 'Elekta', '.gz': 'Elekta', '.pdf': '4D Magnes',
                  '.ds': 'CTF'}
 
+IGNORED_CHANNELS = ['STI 014']
 
-def _channels_tsv(raw, fname, verbose):
+
+def _channels_tsv(raw, fname, verbose, overwrite):
     """Create channel tsv."""
     map_chs = defaultdict(lambda: 'OTHER')
-    map_chs.update(grad='MEGGRAD', mag='MEGMAG', stim='TRIG', eeg='EEG',
-                   ecog='ECOG', seeg='SEEG', eog='EOG', ecg='ECG', misc='MISC',
-                   resp='RESPONSE', ref_meg='REFMEG')
+    map_chs.update(meggradaxial='MEGGRADAXIAL',
+                   megrefgradaxial='MEGREFGRADAXIAL',
+                   meggradplanar='MEGGRADPLANAR',
+                   megmag='MEGMAG', megrefmag='MEGREFMAG',
+                   eeg='EEG', misc='MISC', stim='TRIG',
+                   ecog='ECOG', seeg='SEEG', eog='EOG', ecg='ECG')
     map_desc = defaultdict(lambda: 'Other type of channel')
-    map_desc.update(grad='Gradiometer', mag='Magnetometer',
-                    stim='Trigger',
-                    eeg='ElectroEncephaloGram',
+    map_desc.update(meggradaxial='Axial Gradiometer',
+                    megrefgradaxial='Axial Gradiometer Reference',
+                    meggradplanar='Planar Gradiometer',
+                    megmag='Magnetometer',
+                    megrefmag='Magnetometer Reference',
+                    stim='Trigger', eeg='ElectroEncephaloGram',
                     ecog='Electrocorticography',
                     seeg='StereoEEG',
                     ecg='ElectroCardioGram',
-                    eog='ElectrOculoGram', misc='Miscellaneous',
-                    ref_meg='Reference channel')
+                    eog='ElectrOculoGram',
+                    misc='Miscellaneous')
+    get_specific = ('mag', 'ref_meg', 'grad')
+
+    ignored_indexes = []
+    for ch_name in IGNORED_CHANNELS:
+        if ch_name in raw.ch_names:
+            ignored_indexes.append(raw.ch_names.index(ch_name))
 
     status, ch_type, description = list(), list(), list()
     for idx, ch in enumerate(raw.info['ch_names']):
         status.append('bad' if ch in raw.info['bads'] else 'good')
-        ch_type.append(map_chs[channel_type(raw.info, idx)])
-        description.append(map_desc[channel_type(raw.info, idx)])
+        _coil_type = coil_type(raw.info, idx)
+        _channel_type = channel_type(raw.info, idx)
+        if _channel_type in get_specific:
+            final_type = _coil_type
+        else:
+            final_type = _channel_type
+        ch_type.append(map_chs[final_type])
+        description.append(map_desc[final_type])
     low_cutoff, high_cutoff = (raw.info['highpass'], raw.info['lowpass'])
     units = [_unit2human.get(ich['unit'], 'n/a') for ich in raw.info['chs']]
     n_channels = raw.info['nchan']
@@ -75,7 +94,13 @@ def _channels_tsv(raw, fname, verbose):
                       ('low_cutoff', ['%.2f' % low_cutoff] * n_channels),
                       ('high_cutoff', ['%.2f' % high_cutoff] * n_channels),
                       ('status', status)]))
-    df.to_csv(fname, sep='\t', index=False)
+    df.drop(ignored_indexes, inplace=True)
+    if not os.path.exists(fname) or overwrite is True:
+        df.to_csv(fname, sep='\t', index=False)
+    else:
+        # maybe just raise error with no text and pick them all up later?
+        raise ValueError('"%s" already exists. Please set overwrite to'
+                         ' True.' % fname)
 
     if verbose:
         print(os.linesep + "Writing '%s'..." % fname + os.linesep)
@@ -84,8 +109,7 @@ def _channels_tsv(raw, fname, verbose):
     return fname
 
 
-# the name for this is not going to be quite correct...
-def _events_tsv(events, raw, fname, event_id, verbose):
+def _events_tsv(events, raw, fname, event_id, verbose, overwrite):
     """Create tsv file for events."""
 
     first_samp = raw.first_samp
@@ -100,12 +124,39 @@ def _events_tsv(events, raw, fname, event_id, verbose):
         df.condition = df.condition.map(event_id_map)
     df.onset /= sfreq
     df = df.fillna('n/a')
-    df.to_csv(fname, sep='\t', index=False)
+    if not os.path.exists(fname) or overwrite is True:
+        df.to_csv(fname, sep='\t', index=False)
+    else:
+        # maybe just raise error with no text and pick them all up later?
+        raise ValueError('"%s" already exists. Please set overwrite to'
+                         ' True.' % fname)
+
     if verbose:
         print(os.linesep + "Writing '%s'..." % fname + os.linesep)
         print(df.head())
 
     return fname
+
+
+def _participants_tsv(fname, subject_id="n/a", age="n/a", gender="n/a",
+                      group="n/a"):
+    """Create a tsv for participants"""
+    if os.path.exists(fname):
+        df = pd.read_csv(fname, sep='\t')
+        df = df.append(pd.DataFrame(data={'participant_id': [subject_id],
+                                          'age': [age], 'sex': [gender],
+                                          'group': [group]},
+                                    columns=['participant_id', 'age', 'sex',
+                                             'group']))
+        df = df.drop_duplicates()
+        df.sort_values(by='participant_id')
+    else:
+        df = pd.DataFrame(data={'participant_id': [subject_id],
+                                'age': [age], 'sex': [gender],
+                                'group': [group]},
+                          columns=['participant_id', 'age', 'sex', 'group'])
+
+    df.to_csv(fname, sep='\t', index=False)
 
 
 def _scans_tsv(raw, raw_fname, fname, verbose):
@@ -125,15 +176,16 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
     # If it does we will want to determine whether or not the data
     # is already there, and if not append it.
     if os.path.exists(fname):
-        existing_df = pd.read_csv(fname, sep='\t')
-        df = existing_df.append(pd.DataFrame({'filename': ['%s' % raw_fname],
-                                              'acq_time': [acq_time]}))
-        # maybe sort the data also?
+        df = pd.read_csv(fname, sep='\t')
+        df = df.append(pd.DataFrame(data={'filename': ['%s' % raw_fname],
+                                          'acq_time': [acq_time]},
+                                    columns=['filename', 'acq_time']))
+        df = df.drop_duplicates()
         df.sort_values(by='acq_time')
-        # not sure whether to sort by time or filename though...
     else:
-        df = pd.DataFrame({'filename': ['%s' % raw_fname],
-                       'acq_time': [acq_time]})
+        df = pd.DataFrame(data={'filename': ['%s' % raw_fname],
+                                'acq_time': [acq_time]},
+                          columns=['filename', 'acq_time'])
 
     df.to_csv(fname, sep='\t', index=False)
 
@@ -144,7 +196,8 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
     return fname
 
 
-def _coordsystem_json(raw, unit, orient, manufacturer, fname, verbose):
+def _coordsystem_json(raw, unit, orient, manufacturer, fname, verbose,
+                      overwrite):
     dig = raw.info['dig']
     coords = dict()
     fids = {d['ident']: d for d in dig if d['kind'] ==
@@ -173,12 +226,18 @@ def _coordsystem_json(raw, unit, orient, manufacturer, fname, verbose):
                 'HeadCoilCoordinateSystem': orient,
                 'HeadCoilCoordinateUnits': unit  # XXX validate this
                 }
-    _write_json(fid_json, fname)
+    if not os.path.exists(fname) or overwrite is True:
+        _write_json(fid_json, fname)
+    else:
+        # maybe just raise error with no text and pick them all up later?
+        raise ValueError('"%s" already exists. Please set overwrite to'
+                         ' True.' % fname)
 
     return fname
 
 
-def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
+def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
+                  **extra_data):
     """ Sidecar json """
 
     sfreq = raw.info['sfreq']
@@ -187,6 +246,13 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
     if powerlinefrequency is None:
         warn('No line frequency found, defaulting to 50 Hz')
         powerlinefrequency = 50
+
+    # determine whether any channels have to be ignored:
+    num_ignored = 0
+    for ch_name in IGNORED_CHANNELS:
+        if ch_name in raw.ch_names:
+            num_ignored += 1
+    # all ignored channels are trigger channels at the moment...
 
     n_megchan = len([ch for ch in raw.info['chs']
                      if ch['kind'] == FIFF.FIFFV_MEG_CH])
@@ -205,9 +271,9 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
     n_emgchan = len([ch for ch in raw.info['chs']
                      if ch['kind'] == FIFF.FIFFV_EMG_CH])
     n_miscchan = len([ch for ch in raw.info['chs']
-                     if ch['kind'] == FIFF.FIFFV_EOG_CH])
+                     if ch['kind'] == FIFF.FIFFV_MISC_CH])
     n_stimchan = len([ch for ch in raw.info['chs']
-                     if ch['kind'] == FIFF.FIFFV_STIM_CH])
+                     if ch['kind'] == FIFF.FIFFV_STIM_CH]) - num_ignored
 
     # Define modality-specific JSON dictionaries
     ch_info_json_common = [
@@ -217,7 +283,8 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
     ch_info_json_meg = [
         ('SamplingFrequency', sfreq),
         ("DewarPosition", extra_data.get("DewarPosition", "XXX")),
-        ("DigitizedLandmarks", extra_data.get("DigitizedLandmarks", False)),    # ("DigitizedLandmarks", True if raw.info.get("dig", None) is not None else False), #possibly?
+        # ("DigitizedLandmarks", True if raw.info.get("dig", None) is not None else False), #possibly?
+        ("DigitizedLandmarks", extra_data.get("DigitizedLandmarks", False)),
         ("DigitizedHeadPoints", extra_data.get("DigitizedHeadPoints", False)),
         ("SoftwareFilters", "n/a"),
         ('MEGChannelCount', n_megchan),
@@ -233,14 +300,20 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
         ('MiscChannelCount', n_miscchan),
         ('TriggerChannelCount', n_stimchan)]
     ch_info_misc = [
-        ('RecordingDuration', rectime)]
+        ('RecordingDuration', rectime),
+        ('ContinuousHeadLocalization', False)]
+
+    # maybe don't worry about this for now...
+    if extra_data.get('emptyroom', None) is not None:
+        ch_info_misc.append(('AssociatedEmptyRoom', extra_data.get('emptyroom')))
 
     # Stitch together the complete JSON dictionary
     ch_info_json = []
-    for field in ['InstitutionName', 'ManufacturersModelName']:
+    for field in ['InstitutionName', 'ManufacturersModelName',
+                  'DeviceSerialNumber']:
         data = extra_data.get(field, None)
         if data is not None:
-            ch_info_json.append((field, data)) 
+            ch_info_json.append((field, data))
     ch_info_json += ch_info_json_common
     append_kind_json = ch_info_json_meg if kind == 'meg' else ch_info_json_ieeg
     ch_info_json += append_kind_json
@@ -248,14 +321,21 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, **extra_data):
     ch_info_json += ch_info_misc
     ch_info_json = OrderedDict(ch_info_json)
 
-    _write_json(ch_info_json, fname, verbose=verbose)
+    if not os.path.exists(fname) or overwrite is True:
+        _write_json(ch_info_json, fname, verbose=verbose)
+    else:
+        # maybe just raise error with no text and pick them all up later?
+        raise ValueError('"%s" already exists. Please set overwrite to'
+                         ' True.' % fname)
+
     return fname
 
 
 def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                 acquisition=None, run=None, kind='meg', events_data=None,
-                event_id=None, hpi=None, electrode=None, hsp=None, emptyroom=False,
-                config=None, overwrite=False, verbose=True, extra_data=dict()):
+                event_id=None, hpi=None, electrode=None, hsp=None,
+                emptyroom=False, config=None, overwrite=True, verbose=False,
+                extra_data=dict(), participant_data=dict()):
     """Walk over a folder of files and create bids compatible folder.
 
     Parameters
@@ -294,19 +374,36 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     hsp : None | str | array, shape = (n_points, 3)
         Digitizer head shape points, or path to head shape file. If more than
         10`000 points are in the head shape, they are automatically decimated.
-    emptyroom : False | bool
+    emptyroom : bool | str
         Whether or not the supplied file is for the empty room measurement
+        If False we do nothing.
+        If True the file is used as an empty room file and handled correctly
+        If a string is provided it is assumed that this is the file path to
+        the associated empty room file.
     config : str | None
         A path to the configuration file to use if the data is from a BTi
         system.
-    overwrite : bool
-        If the file already exists, whether to overwrite it.
+    overwrite : True | bool | string
+        Whether or not to overwrite the produced json, tsv files and any copied raw data.
+        To avoid overwriting existing folders setting this to True will only overwrite
+        the files.
     verbose : bool
         If verbose is True, this will print a snippet of the sidecar files. If
         False, no content will be printed.
     extra_data : dictionary
         A dictionary containing any extra information required to populate the
         json files.
+        Currently supported keys are:
+        'InstitutionName', 'ManufacturersModelName','DewarPosition',
+        'Name' (Name of the project), 'DeviceSerialNumber'
+    participant_data : dict
+        A dictionary containing the participant information the recording is of.
+        This dictionary can have the following keys:
+        - age - The age of the participant in years
+        - gender - M (Male), F (Female) or O (other)(?)
+        - group - a string indicating the group within the study the
+            participant belongs to.
+        All values must be passed in as strings.
     """
     if isinstance(raw_file, string_types):
         # We must read in the raw data
@@ -327,41 +424,78 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         raise ValueError('raw_file must be an instance of str or BaseRaw, '
                          'got %s' % type(raw_file))
 
+    if isinstance(hpi, string_types):
+        # convert to a list for brevity later
+        hpi = [hpi]
+
+    if isinstance(emptyroom, string_types):
+        extra_data['emptyroom'] = emptyroom
+    elif emptyroom is True:
+        # session, subject and task are all specified by the bids format
+        session_id = datetime.fromtimestamp(
+            raw.info['meas_date']).strftime('%Y%m%d')
+        subject_id = 'emptyroom'
+        task = 'noise'
+        acquisition = None    # set back to None so it isn't displayed
+
+    # do some sanitzation of the participant data provided:
+    try:
+        age = int(participant_data['age'])
+    except (KeyError, ValueError):
+        age = 'n/a'
+    participant_data['age'] = age
+    gender = participant_data.get('gender', 'n/a')
+    if gender not in ['M', 'F', 'O']:
+        gender = 'n/a'
+    participant_data['gender'] = gender
+    participant_data['group'] = participant_data.get('group', 'n/a')
+
     # this will only work if the user specifies the electrode and hsp files, which you wouldn't normally do if you just provide a raw
     # If raw files were to store all the paths we wouldn't need to do this (other than empty room override...)
-    extra_data["DigitizedLandmarks"] = (True if (electrode is not None and not emptyroom) else False)
-    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and not emptyroom) else False)
+    extra_data["DigitizedLandmarks"] = (True if (electrode is not None and
+                                                 emptyroom is not True) else False)
+    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and emptyroom is not True) else False)
 
-    #create a BIDSName object for the files
-    namer = BIDSName(subject=subject_id, session=session_id,
-                     task=task, run=run, kind=kind, acquisition=acquisition)
-
-    # the pathing can be improved too with this new namer object
-    namer.create_folders(root=output_path)
-    """
     data_path = make_bids_folders(subject=subject_id, session=session_id,
                                   kind=kind, root=output_path,
-                                  overwrite=overwrite,
                                   verbose=verbose)
     if session_id is None:
         ses_path = data_path
     else:
         ses_path = make_bids_folders(subject=subject_id, session=session_id,
                                      root=output_path,
-                                     overwrite=False,
                                      verbose=verbose)
-    """
 
     # create filenames
-    # it would be better to get these as absolute paths then pass
-    # the output path and relative path to the functions maybe?
-    scans_fname = namer.get_filepath('scans.tsv', output_path)
-    coordsystem_fname = namer.get_filepath('coordsystem.json', output_path)
-    data_meta_fname = namer.get_filepath('{0}.json'.format(kind), output_path)
-    raw_file_bids = namer.get_filepath(raw_fname)   # only need the relative path here (used for scans.tsv)
-    events_tsv_fname = namer.get_filepath('events.tsv', output_path)
-    channels_fname = namer.get_filepath('channels.tsv', output_path)
-    headshape_fname = namer.get_filepath('headshape', output_path)
+    scans_fname = make_bids_filename(
+        subject=subject_id, session=session_id, suffix='scans.tsv',
+        prefix=ses_path)
+    participants_fname = make_bids_filename(prefix=output_path,
+                                            suffix='participants.tsv')
+    coordsystem_fname = make_bids_filename(
+        subject=subject_id, session=session_id, acquisition=acquisition,
+        suffix='coordsystem.json', prefix=data_path)
+    data_meta_fname = make_bids_filename(
+        subject=subject_id, session=session_id, task=task, run=run,
+        acquisition=acquisition, suffix='%s.json' % kind, prefix=data_path)
+    if ext in ['.fif', '.gz']:
+        raw_file_bids = make_bids_filename(
+            subject=subject_id, session=session_id, task=task, run=run,
+            acquisition=acquisition, suffix='%s%s' % (kind, ext))
+    else:
+        raw_folder = make_bids_filename(
+            subject=subject_id, session=session_id, task=task, run=run,
+            acquisition=acquisition, suffix='%s' % kind)
+        raw_file_bids = make_bids_filename(
+            subject=subject_id, session=session_id, task=task, run=run,
+            acquisition=acquisition, suffix='%s%s' % (kind, ext),
+            prefix=raw_folder)
+    events_tsv_fname = make_bids_filename(
+        subject=subject_id, session=session_id, task=task, run=run,
+        acquisition=acquisition, suffix='events.tsv', prefix=data_path)
+    channels_fname = make_bids_filename(
+        subject=subject_id, session=session_id, task=task, run=run,
+        acquisition=acquisition, suffix='channels.tsv', prefix=data_path)
 
     # Read in Raw object and extract metadata from Raw object if needed
     if kind == 'meg':
@@ -375,54 +509,79 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
 
     # save stuff
     if kind == 'meg':
-        _scans_tsv(raw, raw_file_bids, scans_fname, verbose)
-        if not emptyroom:
-            _coordsystem_json(raw, unit, orient, manufacturer, coordsystem_fname,
-                              verbose)
+        _scans_tsv(raw, os.path.join(kind, raw_file_bids), scans_fname,
+                   verbose)
+        if emptyroom is not True:
+            _coordsystem_json(raw, unit, orient, manufacturer,
+                              coordsystem_fname, verbose, overwrite)
 
     make_dataset_description(output_path, name=extra_data.get("Name", " "),
                              verbose=verbose)
-    _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose, **extra_data)
+    if emptyroom is not True:
+        _participants_tsv(participants_fname, 'sub-%s' % subject_id,
+                          participant_data['age'], participant_data['gender'],
+                          participant_data['group'])
+    _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose,
+                  overwrite, **extra_data)
 
-    if not emptyroom:
-        _channels_tsv(raw, channels_fname, verbose)
-
-        events = _read_events(events_data, raw)
-        if len(events) > 0:
-            _events_tsv(events, raw, events_tsv_fname, event_id, verbose)
+    # set the raw file name to now be the absolute path to ensure the files
+    # are placed in the right location
+    raw_file_bids = os.path.join(data_path, raw_file_bids)
 
     # for FIF, we need to re-save the file to fix the file pointer
     # for files with multiple parts
     if ext in ['.fif', '.gz']:
         raw.save(raw_file_bids, overwrite=overwrite)
     else:
-        # "absolute" file path. Will be actually absolute if the output path
-        # is absolute. Otherwise will be the full relative path to the raw file
-        raw_file_bids_abs = namer.get_filepath(raw_fname, output_path)
-        # check to make sure that the folder exists that we want to put the file in
-        if os.path.exists(raw_file_bids_abs):
+        if os.path.exists(raw_file_bids):
             if overwrite:
-                # do we really want to remove it?
-                # if so, it would be better to do sh.move(~)
                 os.remove(raw_file_bids)
-                sh.copyfile(raw_fname, raw_file_bids_abs)
+                sh.copyfile(raw_fname, raw_file_bids)
             else:
                 raise ValueError('"%s" already exists. Please set overwrite to'
                                  ' True.' % raw_file_bids)
         else:
             # ensure the sub-folder exists
-            if not os.path.exists(os.path.dirname(raw_file_bids_abs)):
-                os.makedirs(os.path.dirname(raw_file_bids_abs))
-            # copy the file
-            sh.copyfile(raw_fname, raw_file_bids_abs)
+            if not os.path.exists(os.path.dirname(raw_file_bids)):
+                os.makedirs(os.path.dirname(raw_file_bids))
+            if ext == '.ds':
+                # it is actually a folder and we need to copy the whole thing
+                sh.copytree(raw_fname, raw_file_bids)
+            else:
+                # copy the file
+                sh.copyfile(raw_fname, raw_file_bids)
 
-    # check to see if there is a headspace (hsp) or electrode placement (electrode) provided.
-    # if so, copy it to the correct location
-    if not emptyroom:
+    # empty room data doesn't require much...
+    if emptyroom is not True:
+        # copy the marker data
+        if hpi is not None:
+            # hpi is guaranteed to be a list
+            for marker_path in hpi:
+                _, marker_ext = _parse_ext(marker_path, verbose=verbose)
+                marker_fname = make_bids_filename(
+                    subject=subject_id, session=session_id, task=task, run=run,
+                    acquisition=acquisition,
+                    suffix='%s%s' % ('markers', marker_ext),
+                    prefix=os.path.join(data_path, raw_folder))
+                sh.copyfile(marker_path, marker_fname)
+
+        _channels_tsv(raw, channels_fname, verbose, overwrite)
+
+        events = _read_events(events_data, raw)
+        if len(events) > 0:
+            _events_tsv(events, raw, events_tsv_fname, event_id, verbose,
+                        overwrite)
+
+        # check to see if there is a headspace (hsp) or electrode placement
+        # (electrode) provided.
+        # if so, copy it to the correct location
         for f in (electrode, hsp):
             if f is not None:
-                sh.copyfile(f, headshape_fname + _get_ext(f))
-
+                headshape_fname = make_bids_filename(
+                    subject=subject_id, session=session_id,
+                    suffix='headshape%s' % os.path.splitext(f)[1],
+                    prefix=data_path)
+                sh.copyfile(f, headshape_fname)
 
     return output_path
 
@@ -440,5 +599,5 @@ def _read_events(events_data, raw):
                              'found %s' % events.shape[1])
         events = events_data
     else:
-        events = find_events(raw, min_duration=0.001)
+        events = find_events(raw, stim_channel='STI 014')   #min_duration=0.001)
     return events

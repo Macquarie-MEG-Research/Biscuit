@@ -88,12 +88,14 @@ if __name__ == "__main__":
                             mrk = path.join(p, '2630_RS_PI160_2017_08_04_preB2.mrk'),
                             elp = path.join(p, '2630_RS_PI160_2017_08_04.elp'),
                             hsp = path.join(p, '2630_RS_PI160_2017_08_04.hsp'))
+    #p = a.plot()
+    #p.show()
     #print(a.info['line_freq'])
-    print('hi')
-    date = a.info['meas_date']
-    f = datetime.fromtimestamp(date).strftime('%Y%m%d')
-    print(f)
-    #print(a.info['hpi_meas'])
+    #print(isinstance(a, mne.io.Raw)
+    date = a.info['nchan']
+    #f = datetime.fromtimestamp(date).strftime('%Y%m%d')
+    print(date)
+    print(a.info['events'])
     #print(a.info['hpi_results'])
     #print(a.info['hpi_subsystem'])
     #raw_to_bids('CONTROL01', 'TASK01', a, path.join(p, 'newpath'), session_id='01', run=1)

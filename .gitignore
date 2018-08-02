@@ -106,7 +106,9 @@ venv.bak/
 #vscode directory
 .vscode/
 .DS_Store
+
 settings.pkl
 ListVar.py
 thread_test.py
 mne_bids/MNEExceptions.py
+proj_settings.pkl

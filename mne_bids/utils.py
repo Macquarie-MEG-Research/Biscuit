@@ -16,12 +16,10 @@ def _mkdir_p(path, overwrite=False, verbose=False):
     """
     # why would you want to do this?!
     # If another run exists in the same folder then it will be overidden!
-    """
     if overwrite is True and os.path.isdir(path):
         sh.rmtree(path)
         if verbose is True:
             print('Overwriting path: %s' % path)
-    """
 
     try:
         os.makedirs(path, exist_ok=True)
@@ -115,7 +113,7 @@ def make_bids_filename(subject=None, session=None, task=None,
 
 
 def make_bids_folders(subject, session=None, kind=None, root=None,
-                      make_dir=True, overwrite=True, verbose=False):
+                      make_dir=True, overwrite=False, verbose=False):
     """Create a BIDS folder hierarchy.
 
     This creates a hierarchy of folders *within* a BIDS dataset. You should

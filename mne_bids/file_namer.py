@@ -39,27 +39,27 @@ class BIDSName():
             The kind of data being converted. Defaults to "meg".
         """
         self.order = OrderedDict([('sub', subject),
-                         ('ses', session),
-                         ('task', task),
-                         ('acq', acquisition),
-                         ('run', run),
-                         ('proc', processing),
-                         ('space', space),
-                         ('recording', recording)])
+                                  ('ses', session),
+                                  ('task', task),
+                                  ('acq', acquisition),
+                                  ('run', run),
+                                  ('proc', processing),
+                                  ('space', space),
+                                  ('recording', recording)])
 
         self.kind = kind
 
         self._required_fields = ['sub']
         # A dictionary containing the different fields we may want in the name
         # these are fields on top of the required ones (which is only the 'sub' one)
-        self._file_specific_requirements = {'coordsystem.json':['ses', 'acq'],
-                                            'channels.tsv':['task', 'ses', 'acq', 'run', 'proc'],
-                                            'meg.json':['task', 'ses', 'acq', 'run', 'proc'],
-                                            'scans.tsv':['ses'],
-                                            'events.tsv':['ses', 'task'],
-                                            'headshape':['ses'],            # this should *technically* have acq, acq for this is different to acq for data runs
-                                            'rawfiles':['task', 'ses', 'acq', 'run', 'proc'],
-                                            'folder':['task', 'ses', 'acq', 'run', 'proc']}
+        self._file_specific_requirements = {'coordsystem.json': ['ses', 'acq'],
+                                            'channels.tsv': ['task', 'ses', 'acq', 'run', 'proc'],
+                                            'meg.json': ['task', 'ses', 'acq', 'run', 'proc'],
+                                            'scans.tsv': ['ses'],
+                                            'events.tsv': ['ses', 'task'],
+                                            'headshape': ['ses'],            # this should *technically* have acq, acq for this is different to acq for data runs
+                                            'rawfiles': ['task', 'ses', 'acq', 'run', 'proc'],
+                                            'folder': ['task', 'ses', 'acq', 'run', 'proc']}
 
         if self.order['run'] is not None and not isinstance(self.order['run'], string_types):
             # Ensure that run is a string
@@ -103,13 +103,13 @@ class BIDSName():
             # name can be used to rename manufacturer specific files
             required_fields = self._required_fields + self._file_specific_requirements['rawfiles']
             _rawfile = True
-        
+
         fields = []
         for key, val in self.order.items():
             if val is not None and key in required_fields:
                 _check_key_val(key, val)
                 fields.append("{0}-{1}".format(key, val))
-        
+
         if _rawfile:
             filename = "_".join(fields) + "_" + self.kind + _get_ext(file)
         elif file == 'folder':
