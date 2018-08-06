@@ -32,6 +32,7 @@ Here we see information about the con file as well as some properties to enter.
 - Selecting *Has empty room* will give the con file a property which indicates the path of the associated empty room file. Note that there is not check on whether or not this empty room file actually exists. If you do not have any empty room data that was taken on the same day as this con file, **do not** check this box as the data will not be correct.
 ### Settings windows:
 Selecting `Options > Set Defaults` will bring up the following window:
+
 ![settings_screen](docs/images/03-settings_view.PNG)
 
 This window will have more options added shortly, but for now it is a simple screen where you can add default settings to the different projects.
