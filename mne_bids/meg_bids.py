@@ -23,7 +23,7 @@ from warnings import warn
 
 from .pick import coil_type
 from .utils import (make_bids_filename, make_bids_folders,
-                    make_dataset_description, _write_json)
+                    make_dataset_description, _write_json, make_readme)
 from .io import _parse_ext, _read_raw
 #from .file_namer import BIDSName
 
@@ -335,7 +335,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                 acquisition=None, run=None, kind='meg', events_data=None,
                 event_id=None, hpi=None, electrode=None, hsp=None,
                 emptyroom=False, config=None, overwrite=True, verbose=False,
-                extra_data=dict(), participant_data=dict()):
+                extra_data=dict(), participant_data=dict(), readme_text=None):
     """Walk over a folder of files and create bids compatible folder.
 
     Parameters
@@ -397,13 +397,16 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         'InstitutionName', 'ManufacturersModelName','DewarPosition',
         'Name' (Name of the project), 'DeviceSerialNumber'
     participant_data : dict
-        A dictionary containing the participant information the recording is of.
+        A dictionary containing the participant information the recording is of
         This dictionary can have the following keys:
         - age - The age of the participant in years
         - gender - M (Male), F (Female) or O (other)(?)
         - group - a string indicating the group within the study the
             participant belongs to.
         All values must be passed in as strings.
+    readme_text : string
+        A string containing the contents of the readme file to be placed along
+        side the data.
     """
     if isinstance(raw_file, string_types):
         # We must read in the raw data
@@ -517,6 +520,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
 
     make_dataset_description(output_path, name=extra_data.get("Name", " "),
                              verbose=verbose)
+    if isinstance(readme_text, string_types):
+        make_readme(output_path, readme_text)
     if emptyroom is not True:
         _participants_tsv(participants_fname, 'sub-%s' % subject_id,
                           participant_data['age'], participant_data['gender'],

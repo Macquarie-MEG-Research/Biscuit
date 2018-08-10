@@ -1,8 +1,8 @@
-from tkinter import Toplevel, StringVar, PhotoImage, WORD, IntVar, END
-from tkinter.ttk import Frame, Label, Style, Entry, Button
+from tkinter import Toplevel, StringVar, WORD, IntVar, END
+from tkinter.ttk import Frame, Label, Entry, Button
 from tkinter.scrolledtext import ScrolledText
-from InfoEntries import InfoEntry
-from CustomWidgets.DateEntry import DateEntry
+from CustomWidgets import DateEntry
+from CustomWidgets.InfoEntries import InfoEntry
 from CustomWidgets.WidgetTable import WidgetTable
 
 
@@ -18,8 +18,6 @@ class ProjectSettingsWindow(Toplevel):
 
         self.settings = settings
 
-        self.delete_icon = PhotoImage(file="assets/remove_row.png")
-
         # declare all the variables required:
         self.project_title = StringVar()
         self.project_title.set(self.settings.get('ProjectTitle', ''))
@@ -28,10 +26,6 @@ class ProjectSettingsWindow(Toplevel):
 
         self.frame = Frame(self)
         self.frame.grid()
-
-        self.t_style = Style()
-        self.t_style.configure('Transp.TButton', borderwidth=0, relief='flat',
-                               padding=0)
 
         self._create_widgets()
 

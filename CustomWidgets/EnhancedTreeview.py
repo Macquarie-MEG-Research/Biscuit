@@ -22,12 +22,13 @@ class EnhancedTreeview(Treeview):
 
     def enhance(self, *args, **kwargs):
         # main function that allows for extra functionality to be built on.
-        # Since the __init__ passes all kwargs to tcl, an error occurs if you try
-        # and extend the functionality at creation
+        # Since the __init__ passes all kwargs to tcl, an error occurs if you
+        # try and extend the functionality at creation
 
         # we will add functionality here sequentially
 
-        # first set the keypress bindings as we will assume they want to happen first
+        # first set the keypress bindings as we will assume they want to happen
+        # first
         #self.multiclick_func = kwargs.get("multiclick",None)
         self.leftclick_func = kwargs.get("leftclick", None)
         self.OnLeftClick = self.leftclick_func
@@ -41,16 +42,25 @@ class EnhancedTreeview(Treeview):
         self._add_scrollbars()
         sortable = kwargs.get("sortable", False)
         if sortable:
-            # sortable can either just be a list of columns, or if just True then the automatically determined visible columns are set as sortable
+            # sortable can either just be a list of columns, or if just True
+            # then the automatically determined visible columns are set as
+            # sortable
             if not isinstance(sortable, list):
                 for column in self.columns:
-                    self.heading(column, command=lambda _col=column: self.treeview_sort_column(_col, False))
+                    self.heading(
+                        column,
+                        command=lambda _col=column: self.treeview_sort_column(
+                            _col, False))
             else:
                 for column in sortable:
-                    self.heading(column, command=lambda _col=column: self.treeview_sort_column(_col, False))
+                    self.heading(
+                        column,
+                        command=lambda _col=column: self.treeview_sort_column(
+                            _col, False))
         editable = kwargs.get("editable", False)
         if editable:
-            # editable can either just be True (all entries editable), or a list of column names
+            # editable can either just be True (all entries editable), or a
+            # list of column names
             if isinstance(editable, list):
                 self.editable_columns = editable
             else:
@@ -58,11 +68,13 @@ class EnhancedTreeview(Treeview):
                 self.editable_columns = self.columns
             # also bind the double click method
             self.bind("<Double-1>", self.doubleclick_func)
-            # add to the treeview select bind to close the currently open entry?
+            # add to the treeview select bind to close the currently open
+            # entry?
             self.bind("<<TreeviewSelect>>", self._close_entry, add='+')
 
         """
-        could do check boxes using the unicode characters u"\u2610" and u"\u2611", but will look bad
+        could do check boxes using the unicode characters u"\u2610" and
+        u"\u2611", but will look bad
         self.check_columns = kwargs.get("check_columns", [])
         if self.check_columns != []:
             self.im_checked = PhotoImage(file='assets/checked.png')
@@ -124,11 +136,17 @@ class EnhancedTreeview(Treeview):
         if isdir(self.item(destination_id)['values'][1]):
             for sid in selection:
                 item = self.item(sid)
-                shutil.move(item['values'][1], self.item(destination_id)['values'][1])
-                self.move(sid, destination_id, self._get_insertion_index(sid, destination_id))
-                self.item(sid, values=[item['values'][0], join(self.item(destination_id)['values'][1], '{0}{1}'.format(item['text'], item['values'][0]))])
+                shutil.move(item['values'][1],
+                            self.item(destination_id)['values'][1])
+                self.move(sid, destination_id,
+                          self._get_insertion_index(sid, destination_id))
+                self.item(sid, values=[item['values'][0],
+                          join(self.item(destination_id)['values'][1],
+                               '{0}{1}'.format(item['text'],
+                               item['values'][0]))])
         else:
-            # move the selected file to the same directory as the one the file is in
+            # move the selected file to the same directory as the one the file
+            # is in
             parent = self.parent(destination_id)
             for sid in selection:
                 if self.parent(sid) != parent:
@@ -140,9 +158,14 @@ class EnhancedTreeview(Treeview):
                         destination_path = self.item(destination_id)['values'][1]
                     item = self.item(sid)
                     shutil.move(item['values'][1], destination_path)
-                    self.move(sid, parent, self._get_insertion_index(sid, parent))
-                    # we also need to modify the path that the entry in the treeview has:
-                    self.item(sid, values=[item['values'][0], join(destination_path, '{0}{1}'.format(item['text'], item['values'][0]))])
+                    self.move(sid, parent,
+                              self._get_insertion_index(sid, parent))
+                    # we also need to modify the path that the entry in the
+                    # treeview has:
+                    self.item(sid, values=[item['values'][0],
+                              join(destination_path,
+                                   '{0}{1}'.format(item['text'],
+                                   item['values'][0]))])
 
     def _add_dnd(self):
         if self.allow_dnd:
@@ -153,12 +176,14 @@ class EnhancedTreeview(Treeview):
     def _add_scrollbars(self):
         for orient in self.scrollbars:
             if orient == 'x':
-                xsb = Scrollbar(self.master, orient=HORIZONTAL, command=self.xview)
+                xsb = Scrollbar(self.master, orient=HORIZONTAL,
+                                command=self.xview)
                 xsb.pack(side=BOTTOM, fill=X)
                 #xsb.grid(row=2,column=10, rowspan=10, sticky="ns", in_=self.master)
                 self.configure(xscroll=xsb.set)
             if orient == 'y':
-                ysb = Scrollbar(self.master, orient=VERTICAL, command=self.yview)
+                ysb = Scrollbar(self.master, orient=VERTICAL,
+                                command=self.yview)
                 #ysb.grid(row=14,column=0, rowspan=2, sticky="ew", in_=self.master)
                 ysb.pack(side=RIGHT, fill=Y)
                 self.configure(yscroll=ysb.set)
@@ -282,7 +307,6 @@ class EnhancedTreeview(Treeview):
             child_folders = [i for i in self.get_children(parent) if isdir(self.item(i)['values'][1])]
             if len(child_folders) != 0:
                 for i, child in enumerate(child_folders):
-                    print(self.item(child)['text'], sort_text, sort_text < self.item(child)['text'])
                     if sort_text < self.item(child)['text']:
                         index = i
                         break

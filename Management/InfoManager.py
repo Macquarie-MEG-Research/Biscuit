@@ -3,13 +3,10 @@ from tkinter import HIDDEN, NORMAL
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import *
 
-from InfoEntries import (InfoEntry, InfoLabel, InfoCheck, InfoList,
-                         InfoChoice)
-from InfoContainer import InfoContainer
-from FileTypes import FileInfo
-from info_tabs.ChannelInfoFrame import ChannelInfoFrame
-from info_tabs.SessionInfoFrame import SessionInfoFrame
-from info_tabs.FileInfoFrame import FileInfoFrame
+from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
+from FileTypes import FileInfo, InfoContainer
+from InfoTabs import ChannelInfoFrame, SessionInfoFrame, FileInfoFrame
+from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 from utils import clear_widget
 
@@ -78,7 +75,7 @@ class InfoManager(Notebook):
         # externally.
         # By defining them here they will be persistent, so we can draw/undraw
         # them.
-        
+
         self.raw_gen_btn = Button(self.info_frame,
                                   text="Initialise Data",
                                   command=self._create_raws,
@@ -87,58 +84,10 @@ class InfoManager(Notebook):
                                    text="Generate BIDS",
                                    command=self._create_raws,
                                    state=DISABLED)
-        
 
     def _create_raws(self):
         self._data[0]._create_raws()
         self.bids_gen_btn.config(state=NORMAL)
-
-    """
-    Each tab type will have it's own function to fill it with data
-    """
-
-    """
-    def _fill_info_tab(self):
-        #We will have a list of things to always display
-        self.info_frame_entries = []
-
-        data = self._data[0]
-
-        # every time we draw this run the check to see
-        data.check_bids_ready()
-
-        if data is not None:
-            self.info_frame_entries.append(
-                InfoEntry(self.info_frame,
-                          data.proj_name,
-                          bad_values=[''],
-                          validate_cmd=data.check_bids_ready))
-            self.info_frame_entries.append(
-                InfoEntry(self.info_frame,
-                          data.subject_ID,
-                          bad_values=[''],
-                          validate_cmd=data.check_bids_ready))
-            self.info_frame_entries.append(
-                InfoEntry(self.info_frame,
-                          data.task_name,
-                          bad_values=[''],
-                          validate_cmd=data.check_bids_ready))
-            self.info_frame_entries.append(InfoEntry(self.info_frame,
-                                                     data.session_ID))
-            self.info_frame_entries.append(InfoChoice(self.info_frame,
-                                                      data.dewar_position))
-            for entry in self.info_frame_entries[0:3]:
-                entry.check_valid()
-            #self.info_frame_entries.append(InfoEntry(self.info_frame, data.run_number))
-            #self.info_frame_entries.append(InfoLabel(self.info_frame, data.measurement_time))
-            #self.info_frame_entries.append(InfoLabel(self.info_frame, data.measurement_length))
-        else:
-            if data.is_valid and not data.initialised:
-                data.initiate()
-                self._fill_info_tab()
-            elif not data.is_valid:
-                self._display_invalid_folder()
-    """
 
     def determine_tabs(self):
         """
@@ -246,15 +195,17 @@ class InfoManager(Notebook):
                     row=self.info_frame.grid_size()[1], columnspan=2, sticky=W)
                 for name, data in data_obj.required_info.items():
                     if data.get('validate', False) is True:
-                        validate_cmd = data_obj.check_complete      # this is a reference to the method so that we can bind it to a callback in the derived widget
+                        # this is a reference to the method so that we can bind
+                        # it to a callback in the derived widget
+                        validate_cmd = data_obj.check_complete
                     else:
                         validate_cmd = None
-                    entry = self.generate_gui_element(self.info_frame, (name, data['data']), validate_cmd, bad_values=data_obj.bad_values.get(name, []))
-                    # try and set the background of the entry if it needs to be:
+                    entry = self.generate_gui_element(
+                        self.info_frame, (name, data['data']), validate_cmd,
+                        bad_values=data_obj.bad_values.get(name, []))
+                    # try and set the background of the entry if it needs to be
                     if isinstance(entry, InfoEntry):
                         entry.check_valid()
-                    #if name in data_obj.bad_values:
-                    #    entry.set_bads_callback(bad_values=data_obj.bad_values.get(name), associated_data=data_obj)     # should be able to replace this with something better
                     self.add_gridrow(entry)
                 anything_displayed = True
                 Separator(self.info_frame).grid(
@@ -267,7 +218,9 @@ class InfoManager(Notebook):
                           sticky=W)
                 for name, data in data_obj.optional_info.items():
                     if data.get('validate', False) is True:
-                        validate_cmd = data_obj.check_complete      # this is a reference to the method so that we can bind it to a callback in the derived widget
+                        # this is a reference to the method so that we can bind
+                        # it to a callback in the derived widget
+                        validate_cmd = data_obj.check_complete
                     else:
                         validate_cmd = None
                     entry = self.generate_gui_element(self.info_frame,
@@ -309,7 +262,8 @@ class InfoManager(Notebook):
     def add_gridrow(self, entry):
         """
         Add another row to the grid at the end
-        We read the current number of rows from the tab which is contained as a property of the entry
+        We read the current number of rows from the tab which is contained as a
+        property of the entry
         """
         index = entry.master.grid_size()[1]
         entry.label.grid(row=index, column=0, sticky=E)
@@ -358,6 +312,7 @@ class InfoManager(Notebook):
         else:
             if len(self._data) == 1:
                 if isinstance(self._data[0], InfoContainer):
+                    print(InfoContainer, 'hiiiiiiiiiiiiiii')
                     self._display_invalid_folder()
                 elif isinstance(self._data[0], FileInfo):
                     if (self._data[0].unknown_type is False and

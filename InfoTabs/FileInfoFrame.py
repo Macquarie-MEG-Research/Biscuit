@@ -1,6 +1,6 @@
 from tkinter import Frame, StringVar, BooleanVar
 from tkinter.ttk import Label, Separator
-from InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
+from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
 
 
 class FileInfoFrame(Frame):

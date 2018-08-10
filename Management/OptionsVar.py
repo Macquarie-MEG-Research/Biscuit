@@ -1,17 +1,26 @@
 from tkinter import Variable, StringVar
 
 
-class StringOptsVar(Variable):
+class OptionsVar(Variable):
 
-    def __init__(self, master=None, value=None, name=None, options=[]):
+    def __init__(self, master=None, value=None, options=[], name=None):
         """Construct a string options variable.
 
-        MASTER can be given as master widget.
-        VALUE is an optional value (defaults to "")
-        NAME is an optional Tcl name (defaults to PY_VARnum).
-
-        If NAME matches an existing variable and VALUE is omitted
-        then the existing value is retained.
+        Parameters
+        ----------
+        master : widget
+            The parent widget
+        value : str
+            The value from options to set as the currently selected value
+            If this is not specified, the currently selected value defaults to
+            the first element of options
+        name : str
+            An optional Tcl name (defaults to PY_VARnum).
+        options : list
+            A list of the options that the OptionsVar can have.
+            If this changes and the currently selected value is no longer in
+            the list of options then the value set will be the first element
+            of options
         """
 
         """ Value holder for lists of variables """
@@ -69,7 +78,7 @@ if __name__ == "__main__":
     from tkinter import Tk
     Tk()
 
-    m = StringOptsVar(options=["hi", "there", "what"])
+    m = OptionsVar(options=["hi", "there", "what"])
     print(m.options)
     m.set("hi")
     print(m.get())
@@ -78,5 +87,5 @@ if __name__ == "__main__":
     print(m.get())
     print(len(m))
     print(m.options)
-    n = StringOptsVar(options=['huh'])
+    n = OptionsVar(options=['huh'])
     print(n.options)

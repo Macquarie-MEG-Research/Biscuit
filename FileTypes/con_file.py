@@ -1,6 +1,7 @@
-from tkinter import StringVar, BooleanVar, DoubleVar
+from tkinter import StringVar, BooleanVar
 from struct import unpack
 from .FileInfo import FileInfo
+from .mrk_file import mrk_file
 from mne.io.kit.constants import KIT
 from datetime import datetime
 from utils import unpickle_var
@@ -17,6 +18,7 @@ class con_file(FileInfo):
 
         self._type = '.con'
         self.associated_raw = None
+        self.requires_save = True
         if 'emptyroom' not in file:
             # overwrite the default True value as this can actually be
             # False for con files
@@ -25,16 +27,28 @@ class con_file(FileInfo):
             # an empty room file is good in it's default state
             self.is_good = True
 
-        # set any optional info
-        self.is_junk = BooleanVar()
-        self.is_empty_room = BooleanVar()
+        self.create_vars()
+
         if 'emptyroom' in self.file:
             self.is_empty_room.set(True)
-        self.has_empty_room = BooleanVar()
+        """
+        # this won't work because the con files are instantiated before the IC
+        if self.parent is not None:
+            cons = self.parent.contained_files.get('.con', [])
+            print(cons, 'hi')
+            for con in cons:
+                if 'emptyroom' in con.file:
+                    self.has_empty_room.set(True)
+        """
 
-        # set any required info
+    def create_vars(self):
+        """
+        Create the required Variables
+        """
+        self.is_junk = BooleanVar()
+        self.is_empty_room = BooleanVar()
+        self.has_empty_room = BooleanVar()
         self.acquisition = StringVar()
-        # these will be mrk_file objects
         self.associated_mrks = []
 
         # set any particular bad values
@@ -95,9 +109,14 @@ class con_file(FileInfo):
             if self.parent is not None:
                 proj_settings = self.parent.proj_settings
                 def_trigger_info = proj_settings.get('DefaultTriggers',
-                                                     [[]])
-                default_triggers = [int(row[0]) for row in def_trigger_info]
-                default_descriptions = [row[1] for row in def_trigger_info]
+                                                     None)
+                if def_trigger_info is not None:
+                    default_triggers = [int(row[0]) for row in
+                                        def_trigger_info]
+                    default_descriptions = [row[1] for row in def_trigger_info]
+                else:
+                    default_triggers = []
+                    default_descriptions = []
             else:
                 default_triggers = []
                 default_descriptions = []
@@ -148,9 +167,9 @@ class con_file(FileInfo):
                         description = ''
                     desc_var = StringVar()
                     desc_var.set(description)
-                    threshold_var = DoubleVar()
+                    #threshold_var = DoubleVar()
                     self.tab_info[i] = [name_var, bad_var, trigger_var,
-                                        desc_var, threshold_var]
+                                        desc_var]
 
         self.loaded = True
 
@@ -188,43 +207,34 @@ class con_file(FileInfo):
         return trigger_channels, descriptions
 
     def __getstate__(self):
+        # call the parent method
         data = super(con_file, self).__getstate__()
 
-        # for the tab_info we currently have a list of Variables
-        # we only need to serialise variables in the self.interesting_channels
-        # variable.
-        # we also are not allowing names to change right now.
-        for idx in self.interesting_channels:
-            ch = self.tab_info[idx]
-            info = {}
-            info['name'] = ch[0].get()
-            if ch[1].get() is True:
-                info['bad'] = True
-            if ch[2].get() is True:
-                info['trigger'] = True
-            if ch[3].get() != "":
-                info['description'] = ch[3].get()
-            if ch[4].get() != 0:
-                info['threshold'] = ch[4].get()
-            data['tab_info'][idx] = info
+        # now do con-file specific saving
+        # first, get any data we want saved:
+        # use short-hand names to save a bit of space...
+        data['acq'] = self.acquisition.get()
+        data['mrk'] = []
+        for mrk in self.associated_mrks:
+            data['mrk'].append(mrk.file)
+        data['jnk'] = self.is_junk.get()
+        data['ier'] = self.is_empty_room.get()
+        data['her'] = self.has_empty_room.get()
 
-        print(data, 'data')
+        # next sort out channel info
 
         return data
 
     def __setstate__(self, state):
-        print(state, 'pickled state')
         super(con_file, self).__setstate__(state)
 
-        for idx, ch in state['tab_info'].items():
-            # each channel has it's info stored as a dictionary
-            self.tab_info[idx] = [unpickle_var(('string', ch['name'])),
-                                  unpickle_var(('bool', ch.get('bad',
-                                                               False))),
-                                  unpickle_var(('bool', ch.get('trigger',
-                                                               False))),
-                                  unpickle_var(('string', ch.get('description',
-                                                                 ''))),
-                                  unpickle_var(('double', ch.get('threshold',
-                                                                 0)))]
-        print(self.tab_info, 'blahaha')
+        # first intialise all the required variables
+        self.create_vars()
+
+        # then populate them
+        self.acquisition.set(state['acq'])
+        for mrk in state['mrk']:
+            self.associated_mrks.append(mrk)
+        self.is_junk.set(state['jnk'])
+        self.is_empty_room.set(state['ier'])
+        self.has_empty_room.set(state['her'])

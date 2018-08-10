@@ -14,6 +14,7 @@
 
 from tkinter import *
 
+
 class ToolTipManager:
 
     label = None

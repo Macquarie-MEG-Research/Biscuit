@@ -1,5 +1,17 @@
 from functools import wraps
 from tkinter import IntVar, BooleanVar, DoubleVar, StringVar
+import os.path as path
+from os import makedirs
+
+
+def create_folder(location):
+    # simple wrapper to create a folder.
+    # If the folder already exists the second return value will be false
+    if path.exists(location):
+        return location, True
+    else:
+        makedirs(location)
+        return location, False
 
 
 def get_object_class(dtype):
@@ -61,9 +73,30 @@ def clear_widget(widget):
         child.grid_forget()
 
 
+def generate_readme(data):
+    """
+    Takes in a dictionary containing all the relevant information on the
+    project and produces a string that can be passed to mne-bids
+    * might actually change this to produce a .md file to have nicer formatting
+    """
+    out_str = ""
+    out_str += "Project Title:\t\t{0}\n".format(
+        data.get('ProjectTitle', 'None'))
+    out_str += "Project ID:\t\t{0}\n\n".format(data.get('ProjectID', 'None'))
+    out_str += "Expected experimentation period:\n"
+    out_str += "Start date:\t\t{0}/{1}/{2}\n".format(
+        *data.get('StartDate', ['01', '01', '1970']))
+    out_str += "End date:\t\t{0}/{1}/{2}\n\n".format(
+        *data.get('EndDate', ['31', '12', '2020']))
+    out_str += "Project Description:\n"
+    out_str += data.get("Description", "None")
+    return out_str
+
+
 def pickle_var(var):
     """
-    Takes in a Variable type object var and returns a tuple with the type as a string and value
+    Takes in a Variable type object var and returns a tuple with the type as a
+    string and value
     """
     if isinstance(var, IntVar):
         return ('int', var.get())

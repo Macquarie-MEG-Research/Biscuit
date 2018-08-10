@@ -5,7 +5,8 @@ from tkinter import Frame, Tk, Scrollbar, Canvas, ALL
 class ScrollableFrame(Frame):
     """
     A wrapper for the Frame class to make it scrollable.
-    To make use of this fuctionality, pack anything into the .frame Frame of this object
+    To make use of this fuctionality, pack anything into the .frame Frame of
+    this object
     """
     def __init__(self, master, *args, **kwargs):
         self.master = master

@@ -7,24 +7,20 @@ from tkinter.ttk import *
 
 import pickle
 import os.path as path
-from os import listdir, makedirs
+from os import listdir
 
 from platform import system as os_name
 
-from mne_bids import raw_to_bids
+from FileTypes import generic_file, con_file, InfoContainer
 
-from FileTypes import generic_file, con_file
+from CustomWidgets import EnhancedTreeview
 
-from FileIO import create_folder
-from CustomWidgets.EnhancedTreeview import EnhancedTreeview
+from Management import ClickContext, ToolTipManager
+from Management.InfoManager import InfoManager
+from Management.SaveManager import SaveManager
+from Windows import SettingsWindow, ProgressPopup, CheckSavePopup
 
-from InfoContainer import InfoContainer
-from InfoManager import InfoManager
-from SaveManager import SaveManager
-from Windows.SettingsWindow import SettingsWindow
-from ClickContext import ClickContext
-
-from utils import *
+from utils import threaded, get_object_class, create_folder
 
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "MATLAB_PATH": "",
@@ -33,6 +29,8 @@ DEFAULTSETTINGS = {"DATA_PATH": "",
 
 root = Tk()
 root.geometry("1080x600")
+
+tt = ToolTipManager()
 
 
 class main(Frame):
@@ -44,10 +42,10 @@ class main(Frame):
         # the Biscuit folder. Maybe because vscode?
         try:
             if os_name() == 'Windows':
-                self.master.iconbitmap('biscuit_icon_windows.ico')
+                self.master.iconbitmap('assets/biscuit_icon_windows.ico')
             else:
                 # this doesn't work :'(
-                img = PhotoImage(file='biscuit.png')
+                img = PhotoImage(file='assets/biscuit.png')
                 #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
                 self.master.wm_iconphoto(True, img)
                 #self.master.wm_iconbitmap(img)
@@ -78,10 +76,9 @@ class main(Frame):
         self._create_menus()
 
         self._drag_mode = None
+        self.progress_popup = None
 
         self._fill_file_tree('')
-
-        #self.save_handler.load()
 
         # This dictionary will consist of keys which are the file paths to the
         # .con files, and the values will be a list of associated .mrk files.
@@ -100,6 +97,8 @@ class main(Frame):
         self.file_treeview.tag_configure('GOOD_FILE', foreground="Green")
         self.file_treeview.tag_configure('JUNK_FILE',
                                          font=(None, 8, 'overstrike'))
+
+        self.save_handler.load()
 
     def _fill_file_tree(self, parent, directory=None):
         """
@@ -275,10 +274,7 @@ class main(Frame):
         if self.file_treeview.identify_region(event.x, event.y) == 'separator':
             self._drag_mode = 'separator'
             left_col = self.file_treeview.identify_column(event.x)
-            right_col = '#{}'.format(int(left_col.lstrip('#')) + 1)
-            print(left_col, right_col)
-            print(self.file_treeview.column(left_col, 'width'))
-            print(self.file_treeview.column(right_col, 'width'))
+            #right_col = '#{}'.format(int(left_col.lstrip('#')) + 1)
 
     # this either...
     def column_drag(self, event):
@@ -327,7 +323,7 @@ class main(Frame):
         self.file_treeview.selection_set(sid)
 
     def _select_multiple(self, event):
-        print("woo!")
+
         sid = self.file_treeview.identify_row(event.y)
         if sid in self.file_treeview.selection():
             self.file_treeview.selection_remove(sid)
@@ -509,6 +505,10 @@ class main(Frame):
     def set_treeview_mode(self, mode):
         self.treeview_select_mode = mode
 
+    def check_progress(self, progress):
+        if not self.progress_popup:
+            self.progress_popup = ProgressPopup(self, progress)
+
     def _check_exit(self):
         """
         This will check whether the user wants to exit without saving
@@ -521,23 +521,6 @@ class main(Frame):
             pass
         elif check.result == "exit":
             self.master.destroy()
-
-
-class ProgressPopup(Toplevel):
-    def __init__(self, master, progress_var):
-        self.master = master
-        Toplevel.__init__(self, self.master)
-
-        self.progress_var = progress_var
-
-        self._create_widgets()
-
-    def _create_widgets(self):
-        main_frame = Frame(self)
-        Label(main_frame, text="Progress: ").grid(column=0, row=0)
-        Label(main_frame, textvariable=self.progress_var).grid(column=1, row=0)
-        main_frame.grid()
-        #self.grid()
 
 
 class RightClick():
@@ -568,6 +551,7 @@ class RightClick():
     at some point """
 
     def _determine_entries(self):
+        """
         if "FOLDER" in self.context:
             entry = self.parent.preloaded_data[self.curr_selection[0]]
             if isinstance(entry, InfoContainer):
@@ -576,6 +560,7 @@ class RightClick():
                                                 command=self._folder_to_bids)
                     self.popup_menu.add_command(label="See progress",
                                                 command=self.check_progress)
+        """
         # give the option to associate one or more mrk files with all con files
         if (".MRK" in self.context and
                 not self.parent.treeview_select_mode.startswith("ASSOCIATE")):
@@ -611,99 +596,6 @@ class RightClick():
         elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
             self.popup_menu.add_command(label="Associate",
                                         command=self._associate_mrk)
-
-    def check_progress(self):
-        # we will have problems if this is called while it already exists...
-        # maybe??
-        self.progress_popup = ProgressPopup(self.parent, self.progress)
-
-    def _folder_to_bids(self):
-        sid = self.parent.file_treeview.selection()[0]
-        self.progress_popup = ProgressPopup(self.parent, self.progress)
-        self._make_bids_folders(sid)
-
-    @threaded
-    def _make_bids_folders(self, sid):
-        selected_IC = self.parent.preloaded_data[sid]
-        #new_folder_sid = None
-        bids_folder_sid = None
-        bids_folder_path = path.join(self.parent.settings['DATA_PATH'], 'BIDS')
-        for sid in self.parent.file_treeview.get_children():
-            if self.parent.file_treeview.item(sid)['text'] == 'BIDS':
-                bids_folder_sid = sid
-                break
-        if bids_folder_sid is None:
-            # in this case it doesn't exist so make a new folder
-            makedirs(bids_folder_path)
-            bids_folder_sid = self.parent.file_treeview.ordered_insert(
-                '', text='BIDS', values=('', bids_folder_path))
-
-        for acq, raw_kit in selected_IC.raw_files.items():
-            self.progress.set("Working on acquisition {0}".format(acq))
-            target_folder = path.join(bids_folder_path,
-                                      selected_IC.proj_name.get())
-
-            # get the variables for the raw_to_bids conversion function:
-            subject_id = selected_IC.subject_ID.get()
-            task_name = selected_IC.task_name.get()
-            sess_id = selected_IC.session_ID.get()
-
-            extra_data = selected_IC.extra_data[acq]
-
-            participant_data = {'age': selected_IC.subject_age.get(),
-                                'gender': selected_IC.subject_gender.get(),
-                                'group': selected_IC.subject_group.get()}
-
-            if sess_id == '':
-                sess_id = None
-            emptyroom_path = ''
-
-            # get the event data from the associated con files:
-            for con in selected_IC.acq_con_map[acq]:
-                trigger_channels, descriptions = con.get_trigger_channels()
-                # assume there is only one for now??
-                event_ids = dict(zip(descriptions,
-                                     [int(i) for i in trigger_channels]))
-
-                # also check to see if the file is meant to have an associated
-                # empty room file
-                if con.has_empty_room.get() is True:
-                    # we will auto-construct a file path based on the date of
-                    # creation of the con file
-                    date_vals = con.info['Measurement date'].split('/')
-                    date_vals.reverse()
-                    date = ''.join(date_vals)
-                    emptyroom_path = ('sub-emptyroom/ses-{0}/meg/'
-                                      'sub-emptyroom_ses-{0}_task-'
-                                      'noise_meg.con'.format(date))
-
-            if acq == 'emptyroom':
-                emptyroom = True
-            else:
-                if emptyroom_path != '':
-                    emptyroom = emptyroom_path
-                else:
-                    emptyroom = False
-
-            con = selected_IC.acq_con_map[acq][0]
-            mrks = [mrk.file for mrk in con.associated_mrks]
-
-            # finally, run the actual conversion
-            raw_to_bids(subject_id, task_name, raw_kit, target_folder,
-                        electrode=selected_IC.contained_files['.elp'][0].file,
-                        hsp=selected_IC.contained_files['.hsp'][0].file,
-                        hpi=mrks, session_id=sess_id, acquisition=acq,
-                        emptyroom=emptyroom, extra_data=extra_data,
-                        event_id=event_ids, participant_data=participant_data)
-        # fill the tree all at once??
-        self.parent._fill_file_tree(bids_folder_sid, bids_folder_path)
-        # set the message to done, but also close the window if it hasn't
-        # already been closed
-        self.progress.set("Done")
-        try:
-            self.progress_popup.destroy()
-        except:
-            pass
 
     def _ignore_cons(self):
         """
@@ -846,48 +738,6 @@ class RightClick():
     def popup(self, event):
         self._add_options()
         self.popup_menu.post(event.x_root, event.y_root)
-
-
-class CheckSavePopup(simpledialog.Dialog):
-    def body(self, master):
-        Label(master, text=("Are you sure you want to exit? You may have "
-                            "unsaved data...")).grid(row=0)
-
-    def buttonbox(self):
-
-        box = Frame(self)
-
-        w = Button(box, text="Save and Exit", width=15, command=self.save,
-                   default=ACTIVE)
-        w.pack(side=LEFT, padx=5, pady=5)
-        w = Button(box, text="Go back!", width=15, command=self.cancel)
-        w.pack(side=LEFT, padx=5, pady=5)
-        w = Button(box, text="Exit", width=15, command=self.exit)
-        w.pack(side=LEFT, padx=5, pady=5)
-
-        self.bind("<Return>", self.ok)
-        self.bind("<Escape>", self.cancel)
-
-        box.pack()
-
-    def save(self, event=None):
-        self.result = "save"
-        self.end()
-
-    def cancel(self, event=None):
-        self.result = "cancel"
-        self.end()
-
-    def exit(self, event=None):
-        self.result = "exit"
-        self.end()
-
-    def end(self):
-        # close the dialog
-        self.withdraw()
-        self.update_idletasks()
-        self.parent.focus_set()
-        self.destroy()
 
 
 if __name__ == "__main__":

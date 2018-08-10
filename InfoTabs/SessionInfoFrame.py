@@ -1,7 +1,11 @@
 from tkinter import Frame, DISABLED, NORMAL, StringVar, IntVar
 from tkinter.ttk import Label, Separator, Button
-from InfoEntries import InfoEntry, InfoChoice
-from OptionVars import StringOptsVar
+from CustomWidgets.InfoEntries import InfoEntry, InfoChoice
+from Management import OptionsVar
+from Management import ToolTipManager
+
+# assign the tool tip manager
+tt = ToolTipManager()
 
 
 class SessionInfoFrame(Frame):
@@ -17,7 +21,8 @@ class SessionInfoFrame(Frame):
         self.raw_gen_btn = Button(self, text="Initialise Data",
                                   command=self._create_raws, state=DISABLED)
         self.bids_gen_btn = Button(self, text="Generate BIDS",
-                                   command=self._create_raws, state=DISABLED)
+                                   command=self._folder_to_bids,
+                                   state=DISABLED)
 
         # a list of widgets that will require verification
         self.require_verification = []
@@ -67,11 +72,11 @@ class SessionInfoFrame(Frame):
         self.sub_age_entry.label.grid(column=3, row=3, sticky='ew', pady=2)
         self.sub_age_entry.value.grid(column=4, row=3, sticky='ew', pady=2)
         self.sub_gender_entry = InfoChoice(self, "Subject gender",
-                                           StringOptsVar())
+                                           OptionsVar())
         self.sub_gender_entry.label.grid(column=3, row=4, sticky='ew', pady=2)
         self.sub_gender_entry.value.grid(column=4, row=4, sticky='ew', pady=2)
         self.sub_group_entry = InfoChoice(self, "Subject group",
-                                          StringOptsVar())
+                                          OptionsVar())
         self.sub_group_entry.label.grid(column=3, row=5, sticky='ew', pady=2)
         self.sub_group_entry.value.grid(column=4, row=5, sticky='ew', pady=2)
 
@@ -80,15 +85,19 @@ class SessionInfoFrame(Frame):
 
         # finally any additional info that needs to be specified
         self.dewar_position_entry = InfoChoice(self, "Dewar Position",
-                                               StringOptsVar())
+                                               OptionsVar())
         self.dewar_position_entry.label.grid(column=0, row=7, sticky='ew',
                                              pady=2)
         self.dewar_position_entry.value.grid(column=1, row=7, sticky='ew',
                                              pady=2)
 
         self.raw_gen_btn.grid(column=3, row=7)
+        tt.register(self.raw_gen_btn, ("Initialise all the raw data in "
+            "preparation for BIDS conversion.\nThis option will only be "
+            "available when this session has no invalid entries."))
         self.bids_gen_btn.grid(column=4, row=7)
-        self.grid()
+        tt.register(self.bids_gen_btn, ("Convert session data to BIDS "
+            "format.\nOnly availble once the raw data has been initialised"))
         self.grid()
 
     def update_widgets(self):
@@ -106,8 +115,13 @@ class SessionInfoFrame(Frame):
         self.dewar_position_entry.value = self.file.dewar_position
 
     def _create_raws(self):
-        self.file._create_raws()
-        self.bids_gen_btn.config(state=NORMAL)
+        if self.file._create_raws():
+            self.bids_gen_btn.config(state=NORMAL)
+        else:
+            print("Error creating raw data required for BIDS conversion")
+
+    def _folder_to_bids(self):
+        self.file._folder_to_bids()
 
     @property
     def file(self):

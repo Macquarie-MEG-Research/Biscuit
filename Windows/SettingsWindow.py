@@ -1,7 +1,7 @@
-from tkinter import Toplevel, StringVar, PhotoImage
-from tkinter.ttk import Frame, Label, Button, Separator, Style
+from tkinter import Toplevel, StringVar
+from tkinter.ttk import Frame, Label, Button, Separator
 from CustomWidgets.WidgetTable import WidgetTable
-from Windows.ProjectSettingsWindow import ProjectSettingsWindow
+from Windows import ProjectSettingsWindow
 
 import pickle
 
@@ -29,12 +29,6 @@ class SettingsWindow(Toplevel):
         self.settings = settings
         self.proj_settings = proj_settings
 
-        self.delete_icon = PhotoImage(file="assets/remove_row.png")
-
-        self.t_style = Style()
-        self.t_style.configure('Transp.TButton', borderwidth=0, relief='flat',
-                               padding=0)
-
         self._create_widgets()
 
         # wait for window to appear on screen before calling grab_set
@@ -56,22 +50,27 @@ class SettingsWindow(Toplevel):
                       ("Edit", self._edit_project_row)],
             entry_types=[Label, Label, Label, Button],
             data_array=[self.settings_view(s) for s in self.proj_settings],
-            adder_script=self._add_project_row)
+            adder_script=self._add_project_row,
+            remove_script=self._remove_row)
         self.projects_table.grid(column=0, row=0)
         self.defaults_list_frame.grid(column=0, row=2, columnspan=2)
+        Button(frame, text="Exit", command=self.exit).grid(row=3, column=0,
+                                                           sticky='w')
 
     @staticmethod
     def settings_view(settings):
         # returns a condensed view version fo the project settings to be passed
         # to the WidgetTable as the intial values
-        dt = settings.get('DefaultTriggers', [[]])
-        return [settings.get('ProjectID', 'None'),
-                settings.get('ProjectTitle', 'None'),
-                ','.join([str(i[0]) for i in dt]), None]
+        dt = settings.get('DefaultTriggers', None)
+        if dt is not None:
+            return [settings.get('ProjectID', 'None'),
+                    settings.get('ProjectTitle', 'None'),
+                    ','.join([str(i[0]) for i in dt]), None]
+        else:
+            return ['', '']
 
     def _add_project_row(self):
         proj_settings = dict()
-        # this will need to be made to block...
         ProjectSettingsWindow(self, proj_settings)
         if proj_settings != dict():
             if (proj_settings.get('ProjectID', '') not in
@@ -109,6 +108,10 @@ class SettingsWindow(Toplevel):
         Label(self.defaults_list_frame,
               text=data.get('descriptions', '')).grid(column=4, row=rows)
 
+    def _remove_row(self, idx):
+        print(idx)
+        del self.proj_settings[idx]
+
     def exit(self):
         self._write_settings()
         self.withdraw()
@@ -118,4 +121,5 @@ class SettingsWindow(Toplevel):
 
     def _write_settings(self):
         with open('proj_settings.pkl', 'wb') as settings:
+            print('writing settings')
             pickle.dump(self.proj_settings, settings)

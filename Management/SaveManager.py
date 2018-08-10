@@ -1,14 +1,15 @@
 import pickle
-from FileTypes import FileInfo, con_file, mrk_file
+from FileTypes import FileInfo, con_file, mrk_file, InfoContainer
 import os.path as path
 
 
 class SaveManager():
     """
-    A class to organise the saving of all the data produced while interacting with the GUI
-    This will take any file that has had any changes made to it and store them to the HDD
-    so that the next time a user runs the program they can be retreived and applied to avoid
-    data having to be entered multiple times
+    A class to organise the saving of all the data produced while interacting
+    with the GUI.
+    This will take any file that has had any changes made to it and store them
+    to the HDD so that the next time a user runs the program they can be
+    retreived and applied to avoid data having to be entered multiple times.
     """
     def __init__(self, parent=None, save_path=""):
         """
@@ -35,14 +36,21 @@ class SaveManager():
         # first retrieve all the data from the save file
         if path.exists(self.save_path):
             for file in self._load_gen():
-                print('loaded file: {0}'.format(file.file))
-                # set the file's id from the treeview
-                sid = self.get_file_id(file.file)
-                file.ID = sid
-                # *then* associate the treeview with the file
-                file.treeview = self.parent.file_treeview
-                # then add the file to the preloaded data
-                _data[file.ID] = file
+                if isinstance(file, con_file):
+                    print('loaded file: {0}'.format(file.file))
+                    # set the file's id from the treeview
+                    sid = self.get_file_id(file.file)
+                    file.ID = sid
+                    # *then* associate the treeview with the file
+                    file.treeview = self.parent.file_treeview
+                    # then add the file to the preloaded data
+                    _data[file.ID] = file
+                elif isinstance(file, InfoContainer):
+                    print('loaded folder: {0}'.format(file.file_path))
+                    sid = self.get_file_id(file.file_path)
+                    file.ID = sid
+                    file.parent = self.parent
+                    _data[file.ID] = file
             self.parent.preloaded_data = _data
 
             # now fix up any associated_mrk's that need to be actual
@@ -56,6 +64,9 @@ class SaveManager():
                             mrk_paths[i] = self.parent.preloaded_data[sid]
                         except KeyError:
                             mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
+                    # also validate the con file:
+                    #obj.load_data()
+                    obj.check_complete()
             if len(_data) != 0:
                 print(_data, 'data something')
             else:
@@ -70,6 +81,7 @@ class SaveManager():
             if self.parent.file_treeview.item(sid)['values'][1] == path_:
                 return sid
         else:
+            print(path_)
             raise FileNotFoundError
 
     def _load_gen(self):
@@ -99,3 +111,9 @@ class SaveManager():
                             pickle.dump(file, f)
                         except TypeError:
                             print('error opening file: {0}'.format(file))
+                elif isinstance(file, InfoContainer):
+                    try:
+                        print('dumping {0}'.format(file.file_path))
+                        pickle.dump(file, f)
+                    except TypeError:
+                        print('error opening file: {0}'.format(file))

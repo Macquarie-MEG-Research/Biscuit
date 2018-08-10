@@ -219,6 +219,21 @@ def make_dataset_description(path, name=None, data_license=None,
     _write_json(description, fname, verbose=verbose)
 
 
+def make_readme(path, text=""):
+    """
+    Writes the free-form readme files
+    Parameters:
+    ----------
+    path : str
+        A path to a folder where the readme will be created.
+    text : str
+        The entire contents ofthe readme file to be written to path.
+    """
+    fname = os.path.join(path, 'README.txt')
+    with open(fname, 'w') as f:
+        f.write(text)
+
+
 def _check_types(variables):
     """Make sure all variables are strings or None."""
     types = set(type(ii) for ii in variables)

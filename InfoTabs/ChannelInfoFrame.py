@@ -1,11 +1,10 @@
-from tkinter import (Frame, Label, Entry, NORMAL,
-                     Checkbutton, StringVar, BooleanVar, DoubleVar,
-                     PhotoImage)
-#from tkinter import Button as tkButton
-from tkinter.ttk import Style, Combobox, Separator
-from tkinter.ttk import Button as ttkButton
+from tkinter import (Frame, Label, NORMAL, PhotoImage, Entry,
+                     StringVar, BooleanVar, DoubleVar)
+from tkinter import Button as tkButton
+from tkinter.ttk import Style, Combobox, Separator, Checkbutton
 from FileTypes import con_file
-from ScrollableFrame import ScrollableFrame
+from CustomWidgets import ScrollableFrame
+from platform import system as os_name
 
 
 class ChannelInfoFrame(Frame):
@@ -22,7 +21,13 @@ class ChannelInfoFrame(Frame):
         # two lists to keep track of which values are shown and which aren't
         self.channel_name_states = {'not shown': [], 'shown': []}
 
-        self.delete_icon = PhotoImage(file="assets/remove_row.png")
+        if os_name() == 'Windows':
+            from PIL import Image, ImageTk
+            self.delete_icon = Image.open("assets/remove_row_trans.png")
+            self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
+            self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
+        else:
+            self.delete_icon = PhotoImage(file="assets/remove_row.png")
 
         self.t_style = Style()
         self.t_style.configure('Transp.TButton', borderwidth=0, relief='flat',
@@ -61,9 +66,9 @@ class ChannelInfoFrame(Frame):
         Label(self.scrollframe.frame,
               text="Trigger Channel description").grid(column=8, row=0,
                                                        sticky='w', padx=5)
-        Label(self.scrollframe.frame, text="Threshold").grid(column=10, row=0,
-                                                             sticky='w',
-                                                             padx=5)
+        Label(self.scrollframe.frame, text="Delete").grid(column=10, row=0,
+                                                          sticky='w',
+                                                          padx=5)
 
         for i in (1, 3, 5, 7, 9):
             sep = Separator(self.scrollframe.frame,
@@ -76,64 +81,6 @@ class ChannelInfoFrame(Frame):
         self.grid_rowconfigure(0, weight=0)
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)  # ?
-
-    # NOT NEEDED???
-    def _reprocess_raw(self):
-        """
-        Take the channel list and get any bad channels and set the channels in
-        the associated raw as bad
-        Also apply any name changes to any channels (this must be done before
-        specifying bads)
-        """
-        bads = []
-        name_mapping = dict()
-        trigger_channels = []
-        for i in range(len(self._file.tab_info)):
-            orig_name = self._file.associated_raw.info['ch_names'][i]
-            curr_name = self._file.tab_info[i][0].get()
-            if curr_name != orig_name:
-                name_mapping[orig_name] = curr_name
-            if self._file.tab_info[i][1].get() == 1:
-                bads.append(self._file.tab_info[i][0].get())
-            if self._file.tab_info[i][2].get() == 1:
-                trigger_channels.append(i)
-
-        # If any trigger channels are specified, we need to recreate the raw
-        # object:
-        con_id = self._file.ID
-        # find the id of the parent folder containing the con file
-        folder_id = self.master.parent.file_treeview.parent(con_id)
-        # We can now get the actual info container object associated with it
-        IC = self.master.parent.preloaded_data[folder_id]
-
-        IC._create_raws(stim=trigger_channels, stim_code='channel')
-
-        # rename the channels
-        self._file.associated_raw.rename_channels(name_mapping)
-        # set the bads
-        self._file.associated_raw.info['bads'] = bads
-
-    # NOT NEEDED??
-    def generate_data(self):
-        print('generating data')
-        data = []
-        # iterate over each of the channels and put it all in the data list
-        for ch in self._file.associated_raw.info['ch_names']:
-            name_var = StringVar()
-            name_var.set(ch)
-            bad_var = BooleanVar()
-            bad_var.set(True if ch in self._file.associated_raw.info['bads']
-                        else False)
-            trigger_var = BooleanVar()
-            trigger_var.set(False)
-            desc_var = StringVar()
-            desc_var.set("")
-            threshold_var = DoubleVar()
-            data.append([name_var, bad_var, trigger_var, desc_var,
-                         threshold_var])
-        # the data is associated with the associated file so that it is
-        # persistent
-        self._file.tab_info = data
 
     def redraw_channel_list(self):
         """ Redraw the channel list """
@@ -253,16 +200,17 @@ class ChannelInfoFrame(Frame):
         desc_entry = Entry(frame)
         desc_entry.config(textvariable=self._file.tab_info[i][3],
                           state=entry_state)
-        threshold_entry = Entry(frame)
-        threshold_entry.config(textvariable=self._file.tab_info[i][4],
-                               state=entry_state)
-        delete_button = ttkButton(frame, command=self.delete_row,
-                                  style='Transp.TButton')
+        #threshold_entry = Entry(frame)
+        #threshold_entry.config(textvariable=self._file.tab_info[i][4],
+        #                       state=entry_state)
+        delete_button = tkButton(
+            frame, command=self.delete_row,
+            relief='flat', borderwidth=0, highlightthickness=0)
         delete_button.config(image=self.delete_icon)
 
         # add all widgets so we can reuse them later if need-be
         self.channel_widgets[i] = [number, name_entry, bad_check,
-                                   trigger_check, desc_entry, threshold_entry,
+                                   trigger_check, desc_entry,
                                    delete_button]
 
     def remove_channel(self, i):
@@ -322,12 +270,11 @@ class ChannelInfoFrame(Frame):
             self.scrollframe.frame.focus_get().grid_info().get('row') - 1]
         # this will only work for a ttk Checkbox
         state = self.channel_widgets[index][3].state()
-        entries = self.channel_widgets[index][4:6]
-        for entry in entries:
-            if 'selected' in state:
-                entry.config(state=NORMAL)
-            else:
-                entry.config(state='readonly')
+        entry = self.channel_widgets[index][4]  #:5]
+        if 'selected' in state:
+            entry.config(state=NORMAL)
+        else:
+            entry.config(state='readonly')
 
     def delete_row(self):
         index = self._file.interesting_channels[

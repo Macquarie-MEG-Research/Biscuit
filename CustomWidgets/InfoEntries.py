@@ -221,7 +221,7 @@ class InfoChoice(InfoMaster):
             self._value = Combobox(self._master, values=self.optVar.options,
                                    state='readonly')
         except AttributeError:
-            # In this case a Variable that isn't an StringOptsVar has probably
+            # In this case a Variable that isn't an OptionsVar has probably
             # been passed. Just do some default values.
             self._value = Combobox(self._master, values=['Error', 'Values'],
                                    state='readonly')

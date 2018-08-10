@@ -43,7 +43,7 @@ class FileInfo():
         self._type = None
         self.unknown_type = False
         # Whether or not the data type needs to be saved in the save data
-        self.requires_save = True
+        self.requires_save = False
 
         # A flag to be set by the child optionally.
         # If true, then the file contents will be read into a Text widget in
@@ -189,6 +189,15 @@ class FileInfo():
         We do not necessarily want to return all data, as certain value will
         change across loads (such as id)
         """
+
+        if not self.requires_save:
+            return
+        else:
+            data = dict()
+            data['file'] = self._file
+            return data
+
+        """
         data = dict()
         data['file'] = self.file
 
@@ -216,11 +225,13 @@ class FileInfo():
         print(data)
 
         return data
+        """
 
     def __setstate__(self, state):
         """
         Take the state supplied and give all the required properties their
         values
+        """
         """
         # we simply initialise the class without passing any args so that it
         # can be initialised
@@ -229,9 +240,7 @@ class FileInfo():
         # to be provided by the gui
 
         def load_data(data, base_data):
-            """
-            modify base_data in place with the information in 'data'
-            """
+            #modify base_data in place with the information in 'data'
             for key, value in data.items():
                 # handle some specific cases first
                 if key == 'associated_mrks':
@@ -257,6 +266,9 @@ class FileInfo():
         load_data(state['optional_info'], self.optional_info)
         load_data(state['required_info'], self.required_info)
         self.tab_info = {}
+        """
+        self.__init__(file=state['file'], auto_load=False)
+        #self._file = state['file']
 
     def __repr__(self):
         # represent the object by its path.
