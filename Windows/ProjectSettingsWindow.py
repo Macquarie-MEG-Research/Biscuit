@@ -25,7 +25,7 @@ class ProjectSettingsWindow(Toplevel):
         self.project_id.set(self.settings.get('ProjectID', ''))
 
         self.frame = Frame(self)
-        self.frame.grid()
+        self.frame.grid(stick='nsew')
 
         self._create_widgets()
 
@@ -83,7 +83,7 @@ class ProjectSettingsWindow(Toplevel):
             data_array=self.settings.get('Groups', []))
         self.groups_table.grid(column=2, columnspan=2, row=8)
 
-        self.save_btn = Button(self, text="Save", command=self._write_settings)
+        self.save_btn = Button(self.frame, text="Save", command=self._write_settings)
         self.save_btn.grid(column=4, row=9)
 
     def get_settings(self):

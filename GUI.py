@@ -4,6 +4,7 @@ from tkinter import *
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, simpledialog, messagebox
 from tkinter.ttk import *
+from tkinter.ttk import Style
 
 import pickle
 import os.path as path
@@ -31,6 +32,8 @@ root = Tk()
 root.geometry("1080x600")
 
 tt = ToolTipManager()
+
+s = Style()
 
 
 class main(Frame):
