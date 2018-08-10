@@ -4,7 +4,6 @@ from tkinter import Button as tkButton
 from tkinter.ttk import Style, Combobox, Separator, Checkbutton
 from FileTypes import con_file
 from CustomWidgets import ScrollableFrame
-from platform import system as os_name
 
 
 class ChannelInfoFrame(Frame):
@@ -21,13 +20,10 @@ class ChannelInfoFrame(Frame):
         # two lists to keep track of which values are shown and which aren't
         self.channel_name_states = {'not shown': [], 'shown': []}
 
-        if os_name() == 'Windows':
-            from PIL import Image, ImageTk
-            self.delete_icon = Image.open("assets/remove_row_trans.png")
-            self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
-            self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
-        else:
-            self.delete_icon = PhotoImage(file="assets/remove_row.png")
+        from PIL import Image, ImageTk
+        self.delete_icon = Image.open("assets/remove_row_trans.png")
+        self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
+        self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
 
         self.t_style = Style()
         self.t_style.configure('Transp.TButton', borderwidth=0, relief='flat',

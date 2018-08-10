@@ -1,7 +1,6 @@
 from tkinter import PhotoImage, Checkbutton, Variable
 from tkinter import Button as tkButton
 from tkinter.ttk import Label, Separator, Button, Frame, Entry, Combobox
-from platform import system as os_name
 
 
 class WidgetTable(Frame):
@@ -57,13 +56,10 @@ class WidgetTable(Frame):
             sep = Separator(self, orient='vertical')
             self.separators.append(sep)
 
-        if os_name() == 'Windows':
-            from PIL import Image, ImageTk
-            self.delete_icon = Image.open("assets/remove_row_trans.png")
-            self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
-            self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
-        else:
-            self.delete_icon = PhotoImage(file="assets/remove_row.png")
+        from PIL import Image, ImageTk
+        self.delete_icon = Image.open("assets/remove_row_trans.png")
+        self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
+        self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
 
         self._create_widgets()
         self._draw_separators()
