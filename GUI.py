@@ -43,17 +43,14 @@ class main(Frame):
         self.master.title("Biscuit")
         # this directory is weird because the cwd is the parent folder, not
         # the Biscuit folder. Maybe because vscode?
-        try:
-            if os_name() == 'Windows':
-                self.master.iconbitmap('assets/biscuit_icon_windows.ico')
-            else:
-                # this doesn't work :'(
-                img = PhotoImage(file='assets/biscuit.png')
-                #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-                self.master.wm_iconphoto(True, img)
-                #self.master.wm_iconbitmap(img)
-        except:
-            pass
+        if os_name() == 'Windows':
+            self.master.iconbitmap('assets/biscuit_icon_windows.ico')
+        else:
+            # this doesn't work :'(
+            img = PhotoImage(file='assets/biscuit.png')
+            #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            self.master.wm_iconphoto(True, img)
+            #self.master.wm_iconbitmap(img)
         Frame.__init__(self, self.master)
 
         # this will be a dictionary containing any preloaded data from MNE
@@ -445,6 +442,7 @@ class main(Frame):
                     # create the info container
                     IC = InfoContainer(id_=id_, file_path=path_, parent=self,
                                        settings=self.proj_settings)
+                    IC.initial_processing()
                     # then add it to the list of preloaded data
                     self.preloaded_data[id_] = IC
                 else:
@@ -458,7 +456,8 @@ class main(Frame):
                         # and if so, set this as the parent:
                         if (self.file_treeview.parent(id_) in
                                 self.preloaded_data):
-                            obj.parent = self.preloaded_data[id_]
+                            obj.parent = self.preloaded_data[
+                                self.file_treeview.parent(id_)]
                         # if it is of generic type, give it it's data type and
                         # let it determine whether it is an unknown file type
                         # or not
@@ -667,10 +666,14 @@ class RightClick():
         if all_ and self.parent.treeview_select_mode == "NORMAL":
             mrk_files = [self.parent.preloaded_data[sid] for sid in
                          self.curr_selection]
+            print('marks', mrk_files)
             # get the parent folder and then find all .con file children
             parent = self.parent.file_treeview.parent(mrk_files[0].ID)
+            print('parent', parent)
             IC = self.parent.preloaded_data[parent]
+            #print(IC.contained_files)
             for con in IC.contained_files['.con']:
+                print('setting mrks for ', con)
                 con.associated_mrks = mrk_files
                 con.check_complete()
         else:
@@ -728,6 +731,7 @@ class RightClick():
                 if cont is None:
                     for cf in con_files:
                         cf.associated_mrks = mrk_files
+                        cf.check_complete()
                     # check if the con file is the currently selected file
                     if self.parent.treeview_select_mode == "ASSOCIATE-CON":
                         # if so, redraw the info panel and call the mrk

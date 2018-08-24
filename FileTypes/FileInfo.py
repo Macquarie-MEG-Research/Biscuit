@@ -1,6 +1,5 @@
 from collections import OrderedDict
 from tkinter import (Variable, TclError)
-from utils import pickle_var, unpickle_var
 
 from os.path import normpath
 
@@ -115,7 +114,6 @@ class FileInfo():
                 self.treeview.remove_tags(self.ID, ['BAD_FILE'])
                 self.treeview.add_tags(self.ID, tags=['GOOD_FILE'])
             elif value is False:
-                print(self.ID)
                 self.treeview.add_tags(self.ID, tags=['BAD_FILE'])
             else:
                 raise ValueError
@@ -160,7 +158,6 @@ class FileInfo():
         # if the file has bads, set the tag of the item as bad
         #print(self.bad_values, 'badvals', bads)
         if bads != []:
-            print('bad bad!!')
             self.is_good = False
         else:
             self.is_good = True
@@ -197,78 +194,8 @@ class FileInfo():
             data['file'] = self._file
             return data
 
-        """
-        data = dict()
-        data['file'] = self.file
-
-        def read_data(data):
-            output = dict()
-            for key, value in data.items():
-                # first, let's have a keys that will have specific behaviour:
-                if key == 'associated_mrks':
-                    # in this case we are trying to serialise a mrk_file object
-                    output[key] = [mrk.file for mrk in value['data']]
-                else:
-                    if isinstance(value, dict):
-                        if isinstance(value.get('data', None), Variable):
-                            output[key] = pickle_var(value['data'])
-                        else:
-                            output[key] = value.get('data', None)
-                    else:
-                        output[key] = value
-            return output
-        data['info'] = read_data(self.info)     # shouldn't need to save...
-        data['optional_info'] = read_data(self.optional_info)
-        data['required_info'] = read_data(self.required_info)
-        data['tab_info'] = dict()
-
-        print(data)
-
-        return data
-        """
-
     def __setstate__(self, state):
-        """
-        Take the state supplied and give all the required properties their
-        values
-        """
-        """
-        # we simply initialise the class without passing any args so that it
-        # can be initialised
         self.__init__(file=state['file'], auto_load=False)
-        # the id and parent will be given to it at a later time as they need
-        # to be provided by the gui
-
-        def load_data(data, base_data):
-            #modify base_data in place with the information in 'data'
-            for key, value in data.items():
-                # handle some specific cases first
-                if key == 'associated_mrks':
-                    # just set as path for now. We need to replace this with
-                    # the actual mrk_file objects but we can't do this until
-                    # the mrk files have actually be unpickled.
-                    base_data[key] = {'data': value}
-                else:
-                    # we are going to need to make tuples a restricted data
-                    # type so that this doesn't fail...
-                    if isinstance(value, tuple):
-                        # maybe add a check anyway...
-                        # in this case the first entry will be the type, and
-                        # second is the value
-                        if isinstance(base_data[key], dict):
-                            base_data[key]['data'] = unpickle_var(value)
-                        else:
-                            base_data[key] = unpickle_var(value)
-                    else:
-                        base_data[key] = value
-
-        load_data(state['info'], self.info)
-        load_data(state['optional_info'], self.optional_info)
-        load_data(state['required_info'], self.required_info)
-        self.tab_info = {}
-        """
-        self.__init__(file=state['file'], auto_load=False)
-        #self._file = state['file']
 
     def __repr__(self):
         # represent the object by its path.

@@ -112,3 +112,4 @@ ListVar.py
 thread_test.py
 mne_bids/MNEExceptions.py
 proj_settings.pkl
+savedata.save

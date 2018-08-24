@@ -236,7 +236,6 @@ class ChannelInfoFrame(Frame):
         # fill the channel choice box
         not_shown = []
         shown = []
-        print(self._file.interesting_channels, 'interesting')
         for i in range(self._file.info['Channels']):
             if i not in self._file.interesting_channels:
                 not_shown.append(self._file.channel_names[i])

@@ -27,17 +27,19 @@ class SaveManager():
         """
         This needs some error handling!!
         """
-        _data = dict()
+        _data = self.parent.preloaded_data
 
         # get the list of all children to the treeview:
         self.treeview_ids = list(self.parent.file_treeview.all_children())
         self.treeview_ids.remove('')        # remove root
 
+        ICs_to_load = []
+
         # first retrieve all the data from the save file
         if path.exists(self.save_path):
             for file in self._load_gen():
                 if isinstance(file, con_file):
-                    print('loaded file: {0}'.format(file.file))
+                    #print('loaded file: {0}'.format(file.file))
                     # set the file's id from the treeview
                     sid = self.get_file_id(file.file)
                     file.ID = sid
@@ -46,12 +48,17 @@ class SaveManager():
                     # then add the file to the preloaded data
                     _data[file.ID] = file
                 elif isinstance(file, InfoContainer):
-                    print('loaded folder: {0}'.format(file.file_path))
-                    sid = self.get_file_id(file.file_path)
-                    file.ID = sid
-                    file.parent = self.parent
-                    _data[file.ID] = file
-            self.parent.preloaded_data = _data
+                    ICs_to_load.append(file)
+            # load IC's after files to ensure the files are referenced in the
+            # IC correctly.
+            for file in ICs_to_load:
+                #print('loaded folder: {0}'.format(file.file_path))
+                sid = self.get_file_id(file.file_path)
+                file.ID = sid
+                file.parent = self.parent
+                file.settings = self.parent.proj_settings
+                file.initial_processing()
+                _data[file.ID] = file
 
             # now fix up any associated_mrk's that need to be actual
             # mrk_file objects
@@ -67,10 +74,6 @@ class SaveManager():
                     # also validate the con file:
                     #obj.load_data()
                     obj.check_complete()
-            if len(_data) != 0:
-                print(_data, 'data something')
-            else:
-                print("all loaded fine!!")
 
     def get_file_id(self, path_):
         """

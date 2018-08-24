@@ -40,33 +40,38 @@ class FileInfoFrame(Frame):
         Label(self, text="Required Information:").grid(column=0, row=8,
                                                        columnspan=2)
 
+        self.task_info = InfoEntry(self, 'Task', StringVar(),
+                                   bad_values=[''],
+                                   validate_cmd=None)
+        self.task_info.label.grid(column=0, row=9)
+        self.task_info.value.grid(column=1, row=9)
         self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
                                   bad_values=[''],
                                   validate_cmd=None)
-        self.acq_info.label.grid(column=0, row=9)
-        self.acq_info.value.grid(column=1, row=9)
+        self.acq_info.label.grid(column=0, row=10)
+        self.acq_info.value.grid(column=1, row=10)
         self.mrks_info = InfoList(self, "Associated .mrk's", [],
                                   validate_cmd=None)
-        self.mrks_info.label.grid(column=0, row=10)
-        self.mrks_info.value.grid(column=1, row=10)
+        self.mrks_info.label.grid(column=0, row=11)
+        self.mrks_info.value.grid(column=1, row=11)
 
-        Separator(self, orient='horizontal').grid(column=0, row=11,
+        Separator(self, orient='horizontal').grid(column=0, row=12,
                                                   columnspan=2, sticky='ew')
-        Label(self, text="Optional Information:").grid(column=0, row=12,
+        Label(self, text="Optional Information:").grid(column=0, row=13,
                                                        columnspan=2)
         self.is_junk_info = InfoCheck(self, 'Is junk', BooleanVar(),
                                       validate_cmd=None)
-        self.is_junk_info.label.grid(column=0, row=13)
-        self.is_junk_info.value.grid(column=1, row=13)
+        self.is_junk_info.label.grid(column=0, row=14)
+        self.is_junk_info.value.grid(column=1, row=14)
         self.is_emptyroom_info = InfoCheck(self, 'Is empty room',
                                            BooleanVar(),
                                            validate_cmd=None)
-        self.is_emptyroom_info.label.grid(column=0, row=14)
-        self.is_emptyroom_info.value.grid(column=1, row=14)
+        self.is_emptyroom_info.label.grid(column=0, row=15)
+        self.is_emptyroom_info.value.grid(column=1, row=15)
         self.has_emptyroom_info = InfoCheck(self, 'Has empty room',
                                             BooleanVar())
-        self.has_emptyroom_info.label.grid(column=0, row=15)
-        self.has_emptyroom_info.value.grid(column=1, row=15)
+        self.has_emptyroom_info.label.grid(column=0, row=16)
+        self.has_emptyroom_info.value.grid(column=1, row=16)
         self.grid()
 
     def update_widgets(self):
@@ -76,6 +81,8 @@ class FileInfoFrame(Frame):
         self.meas_date_info.value = self._file.info['Measurement date']
         self.gains_info.value = self._file.info['gains']
 
+        self.task_info.value = self._file.task
+        self.task_info.validate_cmd = self._file.check_complete
         self.acq_info.value = self._file.acquisition
         self.acq_info.validate_cmd = self._file.check_complete
         self.mrks_info.value = self._file.associated_mrks
@@ -96,3 +103,4 @@ class FileInfoFrame(Frame):
         self.update_widgets()
         if not self._file.is_good:
             self.acq_info.check_valid()
+            self.task_info.check_valid()

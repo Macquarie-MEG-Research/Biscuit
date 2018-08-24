@@ -38,10 +38,11 @@ manufacturers = {'.sqd': 'KIT/Yokogawa', '.con': 'KIT/Yokogawa',
                  '.fif': 'Elekta', '.gz': 'Elekta', '.pdf': '4D Magnes',
                  '.ds': 'CTF'}
 
-IGNORED_CHANNELS = ['STI 014']
+IGNORED_CHANNELS = defaultdict(lambda: [])
+IGNORED_CHANNELS['KIT/Yokogawa'] = ['STI 014']
 
 
-def _channels_tsv(raw, fname, verbose, overwrite):
+def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
     """Create channel tsv."""
     map_chs = defaultdict(lambda: 'OTHER')
     map_chs.update(meggradaxial='MEGGRADAXIAL',
@@ -65,7 +66,7 @@ def _channels_tsv(raw, fname, verbose, overwrite):
     get_specific = ('mag', 'ref_meg', 'grad')
 
     ignored_indexes = []
-    for ch_name in IGNORED_CHANNELS:
+    for ch_name in IGNORED_CHANNELS[manufacturer]:
         if ch_name in raw.ch_names:
             ignored_indexes.append(raw.ch_names.index(ch_name))
 
@@ -141,6 +142,8 @@ def _events_tsv(events, raw, fname, event_id, verbose, overwrite):
 def _participants_tsv(fname, subject_id="n/a", age="n/a", gender="n/a",
                       group="n/a"):
     """Create a tsv for participants"""
+    if not subject_id.startswith('sub-'):
+        subject_id = 'sub-' + subject_id
     if os.path.exists(fname):
         df = pd.read_csv(fname, sep='\t')
         df = df.append(pd.DataFrame(data={'participant_id': [subject_id],
@@ -149,14 +152,17 @@ def _participants_tsv(fname, subject_id="n/a", age="n/a", gender="n/a",
                                     columns=['participant_id', 'age', 'sex',
                                              'group']))
         df = df.drop_duplicates()
-        df.sort_values(by='participant_id')
+        df = df.sort_values(by='participant_id')
     else:
         df = pd.DataFrame(data={'participant_id': [subject_id],
                                 'age': [age], 'sex': [gender],
                                 'group': [group]},
                           columns=['participant_id', 'age', 'sex', 'group'])
+    df = df.fillna("n/a")
 
     df.to_csv(fname, sep='\t', index=False)
+
+    return fname
 
 
 def _scans_tsv(raw, raw_fname, fname, verbose):
@@ -181,7 +187,7 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
                                           'acq_time': [acq_time]},
                                     columns=['filename', 'acq_time']))
         df = df.drop_duplicates()
-        df.sort_values(by='acq_time')
+        df = df.sort_values(by='acq_time')
     else:
         df = pd.DataFrame(data={'filename': ['%s' % raw_fname],
                                 'acq_time': [acq_time]},
@@ -249,7 +255,7 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
 
     # determine whether any channels have to be ignored:
     num_ignored = 0
-    for ch_name in IGNORED_CHANNELS:
+    for ch_name in IGNORED_CHANNELS[manufacturer]:
         if ch_name in raw.ch_names:
             num_ignored += 1
     # all ignored channels are trigger channels at the moment...
@@ -453,8 +459,10 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     participant_data['gender'] = gender
     participant_data['group'] = participant_data.get('group', 'n/a')
 
-    # this will only work if the user specifies the electrode and hsp files, which you wouldn't normally do if you just provide a raw
-    # If raw files were to store all the paths we wouldn't need to do this (other than empty room override...)
+    # this will only work if the user specifies the electrode and hsp files,
+    # which you wouldn't normally do if you just provide a raw
+    # If raw files were to store all the paths we wouldn't need to do this
+    # (other than empty room override...)
     extra_data["DigitizedLandmarks"] = (True if (electrode is not None and
                                                  emptyroom is not True) else False)
     extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and emptyroom is not True) else False)
@@ -481,7 +489,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     data_meta_fname = make_bids_filename(
         subject=subject_id, session=session_id, task=task, run=run,
         acquisition=acquisition, suffix='%s.json' % kind, prefix=data_path)
-    if ext in ['.fif', '.gz']:
+    if ext in ['.fif', '.gz', '.ds']:
         raw_file_bids = make_bids_filename(
             subject=subject_id, session=session_id, task=task, run=run,
             acquisition=acquisition, suffix='%s%s' % (kind, ext))
@@ -523,7 +531,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     if isinstance(readme_text, string_types):
         make_readme(output_path, readme_text)
     if emptyroom is not True:
-        _participants_tsv(participants_fname, 'sub-%s' % subject_id,
+        _participants_tsv(participants_fname, subject_id,
                           participant_data['age'], participant_data['gender'],
                           participant_data['group'])
     _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose,
@@ -570,7 +578,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                     prefix=os.path.join(data_path, raw_folder))
                 sh.copyfile(marker_path, marker_fname)
 
-        _channels_tsv(raw, channels_fname, verbose, overwrite)
+        _channels_tsv(raw, channels_fname, verbose, manufacturer, overwrite)
 
         events = _read_events(events_data, raw)
         if len(events) > 0:

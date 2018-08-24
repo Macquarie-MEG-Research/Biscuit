@@ -45,15 +45,30 @@ class OptionsVar(Variable):
     def _set_initial(self):
         if len(self) != 0:
             self._tk.globalsetvar(self._name, self._options[0].get())
+        else:
+            # set as empty string
+            self._tk.globalsetvar(self._name, '')
 
     def set(self, value):
-        """ Set the variable to VALUE """
-        for v in self._options:
-            if value == v.get():
-                self._tk.globalsetvar(self._name, value)
-                break
+        """
+        Set the variable to VALUE
+        If there are options, then the set value must be in the available
+        options.
+        If there are no options the current value will be set to VALUE and it
+        will be added to the list of possible values.
+        """
+        if self._options != []:
+            for v in self._options:
+                if value == v.get():
+                    self._tk.globalsetvar(self._name, value)
+                    break
+            else:
+                raise ValueError(
+                    "Cannot set value {0}\n "
+                    "Possible values: {1}".format(value, self.options))
         else:
-            raise ValueError
+            self._tk.globalsetvar(self._name, value)
+            self._options.append(StringVar(value=str(value)))
 
     def append(self, value):
         """ Append the value to the options list """
@@ -66,11 +81,16 @@ class OptionsVar(Variable):
     @options.setter
     def options(self, value):
         """ set the options anew """
+        # let's get the current value first, so that if it is in the current
+        # list it will stay selected.
+        curr_value = self._tk.globalgetvar(self._name)
         self._options = []
         for option in value:
             self._options.append(StringVar(value=str(option)))
         # also set the value to be the first one
-        if len(self) != 0:
+        if curr_value != '':
+            self._tk.globalsetvar(self._name, curr_value)
+        elif len(self) != 0:
             self._tk.globalsetvar(self._name, self._options[0].get())
 
 

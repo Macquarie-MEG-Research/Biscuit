@@ -48,17 +48,11 @@ class SessionInfoFrame(Frame):
         self.require_verification.append(self.proj_name_entry)
         self.proj_name_entry.label.grid(column=0, row=2, sticky='ew', pady=2)
         self.proj_name_entry.value.grid(column=1, row=2, sticky='ew', pady=2)
-        self.task_name_entry = InfoEntry(self, "Task name", StringVar(),
-                                         bad_values=[''],
-                                         validate_cmd=None)
-        self.task_name_entry.label.grid(column=0, row=3, sticky='ew', pady=2)
-        self.task_name_entry.value.grid(column=1, row=3, sticky='ew', pady=2)
-        self.require_verification.append(self.task_name_entry)
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
                                        bad_values=[''],
                                        validate_cmd=None)
-        self.sess_id_entry.label.grid(column=0, row=4, sticky='ew', pady=2)
-        self.sess_id_entry.value.grid(column=1, row=4, sticky='ew', pady=2)
+        self.sess_id_entry.label.grid(column=0, row=3, sticky='ew', pady=2)
+        self.sess_id_entry.value.grid(column=1, row=3, sticky='ew', pady=2)
         self.require_verification.append(self.sess_id_entry)
 
         # now the subject info
@@ -103,8 +97,8 @@ class SessionInfoFrame(Frame):
     def update_widgets(self):
         self.proj_name_entry.value = self.file.proj_name
         self.proj_name_entry.validate_cmd = self.file.check_bids_ready
-        self.task_name_entry.value = self.file.task_name
-        self.task_name_entry.validate_cmd = self.file.check_bids_ready
+        #self.task_name_entry.value = self.file.task_name
+        #self.task_name_entry.validate_cmd = self.file.check_bids_ready
         self.sess_id_entry.value = self.file.session_ID
         self.sess_id_entry.validate_cmd = self.file.check_bids_ready
         self.sub_id_entry.value = self.file.subject_ID

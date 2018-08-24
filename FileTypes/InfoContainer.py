@@ -3,6 +3,7 @@ from mne.io import read_raw_kit
 from mne.io.constants import FIFF
 import os.path as path
 from os import makedirs
+#from datetime import datetime  # for participant "DOB"
 
 from Management import OptionsVar
 from utils import flatten, get_object_class, threaded, generate_readme
@@ -62,6 +63,7 @@ class InfoContainer():
         # This will be set to true when self.initiate() is called.
         self.initialised = False
 
+    def initial_processing(self):
         self._process_folder()
 
         # This function needs to be modified to take in the parent id from the
@@ -71,9 +73,11 @@ class InfoContainer():
         if self.is_valid:
             self._set_required_inputs()
 
-        self.raw_files = dict()
         self.extra_data = dict()
-        self.acq_con_map = dict()
+        # the following two dictionaries will have a key in the format
+        # (acq, task)
+        self.raw_files = dict()
+        self.con_map = dict()
 
         if self.is_valid and self.is_bids_ready:
             self.initiate()
@@ -82,7 +86,6 @@ class InfoContainer():
         self.proj_name = StringVar()
         self.proj_name.trace("w", self._apply_settings)
         self.subject_group = OptionsVar()
-        self.task_name = StringVar()
         self.session_ID = StringVar()
         self.subject_ID = StringVar()
         self.subject_age = IntVar()
@@ -115,21 +118,27 @@ class InfoContainer():
             # check the extension of the file. If it is in the files dict, add
             # the file to the list
             ext = item['values'][0]
-            # generate the FileInfo subclass object
-            cls_ = get_object_class(ext)
-            if not isinstance(cls_, str):
-                # and only call it if it can be. str types are ignored
-                # (only other return type)
-                obj = cls_(sid, item['values'][1], self, auto_load=False,
-                           treeview=self.parent.file_treeview)
-                if isinstance(obj, generic_file):
-                    obj.dtype = ext
-                # only add to the 'files' variable if it needs to be
+
+            # Check to see if the file has already been preloaded.
+            # If so, simply associate it and continue.
+            if sid in self.parent.preloaded_data:
                 if ext in files:
-                    files[item['values'][0]].append(obj)
-                # also add the data to the preload data
-                if sid not in self.parent.preloaded_data:
+                    files[item['values'][0]].append(
+                        self.parent.preloaded_data[sid])
+            else:
+                # generate the FileInfo subclass object
+                cls_ = get_object_class(ext)
+                if not isinstance(cls_, str):
+                    # and only call it if it can be. str types are ignored
+                    # (only other return type)
+                    obj = cls_(sid, item['values'][1], self, auto_load=False,
+                               treeview=self.parent.file_treeview)
+                    if isinstance(obj, generic_file):
+                        obj.dtype = ext
+                    # add the data to the preload data
                     self.parent.preloaded_data[sid] = obj
+                    if ext in files:
+                        files[item['values'][0]].append(obj)
 
         valid = True
         # validate the folder:
@@ -152,20 +161,24 @@ class InfoContainer():
     def _create_raws(self):
         print('creating raws')
         # refresh to avoid adding the con files each time
-        self.acq_con_map = dict()
+        self.con_map = dict()
         for con_file in self.contained_files['.con']:
             acq = con_file.acquisition.get()
+            task = con_file.task.get()
             if con_file.is_junk.get() is False:
                 if con_file.is_empty_room.get():
                     acq = 'emptyroom'
-                if acq in self.acq_con_map:
-                    self.acq_con_map[acq].append(con_file)
+                    task = 'noise'
+                # use the tuple to create a unique lookup
+                if (acq, task) in self.con_map:
+                    self.con_map[(acq, task)].append(con_file)
                 else:
-                    self.acq_con_map[acq] = [con_file]
+                    self.con_map[(acq, task)] = [con_file]
             # otherwise we need to maybe copy them??
 
-        for acq, con_files in self.acq_con_map.items():
-            print('generating acq {0}'.format(acq))
+        # at = (acq, task) tuple
+        for at, con_files in self.con_map.items():
+            print('generating acq {0}, task {1}'.format(at[0], at[1]))
             if len(con_files) > 1:
                 # in this case we will need to combine them somehow...
                 # Let's figure this out later...
@@ -173,11 +186,11 @@ class InfoContainer():
             elif len(con_files) == 1:
                 # in this case we have a single con file per acq, and some
                 # number of mrk files
-                if acq == 'emptyroom':
+                if at[0] == 'emptyroom':
                     # in this case we don't have/need hsp, elp or mrk files:
-                    self.raw_files[acq] = read_raw_kit(con_files[0].file)
+                    self.raw_files[at] = read_raw_kit(con_files[0].file)
                     # assign the raw file to the con file
-                    con_files[0].associated_raw = self.raw_files[acq]
+                    con_files[0].associated_raw = self.raw_files[at]
                 else:
                     # we can read the triggers out first as we don't need to
                     # worry about the names
@@ -190,7 +203,7 @@ class InfoContainer():
                         stim_code = 'channel'
                         slope = '+'
                     print('trigger channels:', trigger_channels)
-                    self.raw_files[acq] = read_raw_kit(
+                    self.raw_files[at] = read_raw_kit(
                         con_files[0].file,
                         # construct a list of the file paths
                         mrk=[mrk_file.file for mrk_file in
@@ -199,28 +212,41 @@ class InfoContainer():
                         hsp=self.contained_files['.hsp'][0].file,
                         stim=trigger_channels, stim_code=stim_code,
                         slope=slope)
-                    con_files[0].associated_raw = self.raw_files[acq]
+                    con_files[0].associated_raw = self.raw_files[at]
                     bads, name_mapping = self._get_channel_name_changes(
                         con_files[0])
                     # rename the channels
-                    self.raw_files[acq].rename_channels(name_mapping)
+                    self.raw_files[at].rename_channels(name_mapping)
                     # set the bads
-                    self.raw_files[acq].info['bads'] = bads
+                    self.raw_files[at].info['bads'] = bads
+                    """ Might be needed???
+                    # assign any participant info we have:
+                    # first we need to process what we have:
+                    his_id = self.subject_ID.get()
+                    age = self.subject_age.get()
+                    sex = self.subject_gender.get()
+                    # map the sex to the data used by the raw info
+                    sex = {'': 0, 'O': 0, 'M': 1, 'F': 2}.get(sex, 0)
+                    subject_info = self.raw_files[acq].info['subject_info']
+                    subject_info['his_id'] = his_id
+                    subject_info['birthday'] = his_id
+                    subject_info['sex'] = sex
+                    """
                     # change the channel type of any channels that are triggers
                     if isinstance(trigger_channels, list):
                         for ch in trigger_channels:
                             i = int(ch) - 1
-                            ch_info = self.raw_files[acq].info['chs'][i]
+                            ch_info = self.raw_files[at].info['chs'][i]
                             ch_info['kind'] = FIFF.FIFFV_STIM_CH
                     # assign the raw file to the con file
-                    con_files[0].associated_raw = self.raw_files[acq]
+                    con_files[0].associated_raw = self.raw_files[at]
                 # Also populate the extra data dictionary so that it can be
                 # used when producing bids data.
                 # This requires the file to be loaded, so we will do that for
                 # any files that happen to have not been loaded
                 if con_files[0].loaded is False:
                     con_files[0].load_data()
-                self.extra_data[acq] = {
+                self.extra_data[at] = {
                     'InstitutionName': con_files[0].info['Institution name'],
                     'ManufacturersModelName': 'KIT-160',
                     'DewarPosition': self.dewar_position.get(),
@@ -274,8 +300,7 @@ class InfoContainer():
         if self.is_valid:
             # check the info provided
             is_good = True
-            if (self.task_name.get() == '' or
-                    self.proj_name.get() == '' or
+            if (self.proj_name.get() == '' or
                     self.subject_ID.get() == ''):
                 is_good = False
             if is_good is True:
@@ -312,14 +337,13 @@ class InfoContainer():
                 self._id)['text'].split('_')[2]
         except IndexError:
             proj_name = ''
-        # try find the specific project settings
-        for proj_settings in self.proj_settings:
-            if proj_settings.get('ProjectID', None) == proj_name:
-                self.proj_settings = proj_settings
-                break
-        else:
-            self.proj_settings = dict()
         self.proj_name.set(proj_name)
+        # set the settings via the setter.
+        try:
+            self.settings = self.proj_settings
+        except AttributeError:
+            # in this case the settings have probably already been set.
+            pass
 
         """ Subject settings """
         try:
@@ -328,9 +352,6 @@ class InfoContainer():
         except IndexError:
             sub_name = ''
         self.subject_ID.set(sub_name)
-        subject_groups = flatten(self.settings.get('Groups', ['Participant',
-                                                              'Control']))
-        self.subject_group.options = subject_groups
 
     def _apply_settings(self, *args):
         """
@@ -340,8 +361,8 @@ class InfoContainer():
         """
         # re-assign the settings to themselves by evoking the setter method
         # of self.settings.
-        self.settings = self.parent.proj_settings
-        print(self.proj_settings)
+        if self.parent is not None:
+            self.settings = self.parent.proj_settings
 
     def _folder_to_bids(self):
         self.parent.check_progress(self.bids_conversion_progress)
@@ -361,18 +382,18 @@ class InfoContainer():
             bids_folder_sid = self.parent.file_treeview.ordered_insert(
                 '', text='BIDS', values=('', bids_folder_path))
 
-        for acq, raw_kit in self.raw_files.items():
+        for at, raw_kit in self.raw_files.items():
             self.bids_conversion_progress.set(
-                "Working on acquisition {0}".format(acq))
+                "Working on acquisition {0}".format(at))
             target_folder = path.join(bids_folder_path,
                                       self.proj_name.get())
 
             # get the variables for the raw_to_bids conversion function:
             subject_id = self.subject_ID.get()
-            task_name = self.task_name.get()
+            #task_name = self.task_name.get()
             sess_id = self.session_ID.get()
 
-            extra_data = self.extra_data[acq]
+            extra_data = self.extra_data[at]
 
             # generate the readme
             if isinstance(self.proj_settings, dict):
@@ -389,7 +410,7 @@ class InfoContainer():
             emptyroom_path = ''
 
             # get the event data from the associated con files:
-            for con in self.acq_con_map[acq]:
+            for con in self.con_map[at]:
                 trigger_channels, descriptions = con.get_trigger_channels()
                 # assume there is only one for now??
                 event_ids = dict(zip(descriptions,
@@ -407,7 +428,7 @@ class InfoContainer():
                                       'sub-emptyroom_ses-{0}_task-'
                                       'noise_meg.con'.format(date))
 
-            if acq == 'emptyroom':
+            if at[0] == 'emptyroom':
                 emptyroom = True
             else:
                 if emptyroom_path != '':
@@ -415,14 +436,14 @@ class InfoContainer():
                 else:
                     emptyroom = False
 
-            con = self.acq_con_map[acq][0]
+            con = self.con_map[at][0]
             mrks = [mrk.file for mrk in con.associated_mrks]
 
             # finally, run the actual conversion
-            raw_to_bids(subject_id, task_name, raw_kit, target_folder,
+            raw_to_bids(subject_id, at[1], raw_kit, target_folder,
                         electrode=self.contained_files['.elp'][0].file,
                         hsp=self.contained_files['.hsp'][0].file,
-                        hpi=mrks, session_id=sess_id, acquisition=acq,
+                        hpi=mrks, session_id=sess_id, acquisition=at[0],
                         emptyroom=emptyroom, extra_data=extra_data,
                         event_id=event_ids, participant_data=participant_data,
                         readme_text=readme)
@@ -464,20 +485,22 @@ class InfoContainer():
         # only returns a dictionary of information that we actually need
         # to store.
         data = dict()
-        attrs = ['proj_name', 'task_name', 'session_ID', 'subject_ID',
+        data['file_path'] = self.file_path
+        attrs = ['proj_name', 'session_ID', 'subject_ID',
                  'subject_age', 'subject_gender', 'subject_group',
                  'dewar_position']
         for attr in attrs:
             # all are subclassed from Variable so will all have the get method
-            data['proj_name'] = getattr(self, attr).get()
+            data[attr] = getattr(self, attr).get()
 
         return data
 
     def __setstate__(self, state):
+        self.__init__(None, state['file_path'], None, None)
         # first, initialise all the variables we need to fill
         self._create_variables()
         # then fill them
-        attrs = ['proj_name', 'task_name', 'session_ID', 'subject_ID',
+        attrs = ['proj_name', 'session_ID', 'subject_ID',
                  'subject_age', 'subject_gender', 'subject_group',
                  'dewar_position']
         for attr in attrs:

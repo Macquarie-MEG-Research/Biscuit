@@ -1,10 +1,8 @@
 from tkinter import StringVar, BooleanVar
 from struct import unpack
 from .FileInfo import FileInfo
-from .mrk_file import mrk_file
 from mne.io.kit.constants import KIT
 from datetime import datetime
-from utils import unpickle_var
 
 GAINS = [1, 2, 5, 10, 20, 50, 100, 200]
 
@@ -49,6 +47,7 @@ class con_file(FileInfo):
         self.is_empty_room = BooleanVar()
         self.has_empty_room = BooleanVar()
         self.acquisition = StringVar()
+        self.task = StringVar()
         self.associated_mrks = []
 
         # set any particular bad values
@@ -177,7 +176,6 @@ class con_file(FileInfo):
         """
         Check there are no bad values
         """
-        print('verifying con file...')
         if self.is_junk.get() is True:
             self.treeview.add_tags(self.ID, ['JUNK_FILE'])
             self.treeview.remove_tags(self.ID, ['BAD_FILE'])
@@ -188,10 +186,10 @@ class con_file(FileInfo):
         # if the con file is junk or the empty room file then we consider it ok
         if (self.is_junk.get() is True or
                 self.is_empty_room.get() is True):
-            print('con file is good')
+            #print('con file is good')
             self.is_good = True
             return
-        print('con file might be bad...')
+        #print('con file might be bad...')
         super(con_file, self).check_complete()
 
     def get_trigger_channels(self):
@@ -214,6 +212,7 @@ class con_file(FileInfo):
         # first, get any data we want saved:
         # use short-hand names to save a bit of space...
         data['acq'] = self.acquisition.get()
+        data['tsk'] = self.task.get()
         data['mrk'] = []
         for mrk in self.associated_mrks:
             data['mrk'].append(mrk.file)
@@ -233,6 +232,7 @@ class con_file(FileInfo):
 
         # then populate them
         self.acquisition.set(state['acq'])
+        self.task.set(state['tsk'])
         for mrk in state['mrk']:
             self.associated_mrks.append(mrk)
         self.is_junk.set(state['jnk'])
