@@ -120,12 +120,19 @@ class WidgetTable(Frame):
             add_option_frame.grid(column=0, row=0)
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=1, sticky='nsew')
+
+            self.grid_rowconfigure(0, weight=0)
+            self.grid_rowconfigure(1, weight=1)
+            self.grid_columnconfigure(0, weight=1)
         else:
             self.sf = ScrollableFrame(self)
-            self.sf.grid(column=0, row=1, sticky='nsew')
+            self.sf.grid(column=0, row=0, sticky='nsew')
             self.add_button = Button(self.sf.frame, text="Add Row",
                                      command=self.add_row_from_button)
             self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_columnconfigure(0, weight=1)
         for i, heading in enumerate(self.headings):
             Label(self.sf.frame, text=heading).grid(
                 column=2 * i, row=self.separator_offset, sticky='nsew')

@@ -1,10 +1,10 @@
 __author__ = "Matt Sanderson"
 
-from tkinter import Frame, Tk, PhotoImage, Menu, StringVar
+from tkinter import Tk, PhotoImage, Menu, StringVar
 from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, simpledialog, messagebox
-from tkinter.ttk import Style, Button
+from tkinter.ttk import Frame, Style, Button
 
 import pickle
 import os.path as path
@@ -413,10 +413,13 @@ class main(Frame):
             # only a single file is selected. Determine the data type if any
             dtype = self.file_treeview.item(
                 self.selected_files[0])['values'][0]
-            if dtype != '':
-                self.context.set(dtype.upper())
-            else:
+            file_path = self.file_treeview.item(
+                self.selected_files[0])['values'][1]
+            if path.isdir(file_path):
                 self.context.set('FOLDER')
+            else:
+                self.context.set(dtype.upper())
+                
         else:
             # set it as no context
             self.context.set()

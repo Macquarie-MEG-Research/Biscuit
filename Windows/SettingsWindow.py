@@ -5,10 +5,6 @@ from Windows import ProjectSettingsWindow
 
 import pickle
 
-""" A lot of the code here will be overhauled at some point once we have the
-code set up to handle writing the readme file with general project settings.
-"""
-
 
 class SettingsWindow(Toplevel):
     def __init__(self, master, settings, proj_settings):
@@ -38,7 +34,8 @@ class SettingsWindow(Toplevel):
 
     def _create_widgets(self):
         frame = Frame(self)
-        frame.grid()
+        frame.grid(sticky='nsew')
+
         Label(frame, text="Project defaults").grid(column=0, row=0)
         self.defaults_list_frame = Frame(frame, borderwidth=2,
                                          relief='ridge')
@@ -53,10 +50,21 @@ class SettingsWindow(Toplevel):
             data_array=[self.settings_view(s) for s in self.proj_settings],
             adder_script=self._add_project_row,
             remove_script=self._remove_row)
-        self.projects_table.grid(column=0, row=0)
-        self.defaults_list_frame.grid(column=0, row=2, columnspan=2)
-        Button(frame, text="Exit", command=self.exit).grid(row=3, column=0,
-                                                           sticky='w')
+        self.projects_table.grid(column=0, row=0, sticky='nsew')
+        self.defaults_list_frame.grid(column=0, row=1, sticky='nsew')
+        Button(frame, text="Exit", command=self.exit).grid(row=2, column=0,
+                                                           sticky='sw')
+
+        self.defaults_list_frame.grid_rowconfigure(0, weight=1)
+        self.defaults_list_frame.grid_columnconfigure(0, weight=1)
+
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_rowconfigure(0, weight=0)
+        frame.grid_rowconfigure(1, weight=1)
+        frame.grid_rowconfigure(2, weight=0)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     @staticmethod
     def settings_view(settings):

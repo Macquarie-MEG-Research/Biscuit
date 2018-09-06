@@ -1,5 +1,6 @@
-from tkinter import Frame, Tk, Scrollbar, Canvas, ALL
-#from tkinter.ttk import Frame, Scrollbar, Canvas
+from tkinter import Tk, ALL, Canvas, Frame, Scrollbar
+
+from platform import system as os_name
 
 
 class ScrollableFrame(Frame):
@@ -45,7 +46,10 @@ class ScrollableFrame(Frame):
     # TODO: fix for potential issues with mac??
     def _on_mousewheel(self, event):
         if self.vsb.get() != (0.0, 1.0):
-            self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            if os_name() == 'Windows':
+                self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+            else:
+                self.canvas.yview_scroll(-event.delta, "units")
 
     def configure_view(self, event=None, move_to_bottom=False):
         self.update_idletasks()
