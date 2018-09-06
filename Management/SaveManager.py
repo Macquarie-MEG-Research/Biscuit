@@ -60,6 +60,12 @@ class SaveManager():
                 file.initial_processing()
                 _data[file.ID] = file
 
+                # find any children of the IC and give them this object as
+                # the parent
+                for child_id in self.parent.file_treeview.get_children(sid):
+                    if child_id in _data:
+                        _data[child_id].parent = file
+
             # now fix up any associated_mrk's that need to be actual
             # mrk_file objects
             for _, obj in self.parent.preloaded_data.items():
@@ -115,8 +121,9 @@ class SaveManager():
                         except TypeError:
                             print('error opening file: {0}'.format(file))
                 elif isinstance(file, InfoContainer):
-                    try:
-                        print('dumping {0}'.format(file.file_path))
-                        pickle.dump(file, f)
-                    except TypeError:
-                        print('error opening file: {0}'.format(file))
+                    if file.is_valid:
+                        try:
+                            print('dumping {0}'.format(file.file_path))
+                            pickle.dump(file, f)
+                        except TypeError:
+                            print('error opening file: {0}'.format(file))

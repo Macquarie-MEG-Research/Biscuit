@@ -1,10 +1,10 @@
 __author__ = "Matt Sanderson"
 
-from tkinter import *
+from tkinter import Frame, Tk, PhotoImage, Menu, StringVar
+from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, simpledialog, messagebox
-from tkinter.ttk import *
-from tkinter.ttk import Style
+from tkinter.ttk import Style, Button
 
 import pickle
 import os.path as path

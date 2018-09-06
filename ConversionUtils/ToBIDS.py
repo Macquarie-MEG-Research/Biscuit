@@ -6,7 +6,7 @@ import mne
 import os.path as path
 from os import listdir, scandir
 from sys import version_info
-from datetime import datetime
+from datetime import datetime, date
 
 def process_folder(folder, prefix='', validate=False):
     """
@@ -70,32 +70,48 @@ def process_folder(folder, prefix='', validate=False):
     else:
         return files
 
+
 def splitname(filename):
-    # wrapper for the os.path.splitext function to allow for multiple python versions
+    # wrapper for the os.path.splitext function to allow for multiple python
+    # versions
     if version_info.major == 3 and version_info.minor >= 6:
         # running 3.6 or higher
         return path.splitext(filename)
     else:
         return path.splitext(path.join(filename))
 
+
 if __name__ == "__main__":
     # personal laptop paths
     p = "C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\2630_RS_PI160_2017_08_04"
     #p = 'C:\\Users\\msval\\Desktop\\rs_test_data_for_matt\\2630_RS_PI160_2017_08_04'
-    print(process_folder(p, '2630_RS_PI160_2017_08_04'))
+    #print(process_folder(p, '2630_RS_PI160_2017_08_04'))
 
     a = mne.io.read_raw_kit(path.join(p, '2630_RS_PI160_2017_08_04_B2.con'),
                             mrk = path.join(p, '2630_RS_PI160_2017_08_04_preB2.mrk'),
                             elp = path.join(p, '2630_RS_PI160_2017_08_04.elp'),
                             hsp = path.join(p, '2630_RS_PI160_2017_08_04.hsp'))
+    subject_info = dict()
+    #print(a.info)
+    #a.info[]
+    #print(subject_info)
+    subject_info['id'] = 1234
+    b = subject_info['birthday'] = (2000, 1, 2)
+    subject_info['sex'] = 2
+    a.info['subject_info'] = subject_info
+
     #p = a.plot()
     #p.show()
     #print(a.info['line_freq'])
     #print(isinstance(a, mne.io.Raw)
-    date = a.info['nchan']
-    #f = datetime.fromtimestamp(date).strftime('%Y%m%d')
-    print(date)
+    f = date.fromtimestamp(a.info['meas_date'])
+    g = date(b[0], b[1], b[2])
     print(a.info['events'])
+    print(a.info['subject_info'])
+    print(f)
+    print(g)
+    k = f - g
+    print(k.days//365)
     #print(a.info['hpi_results'])
     #print(a.info['hpi_subsystem'])
     #raw_to_bids('CONTROL01', 'TASK01', a, path.join(p, 'newpath'), session_id='01', run=1)

@@ -65,6 +65,7 @@ class FileInfo():
         self._auto_preload_data = auto_load
 
         if self._auto_preload_data:
+            print('loading data!!')
             self.load_data()
 
     @property

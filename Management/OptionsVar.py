@@ -88,10 +88,13 @@ class OptionsVar(Variable):
         for option in value:
             self._options.append(StringVar(value=str(option)))
         # also set the value to be the first one
-        if curr_value != '':
+        if curr_value != '' and curr_value in value:
             self._tk.globalsetvar(self._name, curr_value)
         elif len(self) != 0:
             self._tk.globalsetvar(self._name, self._options[0].get())
+        else:
+            # set as empty string
+            self._tk.globalsetvar(self._name, '')
 
 
 if __name__ == "__main__":

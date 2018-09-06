@@ -312,18 +312,19 @@ class InfoContainer():
                             is_good = False
                             break
             if is_good is False:
-                self.parent.info_notebook.raw_gen_btn.config(
-                    {"state": DISABLED})
-                self.parent.info_notebook.session_tab.raw_gen_btn.config(
+                #self.parent.info_notebook.session_tab.bids_gen_btn.config(
+                #    {"state": DISABLED})
+                self.parent.info_notebook.session_tab.bids_gen_btn.config(
                     {"state": DISABLED})
             else:
-                self.parent.info_notebook.raw_gen_btn.config({"state": ACTIVE})
-                self.parent.info_notebook.session_tab.raw_gen_btn.config(
+                #self.parent.info_notebook.bids_gen_btn.config(
+                #    {"state": ACTIVE})
+                self.parent.info_notebook.session_tab.bids_gen_btn.config(
                     {"state": ACTIVE})
             return is_good
         else:
-            self.parent.info_notebook.raw_gen_btn.config({"state": DISABLED})
-            self.parent.info_notebook.session_tab.raw_gen_btn.config(
+            #self.parent.info_notebook.bids_gen_btn.config({"state": DISABLED})
+            self.parent.info_notebook.session_tab.bids_gen_btn.config(
                 {"state": DISABLED})
             return False
 

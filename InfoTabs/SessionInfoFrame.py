@@ -18,8 +18,8 @@ class SessionInfoFrame(Frame):
 
         # need to define the buttons here so that they can be accessed by
         # other functions/classes
-        self.raw_gen_btn = Button(self, text="Initialise Data",
-                                  command=self._create_raws, state=DISABLED)
+        #self.raw_gen_btn = Button(self, text="Initialise Data",
+        #                          command=self._create_raws, state=DISABLED)
         self.bids_gen_btn = Button(self, text="Generate BIDS",
                                    command=self._folder_to_bids,
                                    state=DISABLED)
@@ -85,20 +85,19 @@ class SessionInfoFrame(Frame):
         self.dewar_position_entry.value.grid(column=1, row=7, sticky='ew',
                                              pady=2)
 
+        """
         self.raw_gen_btn.grid(column=3, row=7)
         tt.register(self.raw_gen_btn, ("Initialise all the raw data in "
             "preparation for BIDS conversion.\nThis option will only be "
             "available when this session has no invalid entries."))
-        self.bids_gen_btn.grid(column=4, row=7)
-        tt.register(self.bids_gen_btn, ("Convert session data to BIDS "
-            "format.\nOnly availble once the raw data has been initialised"))
+        """
+        self.bids_gen_btn.grid(column=3, row=7)
+        tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
         self.grid()
 
     def update_widgets(self):
         self.proj_name_entry.value = self.file.proj_name
         self.proj_name_entry.validate_cmd = self.file.check_bids_ready
-        #self.task_name_entry.value = self.file.task_name
-        #self.task_name_entry.validate_cmd = self.file.check_bids_ready
         self.sess_id_entry.value = self.file.session_ID
         self.sess_id_entry.validate_cmd = self.file.check_bids_ready
         self.sub_id_entry.value = self.file.subject_ID
@@ -108,14 +107,11 @@ class SessionInfoFrame(Frame):
         self.sub_group_entry.value = self.file.subject_group
         self.dewar_position_entry.value = self.file.dewar_position
 
-    def _create_raws(self):
+    def _folder_to_bids(self):
         if self.file._create_raws():
-            self.bids_gen_btn.config(state=NORMAL)
+            self.file._folder_to_bids()
         else:
             print("Error creating raw data required for BIDS conversion")
-
-    def _folder_to_bids(self):
-        self.file._folder_to_bids()
 
     @property
     def file(self):

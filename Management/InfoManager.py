@@ -67,27 +67,11 @@ class InfoManager(Notebook):
         """
 
         # channels tab (will only be for .con files)
-        self.channel_tab = ChannelInfoFrame(self, self.parent.settings)
+        self.channel_tab = CIF(self, self.parent.settings)
         self.add(self.channel_tab, text="Channels")
+        #self.channel_tab.grid(sticky="nsew")
+        #self.channel_tab.grid_propagate(0)
         self._tabs[T_CHANNELS] = 3
-
-        # Finally, some objects other widgets that we may like to modify
-        # externally.
-        # By defining them here they will be persistent, so we can draw/undraw
-        # them.
-
-        self.raw_gen_btn = Button(self.info_frame,
-                                  text="Initialise Data",
-                                  command=self._create_raws,
-                                  state=DISABLED)
-        self.bids_gen_btn = Button(self.info_frame,
-                                   text="Generate BIDS",
-                                   command=self._create_raws,
-                                   state=DISABLED)
-
-    def _create_raws(self):
-        self._data[0]._create_raws()
-        self.bids_gen_btn.config(state=NORMAL)
 
     def determine_tabs(self):
         """
@@ -131,22 +115,6 @@ class InfoManager(Notebook):
             self.channel_tab.is_loaded = False
             self.select(self._tabs[T_MISC])
 
-    """
-    def _display_info_tab(self):
-
-        #self._data[0].check_bids_ready()
-
-        self.info_frame.grid_forget()
-        clear_widget(self.info_frame)
-        for entry in self.info_frame_entries:
-            self.add_gridrow(entry)
-        # add a button that can be pressed to generate the RAW objects
-        btn_row = entry.master.grid_size()[1]
-        self.raw_gen_btn.grid(row=btn_row, column=0)
-        self.bids_gen_btn.grid(row=btn_row, column=1)
-        self.info_frame.grid(sticky="nsew")
-    """
-
     def _display_loading(self):
         # Shows a temporary screen indicating that the requested data is being
         # loaded...
@@ -172,6 +140,7 @@ class InfoManager(Notebook):
               text="Multiple files selected. To see information select just "
               "one file").grid()
 
+    # this needs to be removed I think...
     def _display_known_file(self):
         data_obj = self._data[0]
         self.info_frame.grid_forget()
@@ -312,7 +281,6 @@ class InfoManager(Notebook):
         else:
             if len(self._data) == 1:
                 if isinstance(self._data[0], InfoContainer):
-                    print(InfoContainer, 'hiiiiiiiiiiiiiii')
                     self._display_invalid_folder()
                 elif isinstance(self._data[0], FileInfo):
                     if (self._data[0].unknown_type is False and

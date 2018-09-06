@@ -25,7 +25,6 @@ from .pick import coil_type
 from .utils import (make_bids_filename, make_bids_folders,
                     make_dataset_description, _write_json, make_readme)
 from .io import _parse_ext, _read_raw
-#from .file_namer import BIDSName
 
 ALLOWED_KINDS = ['meg', 'ieeg']
 orientation = {'.sqd': 'ALS', '.con': 'ALS', '.fif': 'RAS', '.gz': 'RAS',
@@ -151,7 +150,7 @@ def _participants_tsv(fname, subject_id="n/a", age="n/a", gender="n/a",
                                           'group': [group]},
                                     columns=['participant_id', 'age', 'sex',
                                              'group']))
-        df = df.drop_duplicates()
+        df.drop_duplicates(subset='participant_id', keep='last', inplace=True)
         df = df.sort_values(by='participant_id')
     else:
         df = pd.DataFrame(data={'participant_id': [subject_id],
@@ -186,7 +185,7 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
         df = df.append(pd.DataFrame(data={'filename': ['%s' % raw_fname],
                                           'acq_time': [acq_time]},
                                     columns=['filename', 'acq_time']))
-        df = df.drop_duplicates()
+        df.drop_duplicates(subset='filename', keep='last', inplace=True)
         df = df.sort_values(by='acq_time')
     else:
         df = pd.DataFrame(data={'filename': ['%s' % raw_fname],

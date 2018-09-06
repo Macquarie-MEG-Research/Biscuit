@@ -70,20 +70,22 @@ class ProjectSettingsWindow(Toplevel):
         self.desc_entry.insert(END, self.settings.get('Description', ''))
         self.channels_table = WidgetTable(
             self.frame, headings=["Trigger Channel", "Event Description"],
-            row_vars=[IntVar, StringVar],
-            entry_types=[Entry, Entry],
+            pattern=[IntVar, StringVar],
+            widgets_pattern=[Entry, Entry],
             add_options=None,
-            data_array=self.settings.get('DefaultTriggers', []))
+            data_array=self.settings.get('DefaultTriggers', []),
+            sort_column=0)
         self.channels_table.grid(column=0, columnspan=2, row=8)
         self.groups_table = WidgetTable(
             self.frame, headings=["Group"],
-            row_vars=[StringVar],
-            entry_types=[Entry],
+            pattern=[StringVar],
+            widgets_pattern=[Entry],
             add_options=None,
             data_array=self.settings.get('Groups', []))
         self.groups_table.grid(column=2, columnspan=2, row=8)
 
-        self.save_btn = Button(self.frame, text="Save", command=self._write_settings)
+        self.save_btn = Button(self.frame, text="Save",
+                               command=self._write_settings)
         self.save_btn.grid(column=4, row=9)
 
     def get_settings(self):

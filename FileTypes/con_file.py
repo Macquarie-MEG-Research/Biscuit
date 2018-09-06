@@ -59,7 +59,7 @@ class con_file(FileInfo):
         # a channel is interesting if any of it's values are not the default
         # ones or the user has selected the channel from the list in the
         # channels tab to enter info
-        self.interesting_channels = []
+        self.interesting_channels = set()
         self.channel_names = []
 
         self.tab_info = {}
@@ -125,28 +125,28 @@ class con_file(FileInfo):
                 file.seek(chan_offset + i * chan_size)
                 channel_type, = unpack('i', file.read(4))
                 if channel_type in KIT.CHANNELS_MEG:
-                    name = "MEG {0:03d}".format(i + 1)
+                    name = "MEG {0:03d}".format(i)
                 elif (channel_type in KIT.CHANNELS_MISC or
                         channel_type == KIT.CHANNEL_NULL):
                     #channel_no, = unpack('i', file.read(KIT.INT))
                     #name, = unpack('64s', file.read(64))
                     ch_type_label = KIT.CH_LABEL[channel_type]
-                    name = "{0} {1:03d}".format(ch_type_label, i + 1)
+                    name = "{0} {1:03d}".format(ch_type_label, i)
                 self.channel_names.append(name)
 
-                # we need to be careful about the indexing...
-                #print(default_triggers, i+1)
-                if i + 1 in default_triggers:
+                if i in default_triggers:
                     is_trigger = True
-                    self.interesting_channels.append(i)
+                    self.interesting_channels.add(i)
                 else:
                     is_trigger = False
 
+                """
                 curr_channel_data = list(self.tab_info.keys())
                 curr_channel_data.sort()
                 for ch_id in curr_channel_data:
                     if ch_id not in self.interesting_channels:
                         self.interesting_channels.append(ch_id)
+                """
 
                 """
                 Might need to standardise the format of this for (un)pickling
@@ -160,15 +160,17 @@ class con_file(FileInfo):
                     trigger_var = BooleanVar()
                     trigger_var.set(is_trigger)
                     if is_trigger:
-                        idx = default_triggers.index(i + 1)
+                        idx = default_triggers.index(i)
                         description = default_descriptions[idx]
                     else:
                         description = ''
                     desc_var = StringVar()
                     desc_var.set(description)
-                    #threshold_var = DoubleVar()
                     self.tab_info[i] = [name_var, bad_var, trigger_var,
                                         desc_var]
+                    print(i, self.tab_info[i], 'ti')
+                    for k in self.tab_info[i]:
+                        print(k.get())
 
         self.loaded = True
 
@@ -197,9 +199,10 @@ class con_file(FileInfo):
             and the descriptions """
         trigger_channels = []
         descriptions = []
-        for i, ch_data in self.tab_info.items():
+        for ch_num in self.interesting_channels:
+            ch_data = self.tab_info[ch_num]
             if ch_data[2].get() == 1:
-                trigger_channels.append(str(i + 1))
+                trigger_channels.append(str(ch_num + 1))    # +1 for MNE
                 descriptions.append(ch_data[3].get())
 
         return trigger_channels, descriptions
@@ -211,16 +214,22 @@ class con_file(FileInfo):
         # now do con-file specific saving
         # first, get any data we want saved:
         # use short-hand names to save a bit of space...
-        data['acq'] = self.acquisition.get()
-        data['tsk'] = self.task.get()
-        data['mrk'] = []
+        data['acq'] = self.acquisition.get()        # acquisition
+        data['tsk'] = self.task.get()               # task
+        data['mrk'] = []                            # list of mrk's
         for mrk in self.associated_mrks:
             data['mrk'].append(mrk.file)
-        data['jnk'] = self.is_junk.get()
-        data['ier'] = self.is_empty_room.get()
-        data['her'] = self.has_empty_room.get()
+        data['jnk'] = self.is_junk.get()            # is junk?
+        data['ier'] = self.is_empty_room.get()      # is empty room data?
+        data['her'] = self.has_empty_room.get()     # has empty room data?
 
         # next sort out channel info
+        data['cin'] = {}
+        # let's only save the data that is specified as an
+        # 'interesting channel'. The other channel info will be discarded as it
+        # would have been deleted from the list anyway.
+        for key in self.interesting_channels:
+            data['cin'][key] = [i.get() for i in self.tab_info[key]]
 
         return data
 
@@ -238,3 +247,10 @@ class con_file(FileInfo):
         self.is_junk.set(state['jnk'])
         self.is_empty_room.set(state['ier'])
         self.has_empty_room.set(state['her'])
+        for key in state['cin']:
+            self.tab_info[key] = [StringVar(value=state['cin'][key][0]),
+                                  BooleanVar(value=state['cin'][key][1]),
+                                  BooleanVar(value=state['cin'][key][2]),
+                                  StringVar(value=state['cin'][key][3])]
+
+        self.interesting_channels = set(self.tab_info.keys())

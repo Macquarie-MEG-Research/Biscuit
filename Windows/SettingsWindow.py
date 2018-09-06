@@ -1,5 +1,5 @@
 from tkinter import Toplevel, StringVar
-from tkinter.ttk import Frame, Label, Button, Separator
+from tkinter.ttk import Frame, Label, Button
 from CustomWidgets.WidgetTable import WidgetTable
 from Windows import ProjectSettingsWindow
 
@@ -46,9 +46,10 @@ class SettingsWindow(Toplevel):
             self.defaults_list_frame,
             headings=["Project ID", "Project Title", "Default Triggers",
                       "      "],
-            row_vars=[StringVar, StringVar, StringVar,
-                      ("Edit", self._edit_project_row)],
-            entry_types=[Label, Label, Label, Button],
+            pattern=[StringVar, StringVar, StringVar,
+                     {'text': "Edit", 'func': self._edit_project_row,
+                      'func_has_row_ctx': True}],
+            widgets_pattern=[Label, Label, Label, Button],
             data_array=[self.settings_view(s) for s in self.proj_settings],
             adder_script=self._add_project_row,
             remove_script=self._remove_row)
@@ -63,9 +64,14 @@ class SettingsWindow(Toplevel):
         # to the WidgetTable as the intial values
         dt = settings.get('DefaultTriggers', None)
         if dt is not None:
-            return [settings.get('ProjectID', 'None'),
-                    settings.get('ProjectTitle', 'None'),
-                    ','.join([str(i[0]) for i in dt]), None]
+            if dt == [[]]:
+                return [settings.get('ProjectID', 'None'),
+                        settings.get('ProjectTitle', 'None'),
+                        '', None]
+            else:
+                return [settings.get('ProjectID', 'None'),
+                        settings.get('ProjectTitle', 'None'),
+                        ','.join([str(i[0]) for i in dt]), None]
         else:
             return ['', '']
 
@@ -80,36 +86,15 @@ class SettingsWindow(Toplevel):
         else:
             raise ValueError
 
-    def _edit_project_row(self):
-        curr_row = self.projects_table.curr_row()
+    def _edit_project_row(self, idx):
+        curr_row = idx
         proj_settings = self.proj_settings[curr_row]
         ProjectSettingsWindow(self, proj_settings)
         self.projects_table.set_row(curr_row,
                                     self.settings_view(proj_settings))
         self.proj_settings[curr_row] = proj_settings
 
-    def _add_defaults_row(self, data):
-        """
-            Adds a new row to the view.
-            data is a dictionary with keys 'ID' and 'triggers'
-        """
-        frame = self.defaults_list_frame
-        rows = frame.grid_size()[1]
-        Label(self.defaults_list_frame,
-              text=data.get('ID', '')).grid(column=0, row=rows)
-        Separator(self.defaults_list_frame,
-                  orient='vertical').grid(column=1, row=0, rowspan=rows + 1,
-                                          sticky='ns')
-        Label(self.defaults_list_frame,
-              text=data.get('triggers', '')).grid(column=2, row=rows)
-        Separator(self.defaults_list_frame,
-                  orient='vertical').grid(column=3, row=0, rowspan=rows + 1,
-                                          sticky='ns')
-        Label(self.defaults_list_frame,
-              text=data.get('descriptions', '')).grid(column=4, row=rows)
-
     def _remove_row(self, idx):
-        print(idx)
         del self.proj_settings[idx]
 
     def exit(self):
@@ -117,6 +102,8 @@ class SettingsWindow(Toplevel):
         self.withdraw()
         self.update_idletasks()
         self.master.focus_set()
+        self.master.file_treeview.selection_toggle(
+            self.master.file_treeview.selection())
         self.destroy()
 
     def _write_settings(self):
