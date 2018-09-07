@@ -16,13 +16,14 @@ def create_folder(location):
 
 def get_object_class(dtype):
     from FileTypes import (con_file, mrk_file, elp_file, hsp_file,
-                           tsv_file, json_file, generic_file)
+                           tsv_file, json_file, generic_file, fif_file)
     map_ = {'.con': con_file,    # continuous data
             '.mrk': mrk_file,    # marker
             '.elp': elp_file,    # electrode placement
             '.hsp': hsp_file,    # headspace
             '.tsv': tsv_file,    # tab-separated file
-            '.json': json_file}
+            '.json': json_file,
+            '.fif': fif_file}    # Elekta data
     # if not in the list, just return the data type
     if dtype != '':
         return map_.get(dtype, generic_file)

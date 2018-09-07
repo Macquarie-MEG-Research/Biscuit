@@ -52,6 +52,8 @@ with open(fname, 'rb') as file:
                     file.seek(0x20, 1)      # need to skip over the data
             out.writelines(['\n'])
 
+print(raw.info['dig'])
+
 
 def reTHM(file):
     # general reTHM data:

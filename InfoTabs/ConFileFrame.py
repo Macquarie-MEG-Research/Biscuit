@@ -3,11 +3,11 @@ from tkinter.ttk import Label, Separator
 from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
 
 
-class FileInfoFrame(Frame):
+class ConFileFrame(Frame):
     def __init__(self, master, default_settings, *args, **kwargs):
         self.master = master
         self.default_settings = default_settings
-        super(FileInfoFrame, self).__init__(self.master, *args, **kwargs)
+        super(ConFileFrame, self).__init__(self.master, *args, **kwargs)
 
         self._file = None
         self.widgets_created = False

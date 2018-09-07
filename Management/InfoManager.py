@@ -5,7 +5,7 @@ from tkinter.ttk import *
 
 from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
 from FileTypes import FileInfo, InfoContainer
-from InfoTabs import ChannelInfoFrame, SessionInfoFrame, FileInfoFrame
+from InfoTabs import ChannelInfoFrame, SessionInfoFrame, ConFileFrame
 from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 from utils import clear_widget
@@ -50,7 +50,7 @@ class InfoManager(Notebook):
         self._tabs[T_FOLDER] = 1
 
         # Info tab for .con files
-        self.con_info_tab = FileInfoFrame(self, self.parent.settings)
+        self.con_info_tab = ConFileFrame(self, self.parent.settings)
         self.add(self.con_info_tab, text="File Info")
         self._tabs[T_CON] = 2
 
