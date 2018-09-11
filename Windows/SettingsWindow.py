@@ -8,7 +8,6 @@ import pickle
 
 class SettingsWindow(Toplevel):
     def __init__(self, master, settings, proj_settings):
-        print(proj_settings, 'ps')
         self.master = master
         Toplevel.__init__(self, self.master)
         self.withdraw()
@@ -110,8 +109,8 @@ class SettingsWindow(Toplevel):
         self.withdraw()
         self.update_idletasks()
         self.master.focus_set()
-        self.master.file_treeview.selection_toggle(
-            self.master.file_treeview.selection())
+        #self.master.file_treeview.selection_toggle(
+        #    self.master.file_treeview.selection())
         self.destroy()
 
     def _write_settings(self):

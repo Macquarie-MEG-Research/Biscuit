@@ -1,4 +1,4 @@
-from tkinter import Frame, DISABLED, NORMAL, StringVar, IntVar
+from tkinter import Frame, DISABLED, StringVar, IntVar
 from tkinter.ttk import Label, Separator, Button
 from CustomWidgets.InfoEntries import InfoEntry, InfoChoice
 from Management import OptionsVar
@@ -28,7 +28,6 @@ class SessionInfoFrame(Frame):
         self.require_verification = []
 
         self._create_widgets()
-        self.grid()
 
     def _create_widgets(self):
         # first let's draw the headings:
@@ -119,7 +118,10 @@ class SessionInfoFrame(Frame):
 
     @file.setter
     def file(self, value):
+        if self.file is not None:
+            self._file.associated_tab = None
         self._file = value
+        self.file.associated_tab = self
         self.update_widgets()
         for widget in self.require_verification:
             widget.check_valid()

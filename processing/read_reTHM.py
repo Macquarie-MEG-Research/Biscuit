@@ -31,6 +31,7 @@ corrected_offsets = [i / sfreq for i in onsets]
 
 ignore_bads = False
 
+"""
 with open(fname, 'rb') as file:
     with open(outfile, 'w') as out:
         file.seek(0x1D0)
@@ -51,8 +52,9 @@ with open(fname, 'rb') as file:
                     out.writelines(['\t', 'nan', '\t', 'nan', '\t', 'nan', '\t', 'nan'])
                     file.seek(0x20, 1)      # need to skip over the data
             out.writelines(['\n'])
-
-print(raw.info['dig'])
+"""
+for ch in raw.info['chs']:
+    print(ch['kind'], ch['coil_type'])
 
 
 def reTHM(file):

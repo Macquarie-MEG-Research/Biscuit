@@ -9,15 +9,19 @@ class FileInfo():
     A base class to be subclassed from for various file types
     """
     def __init__(self, id_=None, file=None, parent=None, auto_load=True,
-                 treeview=None):
+                 treeview=None, settings=dict()):
         self._id = id_
         self._file = file
         # parent will be either an InfoContainer object, or none if the file
         # doesn't exist within that context
         self.parent = parent
         self.loaded = False
-        self._treeview = treeview    # this is the treeview object so the
-        #validation method can affect it
+        # this is the treeview object so the validation method can affect it
+        self._treeview = treeview
+        # settings data from the main GUI so that it can be polled when
+        # required
+        self._settings = settings
+        #print(self._settings, 'hi')
 
         # a number of info objects
         # self.info is data obtained directly from the raw file
@@ -52,6 +56,8 @@ class FileInfo():
         # A list to contain any info specific to the tab generated for this
         # file
         self.tab_info = []
+        # a pointer to the tab object that is displaying the info for this file
+        self.associated_tab = None
 
         # this preoperty is used to specify whether or not we want the
         # self.get_info function to be called automatically when the
@@ -180,6 +186,18 @@ class FileInfo():
         obj._type = self._type
         obj.unknown_type = self.unknown_type
         return obj
+
+    @property
+    def settings(self):
+        return self._settings
+
+    @settings.setter
+    def settings(self, value):
+        self._settings = value
+        self._apply_settings()
+
+    def _apply_settings(self):
+        pass
 
     def __getstate__(self):
         """

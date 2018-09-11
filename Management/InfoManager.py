@@ -5,13 +5,15 @@ from tkinter.ttk import *
 
 from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
 from FileTypes import FileInfo, InfoContainer
-from InfoTabs import ChannelInfoFrame, SessionInfoFrame, ConFileFrame
+from InfoTabs import FifFileFrame, SessionInfoFrame, ConFileFrame
 from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 from utils import clear_widget
 
 # some global names:
 T_CON = 'con_tab'
+T_FIF = 'fif_tab'
+T_EVENTS = 'events_tab'
 T_MISC = 'general_tab'
 T_FOLDER = 'session_tab'
 T_CHANNELS = 'channels_tab'
@@ -73,24 +75,38 @@ class InfoManager(Notebook):
         #self.channel_tab.grid_propagate(0)
         self._tabs[T_CHANNELS] = 3
 
+        # fif file tab
+        self.fif_info_tab = FifFileFrame(self, self.parent.settings)
+        self.add(self.fif_info_tab, text="File Info")
+        self._tabs[T_FIF] = 4
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
         """
         # If a .con file is selected show the channels tab
         if self.context == '.CON':
-            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
-            self.tab(self._tabs[T_MISC], state=HIDDEN)
-            self.tab(self._tabs[T_CON], state=NORMAL)
-            self.tab(self._tabs[T_CHANNELS], state=NORMAL)
             self.channel_tab.file = self._data[0]
             self.con_info_tab.file = self._data[0]
-            #if self.channel_tab.is_loaded:
-            #    self.channel_tab.update()   # shouldn't need to call this
+            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
+            self.tab(self._tabs[T_MISC], state=HIDDEN)
+            self.tab(self._tabs[T_FIF], state=HIDDEN)
+            self.tab(self._tabs[T_CON], state=NORMAL)
+            self.tab(self._tabs[T_CHANNELS], state=NORMAL)
             if self.context.previous == {'.CON'}:
                 self.select(self.select())  # keep current selected
             else:
                 self.select(self._tabs[T_CON])
+        # If a .fif file is selected then show the fif info tab and event tab
+        elif self.context == '.FIF':
+            self.fif_info_tab.file = self._data[0]
+            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
+            self.tab(self._tabs[T_MISC], state=HIDDEN)
+            self.tab(self._tabs[T_CON], state=HIDDEN)
+            self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
+            self.tab(self._tabs[T_FIF], state=NORMAL)
+            self.select(self._tabs[T_FIF])
+        # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
             if self._data[0].is_valid:
                 # only update the session info tab if the data is valid
@@ -105,6 +121,7 @@ class InfoManager(Notebook):
                 self.select(self._tabs[T_MISC])
             self.tab(self._tabs[T_CON], state=HIDDEN)
             self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
+            self.tab(self._tabs[T_FIF], state=HIDDEN)
             self.channel_tab.is_loaded = False
         else:
             self.draw_misc()
@@ -112,6 +129,7 @@ class InfoManager(Notebook):
             self.tab(self._tabs[T_CON], state=HIDDEN)
             self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
             self.tab(self._tabs[T_FOLDER], state=HIDDEN)
+            self.tab(self._tabs[T_FIF], state=HIDDEN)
             self.channel_tab.is_loaded = False
             self.select(self._tabs[T_MISC])
 

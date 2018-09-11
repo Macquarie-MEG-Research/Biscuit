@@ -175,7 +175,7 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
         acq_time = 'n/a'
     else:
         acq_time = datetime.fromtimestamp(
-            meas_date).strftime('%Y-%m-%dT%H:%M:%S')
+            meas_date[0]).strftime('%Y-%m-%dT%H:%M:%S')
 
     # check to see if the file already exists.
     # If it does we will want to determine whether or not the data
@@ -441,7 +441,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     elif emptyroom is True:
         # session, subject and task are all specified by the bids format
         session_id = datetime.fromtimestamp(
-            raw.info['meas_date']).strftime('%Y%m%d')
+            raw.info['meas_date'][0]).strftime('%Y%m%d')
         subject_id = 'emptyroom'
         task = 'noise'
         acquisition = None    # set back to None so it isn't displayed

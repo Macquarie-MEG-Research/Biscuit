@@ -57,6 +57,8 @@ class InfoContainer():
         # whether or not all the associated files have all the required data
         self.is_bids_ready = False
 
+        self.associated_tab = None
+
         self.bids_conversion_progress = StringVar()
 
         # whether or not the data has actually been initialised.
@@ -85,11 +87,12 @@ class InfoContainer():
     def _create_variables(self):
         self.proj_name = StringVar()
         self.proj_name.trace("w", self._apply_settings)
-        self.subject_group = OptionsVar()
         self.session_ID = StringVar()
         self.subject_ID = StringVar()
         self.subject_age = IntVar()
-        self.subject_gender = OptionsVar(options=['', 'M', 'F', 'O'])
+        self.subject_gender = OptionsVar(options=['', 'M', 'F', 'U'])
+        self.subject_group = OptionsVar()
+        self.subject_group.trace("w", self._update_groups)
         self.dewar_position = OptionsVar(value='supine',
                                          options=["supine", "upright"])
 
@@ -132,7 +135,8 @@ class InfoContainer():
                     # and only call it if it can be. str types are ignored
                     # (only other return type)
                     obj = cls_(sid, item['values'][1], self, auto_load=False,
-                               treeview=self.parent.file_treeview)
+                               treeview=self.parent.file_treeview,
+                               settings=self.parent.proj_settings)
                     if isinstance(obj, generic_file):
                         obj.dtype = ext
                     # add the data to the preload data
@@ -364,6 +368,11 @@ class InfoContainer():
         # of self.settings.
         if self.parent is not None:
             self.settings = self.parent.proj_settings
+
+    def _update_groups(self, *args):
+        """Update the EntryChoice that contains the group options"""
+        if self.associated_tab is not None:
+            self.associated_tab.sub_group_entry.value = self.subject_group
 
     def _folder_to_bids(self):
         self.parent.check_progress(self.bids_conversion_progress)

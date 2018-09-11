@@ -185,8 +185,9 @@ class main(Frame):
             # this is probably due to changing computer or something...
             # get the user to enter a new path
             self._get_data_location_initial()
-        if not path.exists(self.settings["MATLAB_PATH"]):
-            self._get_matlab_location()
+
+        #if not path.exists(self.settings["MATLAB_PATH"]):
+        #    self._get_matlab_location()
 
     def _write_settings(self):
         with open('settings.pkl', 'wb') as settings:
@@ -268,6 +269,7 @@ class main(Frame):
         main_frame.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
 
+    """
     # not gonna worry about this for now...
     def column_check(self, event):
         print(self.file_treeview.identify_region(event.x, event.y), 'reg')
@@ -275,6 +277,7 @@ class main(Frame):
             self._drag_mode = 'separator'
             left_col = self.file_treeview.identify_column(event.x)
             #right_col = '#{}'.format(int(left_col.lstrip('#')) + 1)
+    """
 
     # this either...
     def column_drag(self, event):
@@ -419,7 +422,6 @@ class main(Frame):
                 self.context.set('FOLDER')
             else:
                 self.context.set(dtype.upper())
-                
         else:
             # set it as no context
             self.context.set()
@@ -454,7 +456,8 @@ class main(Frame):
                     # if we don't have a folder then instantiate the class
                     if not isinstance(cls_, str):
                         obj = cls_(id_=id_, file=path_, parent=None,
-                                   treeview=self.file_treeview)
+                                   treeview=self.file_treeview,
+                                   settings=self.proj_settings)
                         # check to see if the parent is in the preloaded data
                         # and if so, set this as the parent:
                         if (self.file_treeview.parent(id_) in
@@ -496,7 +499,8 @@ class main(Frame):
         proj_settings = self.proj_settings.copy()
         self.options_popup = SettingsWindow(self, self.settings,
                                             self.proj_settings)
-        if proj_settings != self.settings:
+
+        if proj_settings != self.proj_settings:
             for obj in self.preloaded_data.values():
                 if isinstance(obj, InfoContainer):
                     obj.settings = self.proj_settings

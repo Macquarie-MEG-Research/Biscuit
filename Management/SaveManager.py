@@ -45,6 +45,8 @@ class SaveManager():
                     file.ID = sid
                     # *then* associate the treeview with the file
                     file.treeview = self.parent.file_treeview
+                    # also give it the right settings
+                    file.settings = self.parent.proj_settings
                     # then add the file to the preloaded data
                     _data[file.ID] = file
                 elif isinstance(file, InfoContainer):
