@@ -88,3 +88,18 @@ class DateEntry(Frame):
 
     def get(self):
         return [e.get() for e in self.entries]
+
+    def set(self, value):
+        """
+        Sets the value of the DateEntry
+
+        Parameters:
+         - value : tuple
+            The value to set the date to
+        """
+        self.entry_1.delete(0, END)
+        self.entry_1.insert(0, str(value[0]))
+        self.entry_2.delete(0, END)
+        self.entry_2.insert(0, str(value[1]))
+        self.entry_3.delete(0, END)
+        self.entry_3.insert(0, str(value[2]))

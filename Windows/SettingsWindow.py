@@ -7,6 +7,11 @@ import pickle
 
 
 class SettingsWindow(Toplevel):
+    """
+    The popup window that lists all the different project defaults.
+    New defaults can be added for each project and are added to the
+    WidgetTable
+    """
     def __init__(self, master, settings, proj_settings):
         self.master = master
         Toplevel.__init__(self, self.master)
@@ -18,13 +23,13 @@ class SettingsWindow(Toplevel):
 
         self.protocol("WM_DELETE_WINDOW", self.exit)
 
-        self.deiconify()
-        self.focus_set()
-
         self.settings = settings
         self.proj_settings = proj_settings
 
         self._create_widgets()
+
+        self.deiconify()
+        self.focus_set()
 
         # wait for window to appear on screen before calling grab_set
         self.wait_visibility()

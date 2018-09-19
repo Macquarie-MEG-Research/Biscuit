@@ -1,5 +1,5 @@
 import pickle
-from FileTypes import FileInfo, con_file, mrk_file, InfoContainer
+from FileTypes import FileInfo, con_file, mrk_file, KITData
 import os.path as path
 
 
@@ -33,7 +33,7 @@ class SaveManager():
         self.treeview_ids = list(self.parent.file_treeview.all_children())
         self.treeview_ids.remove('')        # remove root
 
-        ICs_to_load = []
+        containers_to_load = []
 
         # first retrieve all the data from the save file
         if path.exists(self.save_path):
@@ -49,11 +49,11 @@ class SaveManager():
                     file.settings = self.parent.proj_settings
                     # then add the file to the preloaded data
                     _data[file.ID] = file
-                elif isinstance(file, InfoContainer):
-                    ICs_to_load.append(file)
-            # load IC's after files to ensure the files are referenced in the
-            # IC correctly.
-            for file in ICs_to_load:
+                elif isinstance(file, KITData):
+                    containers_to_load.append(file)
+            # load containers after files to ensure the files are referenced in
+            # the container correctly.
+            for file in containers_to_load:
                 #print('loaded folder: {0}'.format(file.file_path))
                 sid = self.get_file_id(file.file_path)
                 file.ID = sid
@@ -72,7 +72,7 @@ class SaveManager():
             # mrk_file objects
             for _, obj in self.parent.preloaded_data.items():
                 if isinstance(obj, con_file):
-                    mrk_paths = obj.associated_mrks
+                    mrk_paths = obj.hpi
                     for i, mrk_path in enumerate(mrk_paths):
                         sid = self.get_file_id(mrk_path)
                         try:
@@ -81,7 +81,7 @@ class SaveManager():
                             mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
                     # also validate the con file:
                     #obj.load_data()
-                    obj.check_complete()
+                    obj.check_bids_ready()
 
     def get_file_id(self, path_):
         """
@@ -122,10 +122,10 @@ class SaveManager():
                             pickle.dump(file, f)
                         except TypeError:
                             print('error opening file: {0}'.format(file))
-                elif isinstance(file, InfoContainer):
+                elif isinstance(file, KITData):
                     if file.is_valid:
                         try:
                             print('dumping {0}'.format(file.file_path))
                             pickle.dump(file, f)
                         except TypeError:
-                            print('error opening file: {0}'.format(file))
+                            print('error writing file: {0}'.format(file))

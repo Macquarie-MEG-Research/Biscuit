@@ -1,4 +1,4 @@
-from tkinter import Frame, StringVar, BooleanVar, IntVar, DISABLED
+from tkinter import Frame, StringVar, BooleanVar, DISABLED, NORMAL
 from tkinter.ttk import Label, Separator, Button
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
@@ -47,7 +47,7 @@ class FifFileFrame(Frame):
         self.sub_id_entry.label.grid(column=3, row=2, sticky='ew', pady=2)
         self.sub_id_entry.value.grid(column=4, row=2, sticky='ew', pady=2)
         self.require_verification.append(self.sub_id_entry)
-        self.sub_age_entry = InfoEntry(self, "Subject age", IntVar())
+        self.sub_age_entry = InfoEntry(self, "Subject DOB", StringVar())
         self.sub_age_entry.label.grid(column=3, row=3, sticky='ew', pady=2)
         self.sub_age_entry.value.grid(column=4, row=3, sticky='ew', pady=2)
         self.sub_gender_entry = InfoChoice(self, "Subject gender",
@@ -71,25 +71,28 @@ class FifFileFrame(Frame):
         self.require_verification.append(self.proj_name_entry)
         self.proj_name_entry.label.grid(column=0, row=8, sticky='ew', pady=2)
         self.proj_name_entry.value.grid(column=1, row=8, sticky='ew', pady=2)
+        self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
+                                       bad_values=[''],
+                                       validate_cmd=None)
+        self.sess_id_entry.label.grid(column=0, row=9, sticky='ew', pady=2)
+        self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2)
         self.task_info = InfoEntry(self, 'Task', StringVar(),
                                    bad_values=[''],
                                    validate_cmd=None)
-        self.task_info.label.grid(column=0, row=9)
-        self.task_info.value.grid(column=1, row=9)
+        self.require_verification.append(self.task_info)
+        self.task_info.label.grid(column=0, row=10, sticky='ew', pady=2)
+        self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2)
         self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
                                   bad_values=[''],
                                   validate_cmd=None)
-        self.acq_info.label.grid(column=0, row=10)
-        self.acq_info.value.grid(column=1, row=10)
+        self.require_verification.append(self.acq_info)
+        self.acq_info.label.grid(column=0, row=11, sticky='ew', pady=2)
+        self.acq_info.value.grid(column=1, row=11, sticky='ew', pady=2)
 
-        Separator(self, orient='horizontal').grid(column=0, row=11,
+        Separator(self, orient='horizontal').grid(column=0, row=12,
                                                   columnspan=2, sticky='ew')
-        Label(self, text="Optional Information:").grid(column=0, row=12,
+        Label(self, text="Optional Information:").grid(column=0, row=13,
                                                        columnspan=2)
-        self.is_junk_info = InfoCheck(self, 'Is junk', BooleanVar(),
-                                      validate_cmd=None)
-        self.is_junk_info.label.grid(column=0, row=13)
-        self.is_junk_info.value.grid(column=1, row=13)
         self.is_emptyroom_info = InfoCheck(self, 'Is empty room',
                                            BooleanVar(),
                                            validate_cmd=None)
@@ -108,6 +111,17 @@ class FifFileFrame(Frame):
 
         self.grid()
 
+    # !REMOVE
+    def _check_bids_ready(self):
+        """
+        Check to see whether all contained files required to produce a
+        bids-compatible file system have all the necessary data
+        """
+        if self._file.update_treeview():
+            self.bids_gen_btn.config(state=NORMAL)
+        else:
+            self.bids_gen_btn.config(state=DISABLED)
+
     def _file_to_bids(self):
         pass
 
@@ -124,14 +138,13 @@ class FifFileFrame(Frame):
         # update required info
         self.proj_name_entry.value = self._file.proj_name
         self.proj_name_entry.validate_cmd = self._file.check_bids_ready
+        self.sess_id_entry.value = self._file.session_ID
         self.task_info.value = self._file.task
-        self.task_info.validate_cmd = self._file.check_complete
+        self.task_info.validate_cmd = self._file.check_bids_ready
         self.acq_info.value = self._file.acquisition
-        self.acq_info.validate_cmd = self._file.check_complete
-        self.is_junk_info.value = self._file.is_junk
-        self.is_junk_info.validate_cmd = self._file.check_complete
+        self.acq_info.validate_cmd = self._file.check_bids_ready
         self.is_emptyroom_info.value = self._file.is_empty_room
-        self.is_emptyroom_info.validate_cmd = self._file.check_complete
+        self.is_emptyroom_info.validate_cmd = self._file.check_bids_ready
         self.has_emptyroom_info.value = self._file.has_empty_room
 
     @property
@@ -140,6 +153,7 @@ class FifFileFrame(Frame):
 
     @file.setter
     def file(self, value):
+        print('setting new fif file')
         # de-associate the tab of the out-going file (if any)
         if self._file is not None:
             self._file.associated_tab = None
@@ -149,6 +163,6 @@ class FifFileFrame(Frame):
         # re-assign the settings in case they have changed
         self.file.settings = self.file.settings
         self.update_widgets()
-        if not self._file.is_good:
-            self.acq_info.check_valid()
-            self.task_info.check_valid()
+        for widget in self.require_verification:
+            widget.check_valid()
+        self._check_bids_ready()

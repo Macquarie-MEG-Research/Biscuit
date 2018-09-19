@@ -12,7 +12,7 @@ from os import listdir
 
 from platform import system as os_name
 
-from FileTypes import generic_file, con_file, InfoContainer
+from FileTypes import generic_file, con_file, Folder, KITData
 
 from CustomWidgets import EnhancedTreeview
 
@@ -375,10 +375,9 @@ class main(Frame):
         # completion of the preloading
         if con_file is not None:
             # get the associated mrk files if any
-            for mrk_file in con_file.associated_mrks:
+            for mrk_file in con_file.hpi:
                 # these are mrk_file objects, so their id will be the id of
                 # their entry in the treeview
-                print(mrk_file.ID)
                 self.file_treeview.item(mrk_file.ID, tags=['ASSOC_FILES'])
         else:
             return
@@ -444,9 +443,17 @@ class main(Frame):
             else:
                 ext, path_ = self.file_treeview.item(id_)['values']
                 if path.isdir(path_):
-                    # create the info container
-                    IC = InfoContainer(id_=id_, file_path=path_, parent=self,
-                                       settings=self.proj_settings)
+                    # create a Folderlike object (Folder or KITData)
+                    is_KIT = False
+                    for child in self.file_treeview.get_children(id_):
+                        if '.con' == self.file_treeview.item(
+                                child)['values'][0]:
+                            is_KIT = True
+                            break
+                    if is_KIT:
+                        IC = KITData(id_, path_, self.proj_settings, self)
+                    else:
+                        IC = Folder(id_, path_, self)
                     IC.initial_processing()
                     # then add it to the list of preloaded data
                     self.preloaded_data[id_] = IC
@@ -455,24 +462,39 @@ class main(Frame):
                     cls_ = get_object_class(ext)
                     # if we don't have a folder then instantiate the class
                     if not isinstance(cls_, str):
-                        obj = cls_(id_=id_, file=path_, parent=None,
-                                   treeview=self.file_treeview,
-                                   settings=self.proj_settings)
-                        # check to see if the parent is in the preloaded data
-                        # and if so, set this as the parent:
-                        if (self.file_treeview.parent(id_) in
-                                self.preloaded_data):
-                            obj.parent = self.preloaded_data[
-                                self.file_treeview.parent(id_)]
+                        obj = cls_(id_=id_, file=path_,
+                                   settings=self.proj_settings, parent=self)
                         # if it is of generic type, give it it's data type and
                         # let it determine whether it is an unknown file type
                         # or not
                         if isinstance(obj, generic_file):
                             obj.dtype = ext
+                        obj.load_data()
                         # finally, add the object to the preloaded data
                         self.preloaded_data[id_] = obj
         self._populate_info_panel(sids)
         return      # try to get thread to end??
+
+    def _check_KIT_folder(self, id_):
+        """ Determine whether the folder contains valid KIT data """
+        files = {'.con': [],
+                 '.mrk': [],
+                 '.elp': [],
+                 '.hsp': []}
+
+        # go through the direct children of the folder via the treeview
+        for sid in self.file_treeview.get_children(id_):
+            item = self.file_treeview.item(sid)
+            ext = item['values'][0]
+
+            if ext in files:
+                files[ext].append(id_)
+
+        # validate the folder:
+        for data in files.values():
+            if len(data) == 0:
+                return False
+        return True
 
     def _get_data_location_initial(self):
         self.settings["DATA_PATH"] = filedialog.askdirectory(
@@ -502,7 +524,7 @@ class main(Frame):
 
         if proj_settings != self.proj_settings:
             for obj in self.preloaded_data.values():
-                if isinstance(obj, InfoContainer):
+                if isinstance(obj, KITData):
                     obj.settings = self.proj_settings
 
     def get_selection_info(self):
@@ -615,7 +637,7 @@ class RightClick():
             if con is not None:
                 if isinstance(con, con_file):
                     con.is_junk.set(True)
-                    con.check_complete()
+                    con.validate()
 
     def _include_cons(self):
         """
@@ -626,7 +648,7 @@ class RightClick():
             if con is not None:
                 if isinstance(con, con_file):
                     con.is_junk.set(False)
-                    con.check_complete()
+                    con.validate()
 
     def _create_folder(self):
         """
@@ -681,8 +703,8 @@ class RightClick():
             #print(IC.contained_files)
             for con in IC.contained_files['.con']:
                 print('setting mrks for ', con)
-                con.associated_mrks = mrk_files
-                con.check_complete()
+                con.hpi = mrk_files
+                con.validate()
         else:
             if self.parent.treeview_select_mode == "NORMAL":
                 # initialise the association process
@@ -737,8 +759,8 @@ class RightClick():
                 # now associate the mrk files with the con files:
                 if cont is None:
                     for cf in con_files:
-                        cf.associated_mrks = mrk_files
-                        cf.check_complete()
+                        cf.hpi = mrk_files
+                        cf.validate()
                     # check if the con file is the currently selected file
                     if self.parent.treeview_select_mode == "ASSOCIATE-CON":
                         # if so, redraw the info panel and call the mrk

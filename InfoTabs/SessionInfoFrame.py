@@ -83,13 +83,6 @@ class SessionInfoFrame(Frame):
                                              pady=2)
         self.dewar_position_entry.value.grid(column=1, row=7, sticky='ew',
                                              pady=2)
-
-        """
-        self.raw_gen_btn.grid(column=3, row=7)
-        tt.register(self.raw_gen_btn, ("Initialise all the raw data in "
-            "preparation for BIDS conversion.\nThis option will only be "
-            "available when this session has no invalid entries."))
-        """
         self.bids_gen_btn.grid(column=3, row=7)
         tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
         self.grid()

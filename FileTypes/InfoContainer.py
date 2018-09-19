@@ -8,6 +8,8 @@ from os import makedirs
 from Management import OptionsVar
 from utils import flatten, get_object_class, threaded, generate_readme
 from FileTypes.generic_file import generic_file
+from FileTypes.BIDSFile import BIDSFile
+from FileTypes.FileInfo import FileInfo
 from mne_bids import raw_to_bids
 
 """
@@ -27,6 +29,7 @@ class InfoContainer():
     create a BIDS compatible file structure and associated
     files.
     """
+    # TODO: swap args order
     def __init__(self, id_, file_path, parent, settings):
         """
         Inputs:
@@ -90,7 +93,7 @@ class InfoContainer():
         self.session_ID = StringVar()
         self.subject_ID = StringVar()
         self.subject_age = IntVar()
-        self.subject_gender = OptionsVar(options=['', 'M', 'F', 'U'])
+        self.subject_gender = OptionsVar(options=['M', 'F', 'U'])
         self.subject_group = OptionsVar()
         self.subject_group.trace("w", self._update_groups)
         self.dewar_position = OptionsVar(value='supine',
@@ -134,11 +137,17 @@ class InfoContainer():
                 if not isinstance(cls_, str):
                     # and only call it if it can be. str types are ignored
                     # (only other return type)
-                    obj = cls_(sid, item['values'][1], self, auto_load=False,
-                               treeview=self.parent.file_treeview,
-                               settings=self.parent.proj_settings)
+                    if issubclass(cls_, BIDSFile):
+                        obj = cls_(sid, item['values'][1],
+                                   settings=self.parent.proj_settings,
+                                   parent=self.parent)
+                    elif issubclass(cls_, FileInfo):
+                        obj = cls_(sid, item['values'][1],
+                                   parent=self.parent)
                     if isinstance(obj, generic_file):
                         obj.dtype = ext
+                    if isinstance(obj, BIDSFile):
+                        obj.container = self
                     # add the data to the preload data
                     self.parent.preloaded_data[sid] = obj
                     if ext in files:
@@ -211,7 +220,7 @@ class InfoContainer():
                         con_files[0].file,
                         # construct a list of the file paths
                         mrk=[mrk_file.file for mrk_file in
-                             con_files[0].associated_mrks],
+                             con_files[0].hpi],
                         elp=self.contained_files['.elp'][0].file,
                         hsp=self.contained_files['.hsp'][0].file,
                         stim=trigger_channels, stim_code=stim_code,
@@ -296,25 +305,22 @@ class InfoContainer():
         bids-compatible file system have all the necessary data
         """
 
-        # this should be re-written to check only whether the file.is_good
-        # property is True to get a nice speed increase.
-        # The tag setting is already pretty much handled
-        # by the file objects themselves
+        # should maybe move this functionality relating to buttons to the
+        # SessionInfoFrame object to avoid the nastiness here
+        # (cf. FifFileFrame & fif_file)
 
         if self.is_valid:
             # check the info provided
             is_good = True
-            if (self.proj_name.get() == '' or
-                    self.subject_ID.get() == ''):
+            if (self.proj_name.get() == '' or self.subject_ID.get() == ''):
                 is_good = False
             if is_good is True:
                 # check the contained files.
                 # We only need to do this if the info for the project is there
-                for _, files in self.contained_files.items():
-                    for file in files:
-                        if file.is_good is False:
-                            is_good = False
-                            break
+                for file in self.contained_files['.con']:
+                    if file.is_good is False:
+                        is_good = False
+                        break
             if is_good is False:
                 #self.parent.info_notebook.session_tab.bids_gen_btn.config(
                 #    {"state": DISABLED})
@@ -447,7 +453,7 @@ class InfoContainer():
                     emptyroom = False
 
             con = self.con_map[at][0]
-            mrks = [mrk.file for mrk in con.associated_mrks]
+            mrks = [mrk.file for mrk in con.hpi]
 
             # finally, run the actual conversion
             raw_to_bids(subject_id, at[1], raw_kit, target_folder,
@@ -490,6 +496,7 @@ class InfoContainer():
         groups = flatten(self.settings.get('Groups', ['Participant',
                                                       'Control']))
         self.subject_group.options = groups
+        print(self.proj_settings)
 
     def __getstate__(self):
         # only returns a dictionary of information that we actually need

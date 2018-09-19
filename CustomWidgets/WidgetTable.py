@@ -117,7 +117,7 @@ class WidgetTable(Frame):
                                     self.add_row_from_selection)
             self.separator_offset = 1
             self.add_button = None
-            add_option_frame.grid(column=0, row=0)
+            add_option_frame.grid(column=0, row=0, sticky='w', padx=2, pady=2)
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=1, sticky='nsew')
 
@@ -135,7 +135,8 @@ class WidgetTable(Frame):
             self.grid_columnconfigure(0, weight=1)
         for i, heading in enumerate(self.headings):
             Label(self.sf.frame, text=heading).grid(
-                column=2 * i, row=self.separator_offset, sticky='nsew')
+                column=2 * i, row=self.separator_offset, sticky='nsew', padx=2,
+                pady=2)
         Separator(self.sf.frame, orient='horizontal').grid(
             column=0, row=self.separator_offset + 1,
             columnspan=2 * self.num_columns - 1, sticky='ew')
@@ -171,7 +172,8 @@ class WidgetTable(Frame):
             # draw each of the new widgets in the last row
             for i, w in enumerate(self.widgets_pattern):
                 w_actual = w(self.sf.frame)
-                w_actual.grid(row=rows, column=2 * i, sticky='nsew')
+                w_actual.grid(row=rows, column=2 * i, sticky='nsew', padx=2,
+                              pady=2)
                 row_widgets.append(w_actual)
 
             # add the delete button at the end of the row

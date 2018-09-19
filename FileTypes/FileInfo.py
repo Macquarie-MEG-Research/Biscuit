@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from tkinter import (Variable, TclError)
+from tkinter import BooleanVar
 
 from os.path import normpath
 
@@ -8,40 +8,25 @@ class FileInfo():
     """
     A base class to be subclassed from for various file types
     """
-    def __init__(self, id_=None, file=None, parent=None, auto_load=True,
-                 treeview=None, settings=dict()):
+    def __init__(self, id_=None, file=None, parent=None):
         self._id = id_
         self._file = file
-        # parent will be either an InfoContainer object, or none if the file
-        # doesn't exist within that context
+        # parent is the main GUI object
         self.parent = parent
         self.loaded = False
-        # this is the treeview object so the validation method can affect it
-        self._treeview = treeview
-        # settings data from the main GUI so that it can be polled when
-        # required
-        self._settings = settings
-        #print(self._settings, 'hi')
+        self._create_vars()
 
-        # a number of info objects
+    def _create_vars(self):
         # self.info is data obtained directly from the raw file
+        # This data will not be saved as it can always just be retreived on
+        # instantiation
         self.info = OrderedDict()
-        # optional info is information that the user can enter if wanted
-        self.optional_info = []
-        # required info is info that *has* to be entered before BIDS conversion
-        #  can occur
-        self.required_info = []
 
         # A dictionary for each file to contain a list of values that the
         # optional_info
         # or required_info dictionaries cannot have
+        # REMOVE:
         self.bad_values = dict()
-
-        # A boolean to indicate whether the data is any good.
-        # This is set by the verification function to allow for faster
-        # determination of whether or not the data is good to be converted to
-        # bids format
-        self._is_good = True
 
         self._type = None
         self.unknown_type = False
@@ -59,20 +44,40 @@ class FileInfo():
         # a pointer to the tab object that is displaying the info for this file
         self.associated_tab = None
 
-        # this preoperty is used to specify whether or not we want the
-        # self.get_info function to be called automatically when the
-        # object is created.
-        # we will have this as true by default, but for some files we may
-        # want it false if the load procedure takes a fair amount of time.
-        # In this case we will want the info tab to have a button to press to
-        # begin the data
-        # generation.
-        """ Only override if required to be False """
-        self._auto_preload_data = auto_load
+        self.is_junk = BooleanVar()
+        self.is_junk.set(False)
 
-        if self._auto_preload_data:
-            print('loading data!!')
-            self.load_data()
+    def check_valid(self):
+        """ Returns True (method will be overriden by derived classes) """
+        return True
+
+    def validate(self):
+        """
+        Check whether the file is valid (ie. contains all the required info for
+        BIDS exporting)
+        """
+        self.is_good = self.check_valid()
+        self.update_treeview()
+
+    def update_treeview(self):
+        """
+        Change the colour of the tag in the treeview to reflect the current
+        state of the entry
+        """
+        if self.parent is not None:
+            # check for the is_junk tag. If it has it apply the correct tags.
+            if self.is_junk.get() is True:
+                self.parent.file_treeview.add_tags(self.ID, ['JUNK_FILE'])
+            else:
+                self.parent.file_treeview.remove_tags(self.ID, ['JUNK_FILE'])
+            # next see if good or not and give the correct tags
+            if self.is_good:
+                self.parent.file_treeview.remove_tags(self.ID, ['BAD_FILE'])
+                self.parent.file_treeview.add_tags(self.ID, tags=['GOOD_FILE'])
+            else:
+                self.parent.file_treeview.add_tags(self.ID, tags=['BAD_FILE'])
+                self.parent.file_treeview.remove_tags(self.ID, ['GOOD_FILE'])
+        # if there is no parent, then do nothing...
 
     @property
     def ID(self):
@@ -90,86 +95,11 @@ class FileInfo():
     def dtype(self):
         return self._type
 
-    @property
-    def auto_preload_data(self):
-        return self._auto_preload_data
-
-    @property
-    def treeview(self):
-        return self._treeview
-
-    @treeview.setter
-    def treeview(self, value):
-        self._treeview = value
-        # set the is_good value to itself, allowing the gui to be updated
-        # with any good or bad values (required when instantiating from
-        # pickled data)
-        self.is_good = self._is_good
-
-    @property
-    def is_good(self):
-        return self._is_good
-
-    @is_good.setter
-    def is_good(self, value):
-        """
-        Set the value and automatically change the tag on the treeview
-        item to be the appropriate colour.
-        """
-        if self.treeview is not None:
-            if value is True:
-                self.treeview.remove_tags(self.ID, ['BAD_FILE'])
-                self.treeview.add_tags(self.ID, tags=['GOOD_FILE'])
-            elif value is False:
-                self.treeview.add_tags(self.ID, tags=['BAD_FILE'])
-            else:
-                raise ValueError
-        # If it is none then this class is being instanced from the pickle.load
-        # method. This is fine and later on the self.treeview will be set
-        # which will automatically try and re-set the .is_good property,
-        # calling this setter again.
-        self._is_good = value
-
     def load_data(self):
         # default method to be overidden by inherited classes
         pass
 
-    # this will probbaly be removed at some point in favor of file specific
-    # versions.
-    # Maybe leave a basic version. It will depend on whether we decide to add
-    # the variables to list like self.required_info (but differently to how
-    # they are now...)
-    def check_complete(self):
-        """
-        Function to check whether or not all the required information has been
-        entered. If the file has all the required information then return an
-        empty list (no bad values).
-        Otherwise return the list of keys that require completing
-        """
-        bads = []
-        for key in self.bad_values:
-            data = getattr(self, key, None)
-            if data is not None:
-                if isinstance(data, Variable):
-                    # handle the Variable style objects differently as we need
-                    # to call .get() on them
-                    try:
-                        if data.get() in self.bad_values[key]:
-                            bads.append((key, data.get()))
-                    except TclError:
-                        # getting an invalid value. Add to bads
-                        bads.append((key, ''))
-                else:
-                    if data in self.bad_values[key]:
-                        bads.append((key, data))
-        # if the file has bads, set the tag of the item as bad
-        #print(self.bad_values, 'badvals', bads)
-        if bads != []:
-            self.is_good = False
-        else:
-            self.is_good = True
-        return
-
+    # TODO: fix me!!! please!!!
     def copy(self, new_id):
         """
         This can be called to create another version of the object.
@@ -178,26 +108,11 @@ class FileInfo():
         Creating it as a method like this instead of a __copy__ so that we can
         create a copy with a different id
         """
-        obj = type(self)(new_id, self._file, parent=self.parent,
-                         auto_load=self.auto_preload_data)
+        obj = type(self)(new_id, self._file, parent=self.parent)
         obj.info = self.info
-        obj.required_info = self.required_info
-        obj.optional_info = self.optional_info
         obj._type = self._type
         obj.unknown_type = self.unknown_type
         return obj
-
-    @property
-    def settings(self):
-        return self._settings
-
-    @settings.setter
-    def settings(self, value):
-        self._settings = value
-        self._apply_settings()
-
-    def _apply_settings(self):
-        pass
 
     def __getstate__(self):
         """
@@ -221,4 +136,5 @@ class FileInfo():
         # we will normalise the path to make sure the '/'s and '\'s are the
         # same
         return ("<<Id: " + str(self._id) + "\t" + "Path: " +
-                str(normpath(self._file)) + ">>")
+                str(normpath(self._file)) + "\t" + "Type: " +
+                str(self.__class__) + ">>")

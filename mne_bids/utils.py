@@ -262,11 +262,13 @@ def _check_key_val(key, val):
                          " %s: %s" % (key, val))
     return key, val
 
+
 def _get_ext(fname):
     """ Get the extension for the file specified by fname """
     name, ext = splitext(fname)
     if ext == '':
-        # in this case fname is simply the extension (possibly without the period, so fix this if needed)
+        # in this case fname is simply the extension (possibly without the
+        # period, so fix this if needed)
         if name[0] == '.':
             return name
         else:

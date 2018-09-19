@@ -1,21 +1,20 @@
 from tkinter import StringVar, BooleanVar
 from struct import unpack
-from .FileInfo import FileInfo
+from .BIDSFile import BIDSFile
 from mne.io.kit.constants import KIT
 from datetime import datetime
 
 GAINS = [1, 2, 5, 10, 20, 50, 100, 200]
 
 
-class con_file(FileInfo):
+class con_file(BIDSFile):
     """
     .con specific file container.
     """
-    def __init__(self, id_=None, file=None, *args, **kwargs):
-        super(con_file, self).__init__(id_, file, *args, **kwargs)
+    def __init__(self, id_=None, file=None, settings=dict(), parent=None):
+        super(con_file, self).__init__(id_, file, settings, parent)
 
         self._type = '.con'
-        self.associated_raw = None
         self.requires_save = True
         if 'emptyroom' not in file:
             # overwrite the default True value as this can actually be
@@ -24,8 +23,6 @@ class con_file(FileInfo):
         else:
             # an empty room file is good in it's default state
             self.is_good = True
-
-        self.create_vars()
 
         if 'emptyroom' in self.file:
             self.is_empty_room.set(True)
@@ -39,21 +36,11 @@ class con_file(FileInfo):
                     self.has_empty_room.set(True)
         """
 
-    def create_vars(self):
+    def _create_vars(self):
         """
         Create the required Variables
         """
-        self.is_junk = BooleanVar()
-        self.is_empty_room = BooleanVar()
-        self.has_empty_room = BooleanVar()
-        self.acquisition = StringVar()
-        self.task = StringVar()
-        self.associated_mrks = []
-
-        # set any particular bad values
-        # The keys of this dictionary must match the keys in the required info
-        self.bad_values = {'acquisition': [''],
-                           'associated_mrks': [[]]}
+        super(con_file, self)._create_vars()
 
         # a list of channel names that are 'interesting'
         # a channel is interesting if any of it's values are not the default
@@ -105,17 +92,12 @@ class con_file(FileInfo):
 
             # check to see if any of the channels are designated as triggers
             # by default
-            if self.parent is not None:
-                proj_settings = self.parent.proj_settings
-                def_trigger_info = proj_settings.get('DefaultTriggers',
-                                                     None)
-                if def_trigger_info is not None:
-                    default_triggers = [int(row[0]) for row in
-                                        def_trigger_info]
-                    default_descriptions = [row[1] for row in def_trigger_info]
-                else:
-                    default_triggers = []
-                    default_descriptions = []
+            def_trigger_info = self.container.settings.get('DefaultTriggers',
+                                                           None)
+            if def_trigger_info is not None:
+                default_triggers = [int(row[0]) for row in
+                                    def_trigger_info]
+                default_descriptions = [row[1] for row in def_trigger_info]
             else:
                 default_triggers = []
                 default_descriptions = []
@@ -168,33 +150,15 @@ class con_file(FileInfo):
                     desc_var.set(description)
                     self.tab_info[i] = [name_var, bad_var, trigger_var,
                                         desc_var]
+                    """
                     print(i, self.tab_info[i], 'ti')
                     for k in self.tab_info[i]:
                         print(k.get())
+                    """
 
         self.loaded = True
 
-    def check_complete(self):
-        """
-        Check there are no bad values
-        """
-        if self.is_junk.get() is True:
-            self.treeview.add_tags(self.ID, ['JUNK_FILE'])
-            self.treeview.remove_tags(self.ID, ['BAD_FILE'])
-        else:
-            self.treeview.remove_tags(self.ID, ['JUNK_FILE'])
-            self.treeview.add_tags(self.ID, ['BAD_FILE'])
-
-        # if the con file is junk or the empty room file then we consider it ok
-        if (self.is_junk.get() is True or
-                self.is_empty_room.get() is True):
-            #print('con file is good')
-            self.is_good = True
-            return
-        #print('con file might be bad...')
-        super(con_file, self).check_complete()
-
-    def get_trigger_channels(self):
+    def trigger_channels(self):
         """ Returns the list of trigger channels associated with the data
             and the descriptions """
         trigger_channels = []
@@ -207,6 +171,21 @@ class con_file(FileInfo):
 
         return trigger_channels, descriptions
 
+    def bad_channels(self):
+        """
+        Take the channel list and get any bad channels and set the channels in
+        the associated raw as bad.
+        Returns the list of bads channels
+        """
+        bads = []
+
+        for ch_data in self.tab_info.values():
+            if ch_data[1].get() == 1:
+                bads.append(ch_data[0].get())
+
+        return bads
+
+    # TODO: remove some parameters as some are now gotten from BIDSFile
     def __getstate__(self):
         # call the parent method
         data = super(con_file, self).__getstate__()
@@ -217,7 +196,7 @@ class con_file(FileInfo):
         data['acq'] = self.acquisition.get()        # acquisition
         data['tsk'] = self.task.get()               # task
         data['mrk'] = []                            # list of mrk's
-        for mrk in self.associated_mrks:
+        for mrk in self.hpi:
             data['mrk'].append(mrk.file)
         data['jnk'] = self.is_junk.get()            # is junk?
         data['ier'] = self.is_empty_room.get()      # is empty room data?
@@ -237,13 +216,13 @@ class con_file(FileInfo):
         super(con_file, self).__setstate__(state)
 
         # first intialise all the required variables
-        self.create_vars()
+        self._create_vars()
 
         # then populate them
         self.acquisition.set(state['acq'])
         self.task.set(state['tsk'])
         for mrk in state['mrk']:
-            self.associated_mrks.append(mrk)
+            self.hpi.append(mrk)
         self.is_junk.set(state['jnk'])
         self.is_empty_room.set(state['ier'])
         self.has_empty_room.set(state['her'])

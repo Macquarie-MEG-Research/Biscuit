@@ -1,11 +1,12 @@
-from tkinter import *
-from tkinter import HIDDEN, NORMAL
+from tkinter import StringVar, IntVar, DoubleVar, Variable, BooleanVar
+from tkinter import HIDDEN, NORMAL, END, WORD, E, W
 from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import *
+from tkinter.ttk import Frame, Notebook, Label
 
 from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
-from FileTypes import FileInfo, InfoContainer
-from InfoTabs import FifFileFrame, SessionInfoFrame, ConFileFrame
+from FileTypes import FileInfo, Folder
+from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
+                      EventInfoFrame)
 from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 from utils import clear_widget
@@ -56,29 +57,20 @@ class InfoManager(Notebook):
         self.add(self.con_info_tab, text="File Info")
         self._tabs[T_CON] = 2
 
-        """
-        # let's add a tab with a Text widget, just to see how it goes
-        self.text_tab = Frame(self)
-        self.text_tab.grid()
-        textentry = Text(self.text_tab)
-        textentry.grid(column=0, row=0, sticky="nsew")
-        self.text_tab.grid_columnconfigure(0, weight=1)
-        self.text_tab.grid_rowconfigure(0, weight=1)
-        self.add(self.text_tab, text="Text")
-        self._tabs['text'] = 1
-        """
-
         # channels tab (will only be for .con files)
         self.channel_tab = CIF(self, self.parent.settings)
         self.add(self.channel_tab, text="Channels")
-        #self.channel_tab.grid(sticky="nsew")
-        #self.channel_tab.grid_propagate(0)
         self._tabs[T_CHANNELS] = 3
 
         # fif file tab
         self.fif_info_tab = FifFileFrame(self, self.parent.settings)
         self.add(self.fif_info_tab, text="File Info")
         self._tabs[T_FIF] = 4
+
+        # events tab for fif files
+        self.fif_event_tab = EventInfoFrame(self, self.parent.settings)
+        self.add(self.fif_event_tab, text="Events")
+        self._tabs[T_EVENTS] = 5
 
     def determine_tabs(self):
         """
@@ -91,6 +83,7 @@ class InfoManager(Notebook):
             self.tab(self._tabs[T_FOLDER], state=HIDDEN)
             self.tab(self._tabs[T_MISC], state=HIDDEN)
             self.tab(self._tabs[T_FIF], state=HIDDEN)
+            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
             self.tab(self._tabs[T_CON], state=NORMAL)
             self.tab(self._tabs[T_CHANNELS], state=NORMAL)
             if self.context.previous == {'.CON'}:
@@ -100,11 +93,13 @@ class InfoManager(Notebook):
         # If a .fif file is selected then show the fif info tab and event tab
         elif self.context == '.FIF':
             self.fif_info_tab.file = self._data[0]
+            self.fif_event_tab.file = self._data[0]
             self.tab(self._tabs[T_FOLDER], state=HIDDEN)
             self.tab(self._tabs[T_MISC], state=HIDDEN)
             self.tab(self._tabs[T_CON], state=HIDDEN)
             self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
             self.tab(self._tabs[T_FIF], state=NORMAL)
+            self.tab(self._tabs[T_EVENTS], state=NORMAL)
             self.select(self._tabs[T_FIF])
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
@@ -122,6 +117,7 @@ class InfoManager(Notebook):
             self.tab(self._tabs[T_CON], state=HIDDEN)
             self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
             self.tab(self._tabs[T_FIF], state=HIDDEN)
+            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
             self.channel_tab.is_loaded = False
         else:
             self.draw_misc()
@@ -130,6 +126,7 @@ class InfoManager(Notebook):
             self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
             self.tab(self._tabs[T_FOLDER], state=HIDDEN)
             self.tab(self._tabs[T_FIF], state=HIDDEN)
+            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
             self.channel_tab.is_loaded = False
             self.select(self._tabs[T_MISC])
 
@@ -158,7 +155,7 @@ class InfoManager(Notebook):
               text="Multiple files selected. To see information select just "
               "one file").grid()
 
-    # this needs to be removed I think...
+    # TODO: remove
     def _display_known_file(self):
         data_obj = self._data[0]
         self.info_frame.grid_forget()
@@ -166,61 +163,8 @@ class InfoManager(Notebook):
         # undraw the tab before filling it
         # print any file information
         if not data_obj.display_raw:
-            anything_displayed = False
-            if len(data_obj.info) != 0:
-                Label(self.info_frame, text="Information").grid(columnspan=2,
-                                                                sticky=W)
-                for data in data_obj.info.items():
-                    entry = self.generate_gui_element(self.info_frame, data)
-                    self.add_gridrow(entry)
-                anything_displayed = True
-                Separator(self.info_frame).grid(
-                    row=self.info_frame.grid_size()[1], columnspan=2,
-                    sticky="ew")
-            if len(data_obj.required_info) != 0:
-                Label(self.info_frame, text="Required attributes").grid(
-                    row=self.info_frame.grid_size()[1], columnspan=2, sticky=W)
-                for name, data in data_obj.required_info.items():
-                    if data.get('validate', False) is True:
-                        # this is a reference to the method so that we can bind
-                        # it to a callback in the derived widget
-                        validate_cmd = data_obj.check_complete
-                    else:
-                        validate_cmd = None
-                    entry = self.generate_gui_element(
-                        self.info_frame, (name, data['data']), validate_cmd,
-                        bad_values=data_obj.bad_values.get(name, []))
-                    # try and set the background of the entry if it needs to be
-                    if isinstance(entry, InfoEntry):
-                        entry.check_valid()
-                    self.add_gridrow(entry)
-                anything_displayed = True
-                Separator(self.info_frame).grid(
-                    row=self.info_frame.grid_size()[1], columnspan=2,
-                    sticky="ew")
-            if len(data_obj.optional_info) != 0:
-                Label(self.info_frame,
-                      text="Optional attributes").grid(
-                          row=self.info_frame.grid_size()[1], columnspan=2,
-                          sticky=W)
-                for name, data in data_obj.optional_info.items():
-                    if data.get('validate', False) is True:
-                        # this is a reference to the method so that we can bind
-                        # it to a callback in the derived widget
-                        validate_cmd = data_obj.check_complete
-                    else:
-                        validate_cmd = None
-                    entry = self.generate_gui_element(self.info_frame,
-                                                      (name, data['data']),
-                                                      validate_cmd)
-                    self.add_gridrow(entry)
-                anything_displayed = True
-
-            # have a final check to see if anything has actually been shown.
-            # If not, show some message...
-            if not anything_displayed:
-                Label(self.info_frame,
-                      text="No info to show about file sorry!").grid(sticky=W)
+            Label(self.info_frame,
+                  text="No info to show about file sorry!").grid(sticky=W)
         else:
             # create a Text widget and read in the file
             textentry = ScrolledText(self.info_frame, wrap=WORD)
@@ -256,6 +200,7 @@ class InfoManager(Notebook):
         entry.label.grid(row=index, column=0, sticky=E)
         entry.value.grid(row=index, column=1, sticky=W)
 
+    # REMOVE:
     def generate_gui_element(self, master, data, validate_cmd=None,
                              bad_values=[]):
         """
@@ -298,7 +243,7 @@ class InfoManager(Notebook):
             self._display_nothing()
         else:
             if len(self._data) == 1:
-                if isinstance(self._data[0], InfoContainer):
+                if isinstance(self._data[0], Folder):
                     self._display_invalid_folder()
                 elif isinstance(self._data[0], FileInfo):
                     if (self._data[0].unknown_type is False and

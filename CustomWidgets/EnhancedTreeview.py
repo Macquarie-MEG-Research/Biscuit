@@ -247,7 +247,8 @@ class EnhancedTreeview(Treeview):
         column = self.column(column_num, option='id')
         if column_num == '#0':
             column = column_num
-        # we only want to allow editing if the user has specified the column should be editable
+        # we only want to allow editing if the user has specified the column
+        # should be editable
         if column in self.editable_columns:
             # get column position info
             x, y, width, height = self.bbox(rowid, column)
@@ -273,7 +274,8 @@ class EnhancedTreeview(Treeview):
             if col != '#0':
                 lst = [(self.set(k, col), k) for k in self.get_children(fid)]
             else:
-                lst = [(self.item(sid, option='text'), sid) for sid in self.get_children(fid)]
+                lst = [(self.item(sid, option='text'), sid) for
+                       sid in self.get_children(fid)]
             lst.sort(reverse=reverse)
 
             # rearrange items in sorted positions
@@ -281,13 +283,15 @@ class EnhancedTreeview(Treeview):
                 self.move(k, fid, index)
 
         # reverse sort next time
-        self.heading(col, command=lambda: self.treeview_sort_column(col, not reverse))
+        self.heading(
+            col, command=lambda: self.treeview_sort_column(col, not reverse))
 
     def _get_open_folders(self, parent=''):
         open_folders = []
         for sid in self.get_children(parent):
             if self.item(sid, option='open'):
-                # check if the children of the open folder itself has any open folders
+                # check if the children of the open folder itself has any open
+                # folders
                 open_folders.append(self._get_open_folders(sid))
                 open_folders.append(sid)
         return open_folders
@@ -304,7 +308,8 @@ class EnhancedTreeview(Treeview):
         sort_text = kwargs.get('text', None)
         if sort_text is not None:
             # only iterate over the children that are folders
-            child_folders = [i for i in self.get_children(parent) if isdir(self.item(i)['values'][1])]
+            child_folders = [i for i in self.get_children(parent) if
+                             isdir(self.item(i)['values'][1])]
             if len(child_folders) != 0:
                 for i, child in enumerate(child_folders):
                     if sort_text < self.item(child)['text']:
@@ -326,7 +331,8 @@ class EnhancedTreeview(Treeview):
             if child_fname < basename(self.item(child)['values'][1]):
                 return index
         else:
-            return index + 1        # one more than the total length of the list
+            # one more than the total length of the list
+            return index + 1
 
 
 class EntryPopup(tkEntry):

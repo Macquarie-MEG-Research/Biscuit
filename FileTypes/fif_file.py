@@ -29,18 +29,14 @@ class fif_file(FileInfo):
         """
         Create the required Variables
         """
-        self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
         self.has_empty_room = BooleanVar()
         self.acquisition = StringVar()
         self.task = StringVar()
 
-        # set any particular bad values
-        # The keys of this dictionary must match the keys in the required info
-        self.bad_values = {'acquisition': ['']}
-
         self.proj_name = StringVar()
         self.proj_name.trace("w", self._apply_settings_old)
+        self.session_ID = StringVar()
 
         # subject info
         self.subject_ID = StringVar()
@@ -52,9 +48,9 @@ class fif_file(FileInfo):
         self.event_info = {}
 
     def load_data(self):
-        _raw = read_raw_fif(self.file)
-        self.info['Channels'] = _raw.info['nchan']
-        rec_date = _raw.info['meas_date']
+        self._raw = read_raw_fif(self.file)
+        self.info['Channels'] = self._raw.info['nchan']
+        rec_date = self._raw.info['meas_date']
         if isinstance(rec_date, ndarray):
             self.info['Measurement date'] = datetime.fromtimestamp(
                 rec_date[0]).strftime('%d/%m/%Y')
@@ -63,20 +59,27 @@ class fif_file(FileInfo):
                 rec_date[0]).strftime('%d/%m/%Y')
 
         # load subject data
-        self.subject_ID.set(_raw.info['subject_info'].get('id', ''))
-        bday = [str(i) for i in _raw.info['subject_info']['birthday']]
+        self.subject_ID.set(self._raw.info['subject_info'].get('id', ''))
+        bday = [str(i) for i in self._raw.info['subject_info']['birthday']]
         bday.reverse()
         self.subject_age.set(','.join(bday))
         self.subject_gender.set(
-            {0: 'U', 1: 'M', 2: 'F'}.get(_raw.info['subject_info']['sex'], 0))
+            {0: 'U', 1: 'M', 2: 'F'}.get(self._raw.info['subject_info']['sex'],
+                                         0))
 
         self.loaded = True
 
-    def check_complete(self):
-        self.is_good = True
-
     def check_bids_ready(self):
-        return True
+        """
+        Go over all the required settings and determine whether the file is
+        ready to be exported to the bids format
+        """
+        is_good = True
+        is_good &= self.proj_name.get() != ''
+        is_good &= self.subject_ID.get() != ''
+        is_good &= self.task.get() != ''
+        is_good &= self.acquisition.get() != ''
+        return is_good
 
     def _apply_settings_old(self, *args):
         """

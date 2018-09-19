@@ -1,4 +1,4 @@
-from tkinter import Frame, StringVar, BooleanVar, Checkbutton, BOTH
+from tkinter import Frame, StringVar, BooleanVar, Checkbutton
 #from tkinter import Button as tkButton
 from tkinter.ttk import Label, Entry
 from FileTypes import con_file
@@ -11,9 +11,6 @@ class ChannelInfoFrame(Frame):
         self.default_settings = default_settings
         super(ChannelInfoFrame, self).__init__(self.master, *args, **kwargs)
 
-        # track the separators to modify them when number of rows changes
-        self.separators = []
-
         self._create_widgets()
 
         # two lists to keep track of which values are shown and which aren't
@@ -23,7 +20,6 @@ class ChannelInfoFrame(Frame):
         self._file = None
         self.is_loaded = False
         self.channel_widgets = {}
-        # keep track of the separators so we can remove and redraw as needed
 
     def _create_widgets(self):
         self.channels_table = WidgetTable(
