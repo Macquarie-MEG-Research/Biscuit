@@ -94,9 +94,7 @@ class KITData(BIDSContainer):
                 # this is slightly inefficient, but because _check_bids_ready
                 # for BIDSContainers is very efficient it won't matter
                 job.validate()
-            self.validate()
-
-            self.check_bids_ready()
+            self.validate()     # do I need to do this??
 
         self.contained_files = files
         self.is_valid = valid
@@ -146,7 +144,7 @@ class KITData(BIDSContainer):
                     con_file.acquisition.set('emptyroom')
                     con_file.task.set('noise')
                 trigger_channels, descriptions = con_file.trigger_channels()
-                self.event_info = dict(
+                con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))
                 if trigger_channels == []:
                     trigger_channels = '>'
@@ -198,15 +196,3 @@ class KITData(BIDSContainer):
             self.jobs.append(con_file)
 
         return True
-
-    # TODO: remove lots of this (as much will be in base method)
-    def check_bids_ready(self):
-        """
-        Check to see whether all contained files required to produce a
-        bids-compatible file system have all the necessary data
-        """
-        is_good = super(KITData, self).check_bids_ready()
-        is_good &= self.is_valid
-        # set the bids_ready property which will handle the associated tab's
-        # bids conversion button state
-        self.bids_ready = is_good

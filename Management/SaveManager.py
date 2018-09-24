@@ -81,7 +81,7 @@ class SaveManager():
                             mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
                     # also validate the con file:
                     #obj.load_data()
-                    obj.check_bids_ready()
+                    obj.validate()
 
     def get_file_id(self, path_):
         """

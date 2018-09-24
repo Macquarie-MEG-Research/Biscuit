@@ -47,17 +47,22 @@ class FileInfo():
         self.is_junk = BooleanVar()
         self.is_junk.set(False)
 
+        self.is_valid = True
+
     def check_valid(self):
         """ Returns True (method will be overriden by derived classes) """
         return True
 
-    def validate(self):
+    def validate(self, *args):
         """
         Check whether the file is valid (ie. contains all the required info for
         BIDS exporting)
         """
-        self.is_good = self.check_valid()
-        self.update_treeview()
+        self.valid = self.check_valid()
+
+    def post_validate(self):
+        """ Code to be run after the validation check has completed """
+        pass
 
     def update_treeview(self):
         """
@@ -71,7 +76,7 @@ class FileInfo():
             else:
                 self.parent.file_treeview.remove_tags(self.ID, ['JUNK_FILE'])
             # next see if good or not and give the correct tags
-            if self.is_good:
+            if self.valid:
                 self.parent.file_treeview.remove_tags(self.ID, ['BAD_FILE'])
                 self.parent.file_treeview.add_tags(self.ID, tags=['GOOD_FILE'])
             else:
@@ -86,6 +91,16 @@ class FileInfo():
     @ID.setter
     def ID(self, value):
         self._id = value
+
+    @property
+    def valid(self):
+        return self.is_valid
+
+    @valid.setter
+    def valid(self, other):
+        self.is_valid = other
+        self.update_treeview()
+        self.post_validate()
 
     @property
     def file(self):

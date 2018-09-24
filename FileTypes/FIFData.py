@@ -12,8 +12,6 @@ class FIFData(BIDSContainer, BIDSFile):
         BIDSContainer.__init__(self, id_, file, settings, parent)
         BIDSFile.__init__(self, id_, file, settings, parent)
 
-        #self._create_vars()
-
     def _create_vars(self):
         BIDSContainer._create_vars(self)
         BIDSFile._create_vars(self)
@@ -42,10 +40,26 @@ class FIFData(BIDSContainer, BIDSFile):
 
         self.validate()
 
-    # self.hpi will be [] for this... FIXME:
+    def check_valid(self):
+        # this will be essentially custom as we need to be careful due to the
+        # fact that the list of jobs contains `self`, which could lead to odd
+        # behaviour/possibly an infinite loop.
+        is_valid = True
+        if self.is_empty_room.get():
+            return is_valid
+        is_valid &= self.proj_name.get() != ''
+        is_valid &= self.subject_ID.get() != ''
+        is_valid &= self.task.get() != ''
+        is_valid &= self.acquisition.get() != ''
+
+        return is_valid
+
     def check_bids_ready(self):
         is_good = self.check_valid()
         is_good &= BIDSContainer.check_bids_ready(self)
+        # since FIF data will always have self.hpi = [], we won't call the
+        # BIDSFile.check_valid, and instead repeat the code here without the
+        # check for the hpi property...
         print(is_good)
         print('hello')
         self.bids_ready = is_good

@@ -46,39 +46,41 @@ class BIDSContainer(FileInfo):
         # MEG data parameters
         self.electrode = None
         self.hsp = None
-        self.emptyroom = False
         self.readme = None
-        self.extra_data = dict()
 
-        self.event_info = dict()
+        # whether the object has had any validation done yet
+        # This will be used to optimise the validation process since once the
+        # BIDSContainer has had it's initial validation checks done, we will
+        # only need to check the job for their validation sate, instead of
+        # running validation on them again.
+        self.validation_initialised = False
 
     def load_data(self):
         """ do all the intial data loading and variable assignment """
         pass
 
+    def init_validation(self):
+        """ Checks the validity of any associated jobs and self"""
+        for job in self.jobs:
+            job.validate()
+        self.validate()
+        self.validation_initialised = True
+
     def check_valid(self):
-        print('checking!!')
         is_valid = super(BIDSContainer, self).check_valid()
-        is_valid &= self.bids_ready
+        is_valid &= self.proj_name.get() != ''
+        is_valid &= self.subject_ID.get() != ''
+        for job in self.jobs:
+            is_valid &= job.valid
         return is_valid
-
-    def validate(self):
-        super(BIDSContainer, self).validate()
-
-    def update_treeview(self):
-        super(BIDSContainer, self).update_treeview()
 
     def check_bids_ready(self):
         """
         Go over all the required settings and determine whether the file is
         ready to be exported to the bids format
         """
-        is_good = True
-        is_good &= self.proj_name.get() != ''
-        is_good &= self.subject_ID.get() != ''
-        for job in self.jobs:
-            is_good &= job.is_good
-        return is_good
+        if self.valid:
+            self._set_bids_button_state()
 
     def check_projname_change(self, *args):
         """
@@ -91,7 +93,7 @@ class BIDSContainer(FileInfo):
         if self.parent is not None:
             self.settings = self.parent.proj_settings
         # not sure if having this here is doubling up and could cause problems
-        self.check_bids_ready()
+        self.validate()
 
     def _apply_settings(self):
         # try find the specific project settings

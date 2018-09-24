@@ -25,6 +25,10 @@ class BIDSFile(FileInfo):
 
         self.loaded = False
 
+        self.extra_data = dict()
+
+        self.event_info = dict()
+
         self.raw = None
         self.container = None
 
@@ -32,43 +36,41 @@ class BIDSFile(FileInfo):
         # This is set by the verification function to allow for faster
         # determination of whether or not the data is good to be converted to
         # bids format
-        self._is_good = True
+        #self._is_good = True
 
     def load_data(self):
         pass
-
-    def validate(self):
-        super(BIDSFile, self).validate()
-
-    def update_treeview(self):
-        super(BIDSFile, self).update_treeview()
 
     def check_valid(self):
         """
         Go over all the required settings and determine whether the file is
         ready to be exported to the bids format
         """
-        is_good = True
+        is_valid = super(BIDSFile, self).check_valid()
         # if empty room or junk we consider them good
         if self.is_empty_room.get() or self.is_junk.get():
-            return is_good
-        is_good &= self.task.get() != ''
-        is_good &= self.acquisition.get() != ''
-        is_good &= (self.hpi != [])
-        return is_good
+            return is_valid
+        is_valid &= self.task.get() != ''
+        is_valid &= self.acquisition.get() != ''
+        is_valid &= (self.hpi != [])
+        return is_valid
 
+    def post_validate(self):
+        if self.container is not None:
+            self.container.check_bids_ready()
+
+    """
+    # !REMOVE
     @property
     def is_good(self):
         return self._is_good
 
     @is_good.setter
     def is_good(self, value):
-        """
-        Set the value and call the container's check_bids_ready method
-        """
         self._is_good = value
         if self.container is not None:
             self.container.check_bids_ready()
+    """
 
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()

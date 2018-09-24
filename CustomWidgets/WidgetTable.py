@@ -289,10 +289,12 @@ class WidgetTable(Frame):
                 else:
                     # we still need to check if the function requires row
                     # context
-                    var = self.pattern[i]
+                    var = dict()
+                    for key in self.pattern[i].keys():
+                        if key != 'func':
+                            var[key] = self.pattern[i][key]
                     if var.get('func_has_row_ctx', False):
-                        f = copy(var['func'])
-                        var['func'] = lambda x=idx: f(x)
+                        var['func'] = lambda x=idx: self.pattern[i]['func'](x)
             row_vars.append(var)
         if idx < len(self.data):
             self.data[idx] = row_vars

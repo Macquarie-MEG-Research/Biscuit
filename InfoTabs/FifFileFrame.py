@@ -127,25 +127,25 @@ class FifFileFrame(Frame):
 
     def update_widgets(self):
         # update info
-        self.channel_info.value = self._file.info['Channels']
-        self.meas_date_info.value = self._file.info['Measurement date']
+        self.channel_info.value = self.file.info['Channels']
+        self.meas_date_info.value = self.file.info['Measurement date']
         # update subject info
-        self.sub_id_entry.value = self._file.subject_ID
-        self.sub_id_entry.validate_cmd = self._file.check_bids_ready
-        self.sub_age_entry.value = self._file.subject_age
-        self.sub_gender_entry.value = self._file.subject_gender
-        self.sub_group_entry.value = self._file.subject_group
+        self.sub_id_entry.value = self.file.subject_ID
+        self.sub_id_entry.validate_cmd = self.file.validate
+        self.sub_age_entry.value = self.file.subject_age
+        self.sub_gender_entry.value = self.file.subject_gender
+        self.sub_group_entry.value = self.file.subject_group
         # update required info
-        self.proj_name_entry.value = self._file.proj_name
-        self.proj_name_entry.validate_cmd = self._file.check_bids_ready
-        self.sess_id_entry.value = self._file.session_ID
-        self.task_info.value = self._file.task
-        self.task_info.validate_cmd = self._file.check_bids_ready
-        self.acq_info.value = self._file.acquisition
-        self.acq_info.validate_cmd = self._file.check_bids_ready
-        self.is_emptyroom_info.value = self._file.is_empty_room
-        self.is_emptyroom_info.validate_cmd = self._file.check_bids_ready
-        self.has_emptyroom_info.value = self._file.has_empty_room
+        self.proj_name_entry.value = self.file.proj_name
+        self.proj_name_entry.validate_cmd = self.file.validate
+        self.sess_id_entry.value = self.file.session_ID
+        self.task_info.value = self.file.task
+        self.task_info.validate_cmd = self.file.validate
+        self.acq_info.value = self.file.acquisition
+        self.acq_info.validate_cmd = self.file.validate
+        self.is_emptyroom_info.value = self.file.is_empty_room
+        self.is_emptyroom_info.validate_cmd = self.file.validate
+        self.has_emptyroom_info.value = self.file.has_empty_room
 
     @property
     def file(self):
@@ -165,4 +165,4 @@ class FifFileFrame(Frame):
         self.update_widgets()
         for widget in self.require_verification:
             widget.check_valid()
-        self._check_bids_ready()
+        self.file.validate()
