@@ -1,15 +1,10 @@
-from tkinter import StringVar, IntVar, DoubleVar, Variable, BooleanVar
-from tkinter import HIDDEN, NORMAL, END, WORD, E, W
-from tkinter.scrolledtext import ScrolledText
-from tkinter.ttk import Frame, Notebook, Label
+from tkinter import HIDDEN, NORMAL
+from tkinter.ttk import Notebook
 
-from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
-from FileTypes import FileInfo, Folder
+from FileTypes import FileInfo, Folder, FIFData
 from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
-                      EventInfoFrame)
+                      EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame)
 from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
-
-from utils import clear_widget
 
 # some global names:
 T_CON = 'con_tab'
@@ -18,6 +13,7 @@ T_EVENTS = 'events_tab'
 T_MISC = 'general_tab'
 T_FOLDER = 'session_tab'
 T_CHANNELS = 'channels_tab'
+T_SCROLLTEXT = 'scrolltext_tab'
 
 
 class InfoManager(Notebook):
@@ -36,14 +32,7 @@ class InfoManager(Notebook):
         self.context = context
 
         # generic info frame
-        self.info_tab = Frame(self)
-        self.info_tab.grid(sticky="nsew")
-        self.info_tab.grid_propagate(0)
-        self.info_tab.grid_columnconfigure(0, weight=1)
-        self.info_tab.grid_rowconfigure(0, weight=1)
-        self.info_frame = Frame(self.info_tab)
-        self.info_frame.grid(sticky="nsew")
-        self.info_frame.grid_propagate(0)
+        self.info_tab = GenericInfoFrame(self)
         self.add(self.info_tab, text="Info")
         self._tabs[T_MISC] = 0
 
@@ -72,191 +61,128 @@ class InfoManager(Notebook):
         self.add(self.fif_event_tab, text="Events")
         self._tabs[T_EVENTS] = 5
 
+        # scrolled text tab
+        self.scrolltext_tab = ScrolledTextInfoFrame(self)
+        self.add(self.scrolltext_tab, text="File contents")
+        self._tabs[T_SCROLLTEXT] = 6
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
         """
         # If a .con file is selected show the channels tab
         if self.context == '.CON':
-            self.channel_tab.file = self._data[0]
-            self.con_info_tab.file = self._data[0]
-            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
-            self.tab(self._tabs[T_MISC], state=HIDDEN)
-            self.tab(self._tabs[T_FIF], state=HIDDEN)
-            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
-            self.tab(self._tabs[T_CON], state=NORMAL)
-            self.tab(self._tabs[T_CHANNELS], state=NORMAL)
+            self.channel_tab.file = self.data[0]
+            self.con_info_tab.file = self.data[0]
+            self.display_tabs(T_CON, T_CHANNELS)
             if self.context.previous == {'.CON'}:
                 self.select(self.select())  # keep current selected
             else:
                 self.select(self._tabs[T_CON])
         # If a .fif file is selected then show the fif info tab and event tab
         elif self.context == '.FIF':
-            self.fif_info_tab.file = self._data[0]
-            self.fif_event_tab.file = self._data[0]
-            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
-            self.tab(self._tabs[T_MISC], state=HIDDEN)
-            self.tab(self._tabs[T_CON], state=HIDDEN)
-            self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
-            self.tab(self._tabs[T_FIF], state=NORMAL)
-            self.tab(self._tabs[T_EVENTS], state=NORMAL)
-            self.select(self._tabs[T_FIF])
+            if self.data[0].mainfile_name is None:
+                self.fif_info_tab.file = self._data[0]
+                self.fif_event_tab.file = self._data[0]
+                self.display_tabs(T_FIF, T_EVENTS)
+                if self.context.previous == {'.FIF'} and self.select() != '':
+                    self.select(self.select())  # keep current selected
+                else:
+                    self.select(self._tabs[T_FIF])
+            else:
+                self.info_tab.file = self._data[0]
+                self.display_tabs(T_MISC)
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
-            if self._data[0].is_valid:
+            if self.data[0].contains_required_files:
                 # only update the session info tab if the data is valid
-                self.session_tab.file = self._data[0]
-                self.tab(self._tabs[T_FOLDER], state=NORMAL)
-                self.tab(self._tabs[T_MISC], state=HIDDEN)
+                self.session_tab.file = self.data[0]
+                self.display_tabs(T_FOLDER)
                 self.select(self._tabs[T_FOLDER])
             else:
-                self.draw_misc()
-                self.tab(self._tabs[T_MISC], state=NORMAL)
-                self.tab(self._tabs[T_FOLDER], state=HIDDEN)
+                self.display_tabs(T_MISC)
                 self.select(self._tabs[T_MISC])
-            self.tab(self._tabs[T_CON], state=HIDDEN)
-            self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
-            self.tab(self._tabs[T_FIF], state=HIDDEN)
-            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
             self.channel_tab.is_loaded = False
         else:
-            self.draw_misc()
-            self.tab(self._tabs[T_MISC], state=NORMAL)
-            self.tab(self._tabs[T_CON], state=HIDDEN)
-            self.tab(self._tabs[T_CHANNELS], state=HIDDEN)
-            self.tab(self._tabs[T_FOLDER], state=HIDDEN)
-            self.tab(self._tabs[T_FIF], state=HIDDEN)
-            self.tab(self._tabs[T_EVENTS], state=HIDDEN)
+            if self.data is None:
+                self.display_tabs(T_MISC)
+                self.select(self._tabs[T_MISC])
+            else:
+                if self._data[0].display_raw:
+                    self.scrolltext_tab.file = self._data[0]
+                    self.display_tabs(T_SCROLLTEXT)
+                    self.select(self._tabs[T_SCROLLTEXT])
+                else:
+                    self.display_tabs(T_MISC)
+                    self.select(self._tabs[T_MISC])
             self.channel_tab.is_loaded = False
-            self.select(self._tabs[T_MISC])
 
     def _display_loading(self):
         # Shows a temporary screen indicating that the requested data is being
         # loaded...
-        clear_widget(self.info_frame)
-        Label(self.info_frame,
-              text="Loading information for selected file, please wait").grid()
+        self.info_tab.set_text(
+            "Loading information for selected file, please wait")
 
     def _display_nothing(self):
         # This will be shown when there is no actual info to be shown
-        clear_widget(self.info_frame)
-        Label(self.info_frame,
-              text="Nothing to show. Please select something in the file "
-              "viewer to see info").grid()
+        self.info_tab.set_text(
+            "Nothing to show. Please select something in the file "
+            "viewer to see info")
 
     def _display_invalid_folder(self):
-        clear_widget(self.info_frame)
-        Label(self.info_frame,
-              text="Selected folder is not a BIDS compatible folder").grid()
+        self.info_tab.set_text(
+            "Selected folder is not a BIDS compatible folder")
 
     def _display_multiple_types(self):
-        clear_widget(self.info_frame)
-        Label(self.info_frame,
-              text="Multiple files selected. To see information select just "
-              "one file").grid()
-
-    # TODO: remove
-    def _display_known_file(self):
-        data_obj = self._data[0]
-        self.info_frame.grid_forget()
-        clear_widget(self.info_frame)
-        # undraw the tab before filling it
-        # print any file information
-        if not data_obj.display_raw:
-            Label(self.info_frame,
-                  text="No info to show about file sorry!").grid(sticky=W)
-        else:
-            # create a Text widget and read in the file
-            textentry = ScrolledText(self.info_frame, wrap=WORD)
-            textentry.grid(column=0, row=0, sticky='nsew')
-            with open(data_obj.file, 'r') as file:
-                textentry.insert(END, file.read())
-
-        # re-draw the info frame.
-        # by hiding the frame while adding all the sub elements we can avoid a
-        # jarring draw effect
-        self.info_frame.grid(sticky="nsew")
-        if data_obj.display_raw:
-            self.info_frame.grid_columnconfigure(0, weight=1)
-            self.info_frame.grid_columnconfigure(1, weight=0)
-            self.info_frame.grid_rowconfigure(0, weight=1)
-        else:
-            self.info_frame.grid_columnconfigure(0, weight=1)
-            self.info_frame.grid_columnconfigure(1, weight=3)
+        self.info_tab.set_text(
+            "Multiple files selected. To see information select just "
+            "one file")
 
     def _display_unknown_file(self):
-        clear_widget(self.info_frame)
-        Label(self.info_frame,
-              text="I don't know how to deal with "
-              "{0} files yet!!".format(self._data[0].dtype)).grid()
+        self.info_tab.set_text(
+            "I don't know how to deal with "
+            "{0} files yet!!".format(self.data[0].dtype))
 
-    def add_gridrow(self, entry):
-        """
-        Add another row to the grid at the end
-        We read the current number of rows from the tab which is contained as a
-        property of the entry
-        """
-        index = entry.master.grid_size()[1]
-        entry.label.grid(row=index, column=0, sticky=E)
-        entry.value.grid(row=index, column=1, sticky=W)
+    def _display_fif_part(self):
+        self.info_tab.set_text(
+            "File part of {0}.fif".format(self.data[0].mainfile_name))
 
-    # REMOVE:
-    def generate_gui_element(self, master, data, validate_cmd=None,
-                             bad_values=[]):
-        """
-        This will generate and return the appropriate Info Entry depending
-        on the data type of the data.
-
-        Inputs:
-        master - the parent widget the returned widget will belong to
-        data - a key,value pair containing the name of the data, and the data
-            itself (or a Variable object)
-        validate_cmd - The command used for validation of the contents
-        """
-        key, value = data
-        if data is not None:
-            # we need to pretty much check the data type of the value and
-            # return the appropriate gui element
-            if isinstance(value, list):
-                return InfoList(master, (key, value), validate_cmd)
-            # check for a generic type:
-            elif isinstance(value, (str, int, float, tuple)):
-                # in this case, simply create a InfoLabel
-                return InfoLabel(master, (key, value), validate_cmd)
-            # check for Tkinter Variable subclasses.
-            elif isinstance(value, Variable):
-                # the boolean type we will need to do something different for
-                # otherwise return an entry:
-                if isinstance(value, (IntVar, StringVar, DoubleVar)):
-                    return InfoEntry(master, (key, value), validate_cmd,
-                                     bad_values)
-                elif isinstance(value, BooleanVar):
-                    return InfoCheck(master, (key, value), validate_cmd)
-            else:
-                print('Error!!', data)
-        else:
-            # I dunno...
-            raise ValueError
-
-    def draw_misc(self):
+    def _determine_misc_data(self):
         if self._data is None:
             self._display_nothing()
         else:
             if len(self._data) == 1:
-                if isinstance(self._data[0], Folder):
+                if isinstance(self.data[0], Folder):
                     self._display_invalid_folder()
-                elif isinstance(self._data[0], FileInfo):
+                elif isinstance(self.data[0], FIFData):
+                    self._display_fif_part()
+                elif isinstance(self.data[0], FileInfo):
                     if (self._data[0].unknown_type is False and
-                            self._data[0].dtype != '.con'):
+                            self.data[0].dtype != '.con'):
                         # in this case we are displaying the info about a
                         # single file
-                        self._display_known_file()
+                        pass
                     else:
                         self._display_unknown_file()
-            elif len(self._data) == 0:
+            elif len(self.data) == 0:
                 self._display_nothing()
             else:
                 self._display_multiple_types()
+
+    def display_tabs(self, *tabs):
+        """
+        Display all tabs provided as values.
+        Any tabs that are not on this list will be not displayed.
+        If the tab is the T_MISC tab we will also automatically
+        determine what is to be displayed in this tab
+        """
+        for t in self._tabs.keys():
+            if t in tabs:
+                self.tab(self._tabs[t], state=NORMAL)
+                if t == T_MISC:
+                    self._determine_misc_data()
+            else:
+                self.tab(self._tabs[t], state=HIDDEN)
 
     @property
     def data(self):
@@ -276,17 +202,3 @@ class InfoManager(Notebook):
             self.requires_update = True
         else:
             self.requires_update = False
-
-    """
-    @property
-    def context(self):
-        return self._context
-
-    @context.setter
-    def context(self, ctx):
-        if ctx != self.context:
-            self._context = ctx
-            self.requires_update = True
-        else:
-            self.requires_update = False
-    """

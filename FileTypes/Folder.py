@@ -5,6 +5,7 @@ class Folder(FileInfo):
     def __init__(self, id_=None, file=None, parent=None):
         super(Folder, self).__init__(id_, file, parent)
         self.is_valid = False
+        self.contains_required_files = False
 
     def initial_processing(self):
         # go over the children and call the validate command?

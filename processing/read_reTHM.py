@@ -22,6 +22,11 @@ raw = mne.io.read_raw_kit(fname,
                           slope='-',
                           stim_code='channel',
                           stimthresh=0.5)
+
+i = raw.info['proc_history']
+print(i)
+
+"""
 events = mne.find_events(raw, stim_channel='STI 014', min_duration=0.050)
 onsets = events[initial_pulses:, 0]
 
@@ -30,6 +35,7 @@ print(sfreq, 'sfreq')
 corrected_offsets = [i / sfreq for i in onsets]
 
 ignore_bads = False
+"""
 
 """
 with open(fname, 'rb') as file:
@@ -52,6 +58,8 @@ with open(fname, 'rb') as file:
                     out.writelines(['\t', 'nan', '\t', 'nan', '\t', 'nan', '\t', 'nan'])
                     file.seek(0x20, 1)      # need to skip over the data
             out.writelines(['\n'])
+"""
+
 """
 for ch in raw.info['chs']:
     print(ch['kind'], ch['coil_type'])
@@ -80,3 +88,4 @@ def reTHM(file):
     file.seek(0x1D0)
     hm_offset, hm_size, hm_count, _ = unpack('4i', file.read(0x10))
     # hm_count = num_channels * num_markers
+"""

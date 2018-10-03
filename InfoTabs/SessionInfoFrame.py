@@ -15,10 +15,6 @@ class SessionInfoFrame(Frame):
 
         self._file = None
 
-        self.bids_gen_btn = Button(self, text="Generate BIDS",
-                                   command=self.to_bids,
-                                   state=DISABLED)
-
         # a list of widgets that will require verification
         self.require_verification = []
 
@@ -78,6 +74,9 @@ class SessionInfoFrame(Frame):
                                              pady=2)
         self.dewar_position_entry.value.grid(column=1, row=7, sticky='ew',
                                              pady=2)
+        self.bids_gen_btn = Button(self, text="Generate BIDS",
+                                   command=self.convert_to_bids,
+                                   state=DISABLED)
         self.bids_gen_btn.grid(column=3, row=7)
         tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
         self.grid()
@@ -94,7 +93,7 @@ class SessionInfoFrame(Frame):
         self.sub_group_entry.value = self.file.subject_group
         self.dewar_position_entry.value = self.file.dewar_position
 
-    def to_bids(self):
+    def convert_to_bids(self):
         print('converting to bids')
         convert(self.file, self.settings)
 

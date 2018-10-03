@@ -27,6 +27,7 @@ class EventInfoFrame(Frame):
             headings=["Event number", "Event description"],
             pattern=[IntVar, StringVar],
             adder_script=self._add_event,
+            remove_script=self._remove_event,
             widgets_pattern=[Entry, Entry],
             sort_column=0)
         self.events_table.grid(sticky='nsew')
@@ -35,17 +36,25 @@ class EventInfoFrame(Frame):
         self.master.grid_columnconfigure(0, weight=1)
         self.master.grid_rowconfigure(0, weight=1)
 
+    def _remove_event(self, idx):
+        """ Remove the specified index """
+        del self.file.event_info[idx]
+
     def _add_event(self):
         """ Add the two new variables to the underlying FIFData object """
         num = IntVar()
+        num.set(0)
         desc = StringVar()
-        self._file.event_info['num'] = num
-        self._file.event_info['description'] = desc
+        # set the dictionary key as the name of the variable so that it is
+        # unique. We cannot use the actual value here as it will change.
+        self.file.event_info.append({'event': num, 'description': desc})
         return [num, desc]
 
-    # FIXME:
     def update(self):
-        pass
+        data = []
+        for d in self.file.event_info:
+            data.append([d['event'], d['description']])
+        self.events_table.set(data)
 
     @property
     def file(self):

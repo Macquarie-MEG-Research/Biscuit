@@ -9,7 +9,7 @@ from mne.io.constants import FIFF
 
 
 class KITData(BIDSContainer):
-    def __init__(self, id_, file, settings=None, parent=None):
+    def __init__(self, id_=None, file=None, settings=dict(), parent=None):
         super(KITData, self).__init__(id_, file, settings, parent)
 
     def _create_vars(self):
@@ -21,17 +21,9 @@ class KITData(BIDSContainer):
         self.con_map = dict()
         self.is_valid = False
 
+    # !REMOVE?
     def initial_processing(self):
         self.load_data()
-
-        # This function needs to be modified to take in the parent id from the
-        # treeview instead.
-        # This way it can get the ids of the children files to associate with
-        # the FileInfo objects.
-        if self.is_valid:
-            self._set_required_inputs()
-
-        self.extra_data = dict()
 
     def load_data(self):
         # this will automatically preload the data of any contained files
@@ -52,8 +44,10 @@ class KITData(BIDSContainer):
             # If so, simply associate it and continue.
             if sid in self.parent.preloaded_data:
                 if ext in files:
-                    files[item['values'][0]].append(
-                        self.parent.preloaded_data[sid])
+                    files[ext].append(self.parent.preloaded_data[sid])
+                    if isinstance(self.parent.preloaded_data[sid], BIDSFile):
+                        # container will have already been set
+                        self.jobs.append(self.parent.preloaded_data[sid])
             else:
                 # generate the FileInfo subclass object
                 cls_ = get_object_class(ext)
@@ -75,59 +69,62 @@ class KITData(BIDSContainer):
                     # add the data to the preload data
                     self.parent.preloaded_data[sid] = obj
                     if ext in files:
-                        files[item['values'][0]].append(obj)
+                        files[ext].append(obj)
 
-        valid = True
         # validate the folder:
         for dtype, data in files.items():
             if dtype != '.mri':
                 if len(data) == 0:
-                    valid = False
+                    self.contains_required_files = False
                     break
+        # whether or not this object needs to be saved is dependent on whether
+        # the folder contains all the required files
+        self.requires_save = self.contains_required_files
 
         # we'll only check whether the folder is ready to be exported to bids
         # format if it is valid
-        if valid:
+        if self.contains_required_files:
             # first run the verification on each of the jobs to ensure they
             # have been checked
             for job in self.jobs:
                 # this is slightly inefficient, but because _check_bids_ready
                 # for BIDSContainers is very efficient it won't matter
                 job.validate()
-            self.validate()     # do I need to do this??
+
+            # apply some values
+            # TODO: clean this up a bit...
+            """ Project settings """
+            try:
+                proj_name = self.parent.file_treeview.item(
+                    self._id)['text'].split('_')[2]
+            except IndexError:
+                proj_name = ''
+            self.proj_name.set(proj_name)
+            # set the settings via the setter.
+            try:
+                self.settings = self.proj_settings
+            except AttributeError:
+                # in this case the settings have probably already been set.
+                pass
+
+            """ Subject settings """
+            try:
+                sub_name = self.parent.file_treeview.item(
+                    self._id)['text'].split('_')[0]
+            except IndexError:
+                sub_name = ''
+            self.subject_ID.set(sub_name)
+
+            self.validate()
 
         self.contained_files = files
-        self.is_valid = valid
 
     def prepare(self):
+        super(KITData, self).prepare()
         self._create_raws()
-
-    # TODO: reformat and REMOVE:
-    def _set_required_inputs(self):
-        # we have a number of basic properties that we need:
-        # this should maybe be moved??
-
-        """ Project settings """
-        try:
-            proj_name = self.parent.file_treeview.item(
-                self._id)['text'].split('_')[2]
-        except IndexError:
-            proj_name = ''
-        self.proj_name.set(proj_name)
-        # set the settings via the setter.
-        try:
-            self.settings = self.proj_settings
-        except AttributeError:
-            # in this case the settings have probably already been set.
-            pass
-
-        """ Subject settings """
-        try:
-            sub_name = self.parent.file_treeview.item(
-                self._id)['text'].split('_')[0]
-        except IndexError:
-            sub_name = ''
-        self.subject_ID.set(sub_name)
+        self.make_specific_data = {
+            'electrode': self.contained_files['.elp'][0].file,
+            'hsp': self.contained_files['.hsp'][0].file}
 
     # TODO: fix up 'jobs' stuff
     def _create_raws(self):
@@ -143,7 +140,7 @@ class KITData(BIDSContainer):
                 if con_file.is_empty_room.get():
                     con_file.acquisition.set('emptyroom')
                     con_file.task.set('noise')
-                trigger_channels, descriptions = con_file.trigger_channels()
+                trigger_channels, descriptions = con_file.get_event_data()
                 con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))
                 if trigger_channels == []:
@@ -166,6 +163,7 @@ class KITData(BIDSContainer):
                 bads = con_file.bad_channels()
                 # set the bads
                 raw.info['bads'] = bads
+                # TODO: use this
                 """ Might be needed???
                 # assign any participant info we have:
                 # first we need to process what we have:
@@ -196,3 +194,14 @@ class KITData(BIDSContainer):
             self.jobs.append(con_file)
 
         return True
+
+    def __getstate__(self):
+        data = super(KITData, self).__getstate__()
+        data['dwr'] = self.dewar_position.get()
+
+        return data
+
+    def __setstate__(self, state):
+        super(KITData, self).__setstate__(state)
+
+        self.dewar_position.set(state['dwr'])

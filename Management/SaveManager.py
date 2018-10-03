@@ -1,5 +1,5 @@
 import pickle
-from FileTypes import FileInfo, con_file, mrk_file, KITData
+from FileTypes import FIFData, con_file, mrk_file, KITData
 import os.path as path
 
 
@@ -23,6 +23,8 @@ class SaveManager():
 
         self.treeview_ids = []
 
+    # TODO: clean this up a bit? Not sure what can be re-factored, but it
+    # should be able to be made a bit nicer...
     def load(self):
         """
         This needs some error handling!!
@@ -43,30 +45,42 @@ class SaveManager():
                     # set the file's id from the treeview
                     sid = self.get_file_id(file.file)
                     file.ID = sid
-                    # *then* associate the treeview with the file
-                    file.treeview = self.parent.file_treeview
                     # also give it the right settings
                     file.settings = self.parent.proj_settings
                     # then add the file to the preloaded data
                     _data[file.ID] = file
                 elif isinstance(file, KITData):
                     containers_to_load.append(file)
+                elif isinstance(file, FIFData):
+                    sid = self.get_file_id(file.file)
+                    file.ID = sid
+                    file.parent = self.parent
+                    file.loaded_from_save = True
+                    # also give it the right settings
+                    file.settings = self.parent.proj_settings
+                    # the file is it's own container too
+                    file.container = file
+                    # get the file to load it's data
+                    file.load_data()
+                    # then add the file to the preloaded data
+                    _data[file.ID] = file
             # load containers after files to ensure the files are referenced in
             # the container correctly.
             for file in containers_to_load:
                 #print('loaded folder: {0}'.format(file.file_path))
-                sid = self.get_file_id(file.file_path)
+                sid = self.get_file_id(file.file)
                 file.ID = sid
                 file.parent = self.parent
                 file.settings = self.parent.proj_settings
-                file.initial_processing()
+                file.load_data()
                 _data[file.ID] = file
 
                 # find any children of the IC and give them this object as
                 # the parent
                 for child_id in self.parent.file_treeview.get_children(sid):
                     if child_id in _data:
-                        _data[child_id].parent = file
+                        _data[child_id].container = file
+                        _data[child_id].parent = self.parent
 
             # now fix up any associated_mrk's that need to be actual
             # mrk_file objects
@@ -100,7 +114,8 @@ class SaveManager():
         This is a generator to iterate over the specified file and
         return the values as required
 
-        script c/o Lutz Prechelt (cf. https://stackoverflow.com/questions/20716812/saving-and-loading-multiple-objects-in-pickle-file)
+        script c/o Lutz Prechelt
+        (cf. https://stackoverflow.com/questions/20716812/saving-and-loading-multiple-objects-in-pickle-file)  # noqa
         """
         with open(self.save_path, "rb") as f:
             while True:
@@ -114,18 +129,11 @@ class SaveManager():
         Saves all the entered user data.
         """
         with open(self.save_path, 'wb') as f:
-            for _, file in self.parent.preloaded_data.items():
-                if isinstance(file, FileInfo):
-                    if file.requires_save:
-                        try:
-                            print('dumping {0}'.format(file.file))
-                            pickle.dump(file, f)
-                        except TypeError:
-                            print('error opening file: {0}'.format(file))
-                elif isinstance(file, KITData):
-                    if file.is_valid:
-                        try:
-                            print('dumping {0}'.format(file.file_path))
-                            pickle.dump(file, f)
-                        except TypeError:
-                            print('error writing file: {0}'.format(file))
+            for file in self.parent.preloaded_data.values():
+                if file.requires_save:
+                    try:
+                        print('dumping {0}'.format(file.file))
+                        pickle.dump(file, f)
+                    except TypeError:
+                        print('error saving file: {0}'.format(file))
+                        raise

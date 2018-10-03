@@ -7,7 +7,7 @@ from .FileInfo import FileInfo
 from Management import OptionsVar
 from utils import flatten, threaded
 
-
+# !REMOVE
 class fif_file(FileInfo):
     """
     .fif specific file container.

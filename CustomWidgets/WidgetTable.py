@@ -83,7 +83,8 @@ class WidgetTable(Frame):
             sep = Separator(self.sf.frame, orient='vertical')
             self.separators.append(sep)
 
-        self.delete_icon = Image.open("assets/remove_row_trans.png")
+        self.delete_icon = Image.open("assets/remove.png")
+        #self.delete_icon = Image.open("assets/remove_row_trans.png")
         self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
         self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
 
@@ -102,6 +103,15 @@ class WidgetTable(Frame):
             # empty table
             self.data = []
             self._draw_separators()
+
+        self.bind('<Control-n>', self._add_row_from_key)
+
+    def _add_row_from_key(self, *args):
+        # only add a new row if we can add anything, not entries from the
+        # add_options list.
+        if not isinstance(self.add_options, list):
+            self.add_row_from_button()
+            self.sf.configure_view()
 
     def _create_widgets(self):
         if isinstance(self.add_options, list):
@@ -130,6 +140,7 @@ class WidgetTable(Frame):
             self.add_button = Button(self.sf.frame, text="Add Row",
                                      command=self.add_row_from_button)
             self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+            self.add_button.bind('<Control-n>', self._add_row_from_key)
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
@@ -172,6 +183,7 @@ class WidgetTable(Frame):
             # draw each of the new widgets in the last row
             for i, w in enumerate(self.widgets_pattern):
                 w_actual = w(self.sf.frame)
+                w_actual.bind('<Control-n>', self._add_row_from_key)
                 w_actual.grid(row=rows, column=2 * i, sticky='nsew', padx=2,
                               pady=2)
                 row_widgets.append(w_actual)
@@ -209,7 +221,7 @@ class WidgetTable(Frame):
         if count == 0:
             refresh = True
             count = len(data)
-        if data is not None:
+        if data is not None and data != []:
             data = self.ensure_2D_array(data)
             for i in range(count):
                 self.add_row_data(curr_rows + i, data[i])
@@ -378,7 +390,7 @@ class WidgetTable(Frame):
             del_btn = self.widgets[i][-1]
             del_btn.config(command=lambda x=i: self.delete_rows_and_update(x))
         # now, reapply all the variables
-        self.first_redraw_row = idx
+        self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
         self.sf.configure_view()

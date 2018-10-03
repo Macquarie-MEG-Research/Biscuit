@@ -46,6 +46,7 @@ class con_file(BIDSFile):
         # a channel is interesting if any of it's values are not the default
         # ones or the user has selected the channel from the list in the
         # channels tab to enter info
+        # TODO: replace with self.event_data ??
         self.interesting_channels = set()
         self.channel_names = []
 
@@ -92,6 +93,7 @@ class con_file(BIDSFile):
 
             # check to see if any of the channels are designated as triggers
             # by default
+            print(self._id)
             def_trigger_info = self.container.settings.get('DefaultTriggers',
                                                            None)
             if def_trigger_info is not None:
@@ -150,15 +152,11 @@ class con_file(BIDSFile):
                     desc_var.set(description)
                     self.tab_info[i] = [name_var, bad_var, trigger_var,
                                         desc_var]
-                    """
-                    print(i, self.tab_info[i], 'ti')
-                    for k in self.tab_info[i]:
-                        print(k.get())
-                    """
 
         self.loaded = True
 
-    def trigger_channels(self):
+    # TODO: maybe not have this return two lists??
+    def get_event_data(self):
         """ Returns the list of trigger channels associated with the data
             and the descriptions """
         trigger_channels = []
@@ -185,22 +183,9 @@ class con_file(BIDSFile):
 
         return bads
 
-    # TODO: remove some parameters as some are now gotten from BIDSFile
     def __getstate__(self):
         # call the parent method
         data = super(con_file, self).__getstate__()
-
-        # now do con-file specific saving
-        # first, get any data we want saved:
-        # use short-hand names to save a bit of space...
-        data['acq'] = self.acquisition.get()        # acquisition
-        data['tsk'] = self.task.get()               # task
-        data['mrk'] = []                            # list of mrk's
-        for mrk in self.hpi:
-            data['mrk'].append(mrk.file)
-        data['jnk'] = self.is_junk.get()            # is junk?
-        data['ier'] = self.is_empty_room.get()      # is empty room data?
-        data['her'] = self.has_empty_room.get()     # has empty room data?
 
         # next sort out channel info
         data['cin'] = {}
@@ -216,16 +201,9 @@ class con_file(BIDSFile):
         super(con_file, self).__setstate__(state)
 
         # first intialise all the required variables
-        self._create_vars()
+        #self._create_vars()
 
         # then populate them
-        self.acquisition.set(state['acq'])
-        self.task.set(state['tsk'])
-        for mrk in state['mrk']:
-            self.hpi.append(mrk)
-        self.is_junk.set(state['jnk'])
-        self.is_empty_room.set(state['ier'])
-        self.has_empty_room.set(state['her'])
         for key in state['cin']:
             self.tab_info[key] = [StringVar(value=state['cin'][key][0]),
                                   BooleanVar(value=state['cin'][key][1]),

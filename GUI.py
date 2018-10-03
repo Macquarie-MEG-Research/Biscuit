@@ -12,7 +12,7 @@ from os import listdir
 
 from platform import system as os_name
 
-from FileTypes import generic_file, con_file, Folder, KITData
+from FileTypes import generic_file, con_file, Folder, KITData, BIDSFile
 
 from CustomWidgets import EnhancedTreeview
 
@@ -44,7 +44,8 @@ class main(Frame):
         # this directory is weird because the cwd is the parent folder, not
         # the Biscuit folder. Maybe because vscode?
         if os_name() == 'Windows':
-            self.master.iconbitmap('assets/biscuit_icon_windows.ico')
+            #self.master.iconbitmap('assets/biscuit_icon_windows.ico')
+            self.master.iconbitmap('assets/bisc.ico')
         else:
             # this doesn't work :'(
             img = PhotoImage(file='assets/biscuit.png')
@@ -451,19 +452,23 @@ class main(Frame):
                             is_KIT = True
                             break
                     if is_KIT:
-                        IC = KITData(id_, path_, self.proj_settings, self)
+                        folder = KITData(id_, path_, self.proj_settings, self)
                     else:
-                        IC = Folder(id_, path_, self)
-                    IC.initial_processing()
+                        folder = Folder(id_, path_, self)
+                    folder.initial_processing()
                     # then add it to the list of preloaded data
-                    self.preloaded_data[id_] = IC
+                    self.preloaded_data[id_] = folder
                 else:
                     # get the class for the extension
                     cls_ = get_object_class(ext)
                     # if we don't have a folder then instantiate the class
                     if not isinstance(cls_, str):
-                        obj = cls_(id_=id_, file=path_,
-                                   settings=self.proj_settings, parent=self)
+                        if issubclass(cls_, BIDSFile):
+                            obj = cls_(id_=id_, file=path_,
+                                       settings=self.proj_settings,
+                                       parent=self)
+                        else:
+                            obj = cls_(id_=id_, file=path_, parent=self)
                         # if it is of generic type, give it it's data type and
                         # let it determine whether it is an unknown file type
                         # or not
@@ -473,7 +478,7 @@ class main(Frame):
                         # finally, add the object to the preloaded data
                         self.preloaded_data[id_] = obj
         self._populate_info_panel(sids)
-        return      # try to get thread to end??
+        return
 
     def _check_KIT_folder(self, id_):
         """ Determine whether the folder contains valid KIT data """
@@ -695,14 +700,10 @@ class RightClick():
         if all_ and self.parent.treeview_select_mode == "NORMAL":
             mrk_files = [self.parent.preloaded_data[sid] for sid in
                          self.curr_selection]
-            print('marks', mrk_files)
             # get the parent folder and then find all .con file children
             parent = self.parent.file_treeview.parent(mrk_files[0].ID)
-            print('parent', parent)
-            IC = self.parent.preloaded_data[parent]
-            #print(IC.contained_files)
-            for con in IC.contained_files['.con']:
-                print('setting mrks for ', con)
+            container = self.parent.preloaded_data[parent]
+            for con in container.contained_files['.con']:
                 con.hpi = mrk_files
                 con.validate()
         else:

@@ -12,7 +12,7 @@ from utils import flatten, generate_readme
 
 
 class BIDSContainer(FileInfo):
-    def __init__(self, id_, file, settings=None, parent=None):
+    def __init__(self, id_=None, file=None, settings=None, parent=None):
         """
         Parameters:
         id_ - The id of the entry in the treeview
@@ -41,12 +41,16 @@ class BIDSContainer(FileInfo):
 
         self.bids_conversion_progress = StringVar()
 
-        self._bids_ready = False
+        self.contains_required_files = True
+
+        self.extra_data = dict()
 
         # MEG data parameters
         self.electrode = None
         self.hsp = None
         self.readme = None
+
+        self.make_specific_data = dict()
 
         # whether the object has had any validation done yet
         # This will be used to optimise the validation process since once the
@@ -121,7 +125,7 @@ class BIDSContainer(FileInfo):
         active or not
         """
         if self.associated_tab is not None:
-            if self.bids_ready:
+            if self.valid:
                 self.associated_tab.bids_gen_btn.config({"state": ACTIVE})
             else:
                 self.associated_tab.bids_gen_btn.config({"state": DISABLED})
@@ -133,16 +137,6 @@ class BIDSContainer(FileInfo):
             self.readme = generate_readme(self.settings)
 
     @property
-    def bids_ready(self):
-        return self._bids_ready
-
-    @bids_ready.setter
-    def bids_ready(self, value):
-        if value != self.bids_ready:
-            self._bids_ready = value
-            self._set_bids_button_state()
-
-    @property
     def settings(self):
         return self._settings
 
@@ -152,7 +146,23 @@ class BIDSContainer(FileInfo):
         self._apply_settings()
 
     def __getstate__(self):
-        pass
+        # only returns a dictionary of information that we actually need
+        # to store.
+        data = super(BIDSContainer, self).__getstate__()
+        data['prj'] = self.proj_name.get()
+        data['sid'] = self.session_ID.get()
+        data['sji'] = self.subject_ID.get()
+        data['sja'] = self.subject_age.get()
+        data['sjs'] = self.subject_gender.get()
+        data['sjg'] = self.subject_group.get()
+
+        return data
 
     def __setstate__(self, state):
-        pass
+        super(BIDSContainer, self).__setstate__(state)
+        self.proj_name.set(state['prj'])
+        self.session_ID.set(state['sid'])
+        self.subject_ID.set(state['sji'])
+        self.subject_age.set(state['sja'])
+        self.subject_gender.set(state['sjs'])
+        self.subject_group.set(state['sjg'])

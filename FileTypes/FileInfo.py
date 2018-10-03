@@ -20,7 +20,7 @@ class FileInfo():
         # self.info is data obtained directly from the raw file
         # This data will not be saved as it can always just be retreived on
         # instantiation
-        self.info = OrderedDict()
+        self.info = OrderedDict()       # FIXME: does this need to be ordered?
 
         # A dictionary for each file to contain a list of values that the
         # optional_info
@@ -48,6 +48,8 @@ class FileInfo():
         self.is_junk.set(False)
 
         self.is_valid = True
+
+        self.loaded_from_save = False
 
     def check_valid(self):
         """ Returns True (method will be overriden by derived classes) """
@@ -98,6 +100,7 @@ class FileInfo():
 
     @valid.setter
     def valid(self, other):
+        #print(self, other)
         self.is_valid = other
         self.update_treeview()
         self.post_validate()
@@ -141,10 +144,12 @@ class FileInfo():
         else:
             data = dict()
             data['file'] = self._file
+            data['jnk'] = self.is_junk.get()
             return data
 
     def __setstate__(self, state):
-        self.__init__(file=state['file'], auto_load=False)
+        self.__init__(file=state['file'])
+        self.is_junk.set(state['jnk'])
 
     def __repr__(self):
         # represent the object by its path.

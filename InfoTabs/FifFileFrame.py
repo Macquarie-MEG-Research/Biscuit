@@ -2,17 +2,16 @@ from tkinter import Frame, StringVar, BooleanVar, DISABLED, NORMAL
 from tkinter.ttk import Label, Separator, Button
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
-from Management import OptionsVar
-from Management import ToolTipManager
+from Management import OptionsVar, convert, ToolTipManager
 
 # assign the tool tip manager
 tt = ToolTipManager()
 
 
 class FifFileFrame(Frame):
-    def __init__(self, master, default_settings, *args, **kwargs):
+    def __init__(self, master, settings, *args, **kwargs):
         self.master = master
-        self.default_settings = default_settings
+        self.settings = settings
         super(FifFileFrame, self).__init__(self.master, *args, **kwargs)
 
         self._file = None
@@ -34,6 +33,10 @@ class FifFileFrame(Frame):
         self.meas_date_info = InfoLabel(self, 'Measurement date', "None")
         self.meas_date_info.label.grid(column=0, row=3)
         self.meas_date_info.value.grid(column=1, row=3)
+        self.activeshield_info = InfoLabel(self, 'Has Active Shielding',
+                                           "False")
+        self.activeshield_info.label.grid(column=0, row=4)
+        self.activeshield_info.value.grid(column=1, row=4)
 
         Separator(self, orient='vertical').grid(column=2, row=0,
                                                 rowspan=7, sticky='ns')
@@ -104,7 +107,7 @@ class FifFileFrame(Frame):
         self.has_emptyroom_info.value.grid(column=1, row=15)
 
         self.bids_gen_btn = Button(self, text="Generate BIDS",
-                                   command=self._file_to_bids,
+                                   command=self.convert_to_bids,
                                    state=DISABLED)
         self.bids_gen_btn.grid(column=0, row=16)
         tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
@@ -122,13 +125,15 @@ class FifFileFrame(Frame):
         else:
             self.bids_gen_btn.config(state=DISABLED)
 
-    def _file_to_bids(self):
-        pass
+    def convert_to_bids(self):
+        print('converting to bids')
+        convert(self.file, self.settings)
 
     def update_widgets(self):
         # update info
         self.channel_info.value = self.file.info['Channels']
         self.meas_date_info.value = self.file.info['Measurement date']
+        self.activeshield_info.value = self.file.info['Has Active Shielding']
         # update subject info
         self.sub_id_entry.value = self.file.subject_ID
         self.sub_id_entry.validate_cmd = self.file.validate
@@ -153,7 +158,6 @@ class FifFileFrame(Frame):
 
     @file.setter
     def file(self, value):
-        print('setting new fif file')
         # de-associate the tab of the out-going file (if any)
         if self._file is not None:
             self._file.associated_tab = None

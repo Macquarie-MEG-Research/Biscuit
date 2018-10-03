@@ -38,7 +38,6 @@ class ChannelInfoFrame(Frame):
             remove_script=self.remove_channel,
             sort_column=0)
         self.channels_table.grid(sticky='nsew')
-        #self.channels_table.pack(fill=BOTH, expand=True)
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.master.grid_columnconfigure(0, weight=1)
@@ -128,18 +127,18 @@ class ChannelInfoFrame(Frame):
         var_data = []
         not_shown = []
         shown = []
-        for i in range(self._file.info['Channels']):
-            if i not in self._file.interesting_channels:
-                not_shown.append(self._file.channel_names[i])
+        for i in range(self.file.info['Channels']):
+            if i not in self.file.interesting_channels:
+                not_shown.append(self.file.channel_names[i])
             else:
                 shown.append(self._file.channel_names[i])
                 # also append the tab info data into a list
-                if self._file.tab_info[i][-2].get():
-                    data = [*self._file.tab_info[i][:-1],
-                            {'var': self._file.tab_info[i][-1],
+                if self.file.tab_info[i][-2].get():
+                    data = [*self.file.tab_info[i][:-1],
+                            {'var': self.file.tab_info[i][-1],
                             'configs': {'state': 'normal'}}]
                 else:
-                    data = self._file.tab_info[i]
+                    data = self.file.tab_info[i]
                 var_data.append(data)
         self.channel_name_states['not shown'] = not_shown
         self.channel_name_states['shown'] = shown

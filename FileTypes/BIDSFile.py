@@ -27,16 +27,17 @@ class BIDSFile(FileInfo):
 
         self.extra_data = dict()
 
-        self.event_info = dict()
+        # event info: a list of lists. The sub-lists contains the event number
+        # and the event description
+        self.event_info = list()
+        # channel info: key - channel name (?), value - something
+        self.channel_info = dict()
 
         self.raw = None
         self.container = None
 
-        # A boolean to indicate whether the data is any good.
-        # This is set by the verification function to allow for faster
-        # determination of whether or not the data is good to be converted to
-        # bids format
-        #self._is_good = True
+        # Set all BIDS files to be saved by default
+        self.requires_save = True
 
     def load_data(self):
         pass
@@ -55,31 +56,21 @@ class BIDSFile(FileInfo):
         is_valid &= (self.hpi != [])
         return is_valid
 
+    def get_event_data(self):
+        return ['', '']
+
     def post_validate(self):
         if self.container is not None:
             self.container.check_bids_ready()
-
-    """
-    # !REMOVE
-    @property
-    def is_good(self):
-        return self._is_good
-
-    @is_good.setter
-    def is_good(self, value):
-        self._is_good = value
-        if self.container is not None:
-            self.container.check_bids_ready()
-    """
 
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()
 
         data['acq'] = self.acquisition.get()        # acquisition
         data['tsk'] = self.task.get()               # task
+        data['hpi'] = []
         for hpi in self.hpi:
-            data['hpi'].append(hpi)                 # marker coils
-        data['jnk'] = self.is_junk.get()            # is junk?
+            data['hpi'].append(hpi.file)                 # marker coils
         data['ier'] = self.is_empty_room.get()      # is empty room data?
         data['her'] = self.has_empty_room.get()     # has empty room data?
 
@@ -87,11 +78,10 @@ class BIDSFile(FileInfo):
 
     def __setstate__(self, state):
         super(BIDSFile, self).__setstate__(state)
-
         self.acquisition.set(state['acq'])
         self.task.set(state['tsk'])
+        # these will be just the file paths for now
         for hpi in state['hpi']:
             self.hpi.append(hpi)
-        self.is_junk.set(state['jnk'])
         self.is_empty_room.set(state['ier'])
         self.has_empty_room.set(state['her'])
