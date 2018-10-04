@@ -1,4 +1,4 @@
-from tkinter import Checkbutton, Variable
+from tkinter import Checkbutton, Variable, DISABLED
 from tkinter import Button as tkButton
 from tkinter.ttk import Label, Separator, Button, Frame, Entry, Combobox
 from PIL import Image, ImageTk
@@ -76,6 +76,7 @@ class WidgetTable(Frame):
         self.separator_offset = 0
 
         self.widgets = []
+        self.add_button = None
         self._create_widgets()
 
         self.separators = []
@@ -83,7 +84,8 @@ class WidgetTable(Frame):
             sep = Separator(self.sf.frame, orient='vertical')
             self.separators.append(sep)
 
-        self.delete_icon = Image.open("assets/remove_row_trans.png")
+        self.delete_icon = Image.open("assets/remove.png")
+        #self.delete_icon = Image.open("assets/remove_row_trans.png")
         self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
         self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
 
@@ -103,6 +105,15 @@ class WidgetTable(Frame):
             self.data = []
             self._draw_separators()
 
+        self.bind('<Control-n>', self._add_row_from_key)
+
+    def _add_row_from_key(self, *args):
+        # only add a new row if we can add anything, not entries from the
+        # add_options list.
+        if not isinstance(self.add_options, list):
+            self.add_row_from_button()
+            self.sf.configure_view()
+
     def _create_widgets(self):
         if isinstance(self.add_options, list):
             add_option_frame = Frame(self)
@@ -116,8 +127,7 @@ class WidgetTable(Frame):
             self.nameselection.bind("<<ComboboxSelected>>",
                                     self.add_row_from_selection)
             self.separator_offset = 1
-            self.add_button = None
-            add_option_frame.grid(column=0, row=0)
+            add_option_frame.grid(column=0, row=0, sticky='w', padx=2, pady=2)
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=1, sticky='nsew')
 
@@ -127,15 +137,18 @@ class WidgetTable(Frame):
         else:
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=0, sticky='nsew')
-            self.add_button = Button(self.sf.frame, text="Add Row",
-                                     command=self.add_row_from_button)
-            self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+            if self.adder_script != DISABLED:
+                self.add_button = Button(self.sf.frame, text="Add Row",
+                                         command=self.add_row_from_button)
+                self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+                self.add_button.bind('<Control-n>', self._add_row_from_key)
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
         for i, heading in enumerate(self.headings):
             Label(self.sf.frame, text=heading).grid(
-                column=2 * i, row=self.separator_offset, sticky='nsew')
+                column=2 * i, row=self.separator_offset, sticky='nsew', padx=2,
+                pady=2)
         Separator(self.sf.frame, orient='horizontal').grid(
             column=0, row=self.separator_offset + 1,
             columnspan=2 * self.num_columns - 1, sticky='ew')
@@ -171,7 +184,9 @@ class WidgetTable(Frame):
             # draw each of the new widgets in the last row
             for i, w in enumerate(self.widgets_pattern):
                 w_actual = w(self.sf.frame)
-                w_actual.grid(row=rows, column=2 * i, sticky='nsew')
+                w_actual.bind('<Control-n>', self._add_row_from_key)
+                w_actual.grid(row=rows, column=2 * i, sticky='nsew', padx=2,
+                              pady=2)
                 row_widgets.append(w_actual)
 
             # add the delete button at the end of the row
@@ -207,7 +222,7 @@ class WidgetTable(Frame):
         if count == 0:
             refresh = True
             count = len(data)
-        if data is not None:
+        if data is not None and data != []:
             data = self.ensure_2D_array(data)
             for i in range(count):
                 self.add_row_data(curr_rows + i, data[i])
@@ -287,10 +302,12 @@ class WidgetTable(Frame):
                 else:
                     # we still need to check if the function requires row
                     # context
-                    var = self.pattern[i]
+                    var = dict()
+                    for key in self.pattern[i].keys():
+                        if key != 'func':
+                            var[key] = self.pattern[i][key]
                     if var.get('func_has_row_ctx', False):
-                        f = copy(var['func'])
-                        var['func'] = lambda x=idx: f(x)
+                        var['func'] = lambda x=idx: self.pattern[i]['func'](x)
             row_vars.append(var)
         if idx < len(self.data):
             self.data[idx] = row_vars
@@ -300,7 +317,6 @@ class WidgetTable(Frame):
     def _assign_data(self, data):
         """
         This is used to assign raw data to the underlying variables
-        If data is passed as variables already this isn't ever used
         """
         # clear self.data
         self.data = []
@@ -337,6 +353,15 @@ class WidgetTable(Frame):
                 elif issubclass(w, Button):
                     apply = lambda wgt, var: wgt.configure(text=var['text'],
                                                            command=var['func'])
+                elif issubclass(w, Combobox):
+                    # we will be assuming that the underlying data type is an
+                    # OptionsVar to provide simplest functionality
+                    def apply(wgt, var):
+                        wgt.configure(values=var.options, state='readonly')
+                        wgt.set(var.get())
+                        # set the selection binding
+                        select_value = lambda e, w=wgt: var.set(wgt.get())
+                        wgt.bind("<<ComboboxSelected>>", select_value)
             except TypeError:
                 print('unsupported Widget Type??')
                 print(w, w.__name__)
@@ -374,7 +399,7 @@ class WidgetTable(Frame):
             del_btn = self.widgets[i][-1]
             del_btn.config(command=lambda x=i: self.delete_rows_and_update(x))
         # now, reapply all the variables
-        self.first_redraw_row = idx
+        self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
         self.sf.configure_view()

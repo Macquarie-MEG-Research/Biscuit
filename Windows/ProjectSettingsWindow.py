@@ -7,14 +7,19 @@ from CustomWidgets.WidgetTable import WidgetTable
 
 
 class ProjectSettingsWindow(Toplevel):
+    """Window to add new project settings"""
     def __init__(self, master, settings=dict()):
         self.master = master
         Toplevel.__init__(self, self.master)
+        print(self, 'psw')
         self.withdraw()
         if master.winfo_viewable():
             self.transient(master)
 
         self.title('Add Project Settings')
+
+        # do some more popup window management
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
 
         self.settings = settings
 
@@ -24,13 +29,7 @@ class ProjectSettingsWindow(Toplevel):
         self.project_id = StringVar()
         self.project_id.set(self.settings.get('ProjectID', ''))
 
-        self.frame = Frame(self)
-        self.frame.grid(stick='nsew')
-
         self._create_widgets()
-
-        # do some more popup window management
-        self.protocol("WM_DELETE_WINDOW", self.cancel)
 
         self.deiconify()
         self.focus_set()
@@ -42,6 +41,9 @@ class ProjectSettingsWindow(Toplevel):
 
     def _create_widgets(self):
         # draw all the widgets
+        self.frame = Frame(self)
+        self.frame.grid(sticky='nsew')
+
         self.pt_entry = InfoEntry(self.frame, "Project Title",
                                   self.project_title)
         self.pt_entry.label.grid(column=0, row=0, pady=2, padx=2)
@@ -75,14 +77,14 @@ class ProjectSettingsWindow(Toplevel):
             add_options=None,
             data_array=self.settings.get('DefaultTriggers', []),
             sort_column=0)
-        self.channels_table.grid(column=0, columnspan=2, row=8)
+        self.channels_table.grid(column=0, columnspan=2, row=8, sticky='nsew')
         self.groups_table = WidgetTable(
             self.frame, headings=["Group"],
             pattern=[StringVar],
             widgets_pattern=[Entry],
             add_options=None,
             data_array=self.settings.get('Groups', []))
-        self.groups_table.grid(column=2, columnspan=2, row=8)
+        self.groups_table.grid(column=2, columnspan=2, row=8, sticky='nsew')
 
         self.save_btn = Button(self.frame, text="Save",
                                command=self._write_settings)

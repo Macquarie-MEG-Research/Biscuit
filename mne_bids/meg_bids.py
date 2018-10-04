@@ -40,6 +40,17 @@ manufacturers = {'.sqd': 'KIT/Yokogawa', '.con': 'KIT/Yokogawa',
 IGNORED_CHANNELS = defaultdict(lambda: [])
 IGNORED_CHANNELS['KIT/Yokogawa'] = ['STI 014']
 
+COORDINATE_FRAMES = {FIFF.FIFFV_COORD_UNKNOWN: 'Unknown',
+                     FIFF.FIFFV_COORD_DEVICE: 'Device',
+                     FIFF.FIFFV_COORD_ISOTRAK: 'Isotrak',
+                     FIFF.FIFFV_COORD_HPI: 'HPI',
+                     FIFF.FIFFV_COORD_HEAD: 'Head',
+                     FIFF.FIFFV_COORD_MRI: 'MRI',
+                     FIFF.FIFFV_COORD_MRI_SLICE: 'MRI Slice',
+                     FIFF.FIFFV_COORD_MRI_DISPLAY: 'MRI Display',
+                     FIFF.FIFFV_COORD_DICOM_DEVICE: 'DICOM Device',
+                     FIFF.FIFFV_COORD_IMAGING_DEVICE: 'Imaging Device'}
+
 
 def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
     """Create channel tsv."""
@@ -48,7 +59,7 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
                    megrefgradaxial='MEGREFGRADAXIAL',
                    meggradplanar='MEGGRADPLANAR',
                    megmag='MEGMAG', megrefmag='MEGREFMAG',
-                   eeg='EEG', misc='MISC', stim='TRIG',
+                   eeg='EEG', misc='MISC', stim='TRIG', emg='EMG',
                    ecog='ECOG', seeg='SEEG', eog='EOG', ecg='ECG')
     map_desc = defaultdict(lambda: 'Other type of channel')
     map_desc.update(meggradaxial='Axial Gradiometer',
@@ -61,6 +72,7 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
                     seeg='StereoEEG',
                     ecg='ElectroCardioGram',
                     eog='ElectrOculoGram',
+                    emg='ElectroMyoGram',
                     misc='Miscellaneous')
     get_specific = ('mag', 'ref_meg', 'grad')
 
@@ -72,14 +84,11 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
     status, ch_type, description = list(), list(), list()
     for idx, ch in enumerate(raw.info['ch_names']):
         status.append('bad' if ch in raw.info['bads'] else 'good')
-        _coil_type = coil_type(raw.info, idx)
         _channel_type = channel_type(raw.info, idx)
         if _channel_type in get_specific:
-            final_type = _coil_type
-        else:
-            final_type = _channel_type
-        ch_type.append(map_chs[final_type])
-        description.append(map_desc[final_type])
+            _channel_type = coil_type(raw.info, idx)
+        ch_type.append(map_chs[_channel_type])
+        description.append(map_desc[_channel_type])
     low_cutoff, high_cutoff = (raw.info['highpass'], raw.info['lowpass'])
     units = [_unit2human.get(ich['unit'], 'n/a') for ich in raw.info['chs']]
     n_channels = raw.info['nchan']
@@ -252,6 +261,26 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
         warn('No line frequency found, defaulting to 50 Hz')
         powerlinefrequency = 50
 
+    # determine if there are any software filters
+    software_filters = dict()
+    for p_history in raw.info['proc_history']:
+        max_info = p_history.get('max_info')
+        if max_info:
+            if max_info.get('max_st') != dict():
+                software_filters['TSSS'] = {'Correlation':
+                                            max_info['max_st']['subspcorr']}
+            if max_info.get('sss_info') != dict():
+                sss_info = {'frame':
+                            COORDINATE_FRAMES[max_info['sss_info']['frame']]}
+                software_filters['SSS'] = sss_info
+    if software_filters == dict():
+        software_filters = 'n/a'
+
+    # see if the dewar angle is in the file
+    gantry_angle = extra_data.get("DewarPosition", "XXX")
+    if raw.info['gantry_angle'] is not None:
+        gantry_angle = str(raw.info['gantry_angle']) + ' degrees'
+
     # determine whether any channels have to be ignored:
     num_ignored = 0
     for ch_name in IGNORED_CHANNELS[manufacturer]:
@@ -287,11 +316,10 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
         ('PowerLineFrequency', powerlinefrequency)]
     ch_info_json_meg = [
         ('SamplingFrequency', sfreq),
-        ("DewarPosition", extra_data.get("DewarPosition", "XXX")),
-        # ("DigitizedLandmarks", True if raw.info.get("dig", None) is not None else False), #possibly?
+        ("DewarPosition", gantry_angle),
         ("DigitizedLandmarks", extra_data.get("DigitizedLandmarks", False)),
         ("DigitizedHeadPoints", extra_data.get("DigitizedHeadPoints", False)),
-        ("SoftwareFilters", "n/a"),
+        ("SoftwareFilters", software_filters),
         ('MEGChannelCount', n_megchan),
         ('MEGREFChannelCount', n_megrefchan)]
     ch_info_json_ieeg = [
@@ -310,7 +338,8 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
 
     # maybe don't worry about this for now...
     if extra_data.get('emptyroom', None) is not None:
-        ch_info_misc.append(('AssociatedEmptyRoom', extra_data.get('emptyroom')))
+        ch_info_misc.append(('AssociatedEmptyRoom',
+                             extra_data.get('emptyroom')))
 
     # Stitch together the complete JSON dictionary
     ch_info_json = []
@@ -476,6 +505,25 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                                      root=output_path,
                                      verbose=verbose)
 
+    processing = None
+    proc_history = raw.info['proc_history']
+    if proc_history != []:
+        sss = False
+        tsss = False
+        for ph in proc_history:
+            max_info = ph.get('max_info')
+            if max_info:
+                if (max_info['sss_info'] != dict() or
+                        max_info['sss_ctc'] != dict() or
+                        max_info['sss_cal'] != dict()):
+                    sss = True
+                if max_info['max_st'] != dict():
+                    tsss = True
+    if tsss:
+        processing = 'tsss'
+    elif sss:
+        processing = 'sss'
+
     # create filenames
     scans_fname = make_bids_filename(
         subject=subject_id, session=session_id, suffix='scans.tsv',
@@ -487,11 +535,13 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         suffix='coordsystem.json', prefix=data_path)
     data_meta_fname = make_bids_filename(
         subject=subject_id, session=session_id, task=task, run=run,
-        acquisition=acquisition, suffix='%s.json' % kind, prefix=data_path)
+        processing=processing, acquisition=acquisition,
+        suffix='%s.json' % kind, prefix=data_path)
     if ext in ['.fif', '.gz', '.ds']:
         raw_file_bids = make_bids_filename(
             subject=subject_id, session=session_id, task=task, run=run,
-            acquisition=acquisition, suffix='%s%s' % (kind, ext))
+            acquisition=acquisition, processing=processing,
+            suffix='%s%s' % (kind, ext))
     else:
         raw_folder = make_bids_filename(
             subject=subject_id, session=session_id, task=task, run=run,
@@ -543,6 +593,11 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     # for FIF, we need to re-save the file to fix the file pointer
     # for files with multiple parts
     if ext in ['.fif', '.gz']:
+        """
+        make_bids_folders(subject=subject_id, session=session_id, kind=kind,
+                          root=os.path.join('derivatives', output_path),
+                          verbose=verbose)
+        """
         raw.save(raw_file_bids, overwrite=overwrite)
     else:
         if os.path.exists(raw_file_bids):
@@ -611,5 +666,6 @@ def _read_events(events_data, raw):
                              'found %s' % events.shape[1])
         events = events_data
     else:
-        events = find_events(raw, stim_channel='STI 014')   #min_duration=0.001)
+        #events = find_events(raw, stim_channel='STI 014')   #min_duration=0.001)
+        events = find_events(raw, min_duration=0.002, initial_event=True)
     return events

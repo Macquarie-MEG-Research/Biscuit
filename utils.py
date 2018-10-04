@@ -16,18 +16,20 @@ def create_folder(location):
 
 def get_object_class(dtype):
     from FileTypes import (con_file, mrk_file, elp_file, hsp_file,
-                           tsv_file, json_file, generic_file, fif_file)
+                           tsv_file, json_file, generic_file, FIFData)
     map_ = {'.con': con_file,    # continuous data
             '.mrk': mrk_file,    # marker
             '.elp': elp_file,    # electrode placement
             '.hsp': hsp_file,    # headspace
             '.tsv': tsv_file,    # tab-separated file
             '.json': json_file,
-            '.fif': fif_file}    # Elekta data
+            '.fif': FIFData}    # Elekta data
     # if not in the list, just return the data type
     if dtype != '':
         return map_.get(dtype, generic_file)
     else:
+        # TODO: maybe scan the folder to see if it contains any .con files
+        # if so, then assign as a KITData object, otherwise just a folder?
         return 'folder'     # maybe??
 
 
@@ -130,12 +132,13 @@ def unpickle_var(data):
     _temp.set(data[1])
     return _temp
 
+
 if __name__ == "__main__":
     a = [1, 2, 3]
     print(a)
     a = flatten(a)
     print(a)
-    b = [[1,2], [6,7]]
+    b = [[1, 2], [6, 7]]
     print(b)
     b = flatten(b)
     print(b)

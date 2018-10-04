@@ -75,28 +75,29 @@ class ConFileFrame(Frame):
         self.grid()
 
     def update_widgets(self):
-        self.institution_info.value = self._file.info['Institution name']
-        self.serial_num_info.value = self._file.info['Serial Number']
-        self.channel_info.value = self._file.info['Channels']
-        self.meas_date_info.value = self._file.info['Measurement date']
-        self.gains_info.value = self._file.info['gains']
+        self.institution_info.value = self.file.info['Institution name']
+        self.serial_num_info.value = self.file.info['Serial Number']
+        self.channel_info.value = self.file.info['Channels']
+        self.meas_date_info.value = self.file.info['Measurement date']
+        self.gains_info.value = self.file.info['gains']
 
-        self.task_info.value = self._file.task
-        self.task_info.validate_cmd = self._file.check_complete
-        self.acq_info.value = self._file.acquisition
-        self.acq_info.validate_cmd = self._file.check_complete
-        self.mrks_info.value = self._file.associated_mrks
-        self.mrks_info.validate_cmd = self._file.check_complete
-        self.is_junk_info.value = self._file.is_junk
-        self.is_junk_info.validate_cmd = self._file.check_complete
-        self.is_emptyroom_info.value = self._file.is_empty_room
-        self.is_emptyroom_info.validate_cmd = self._file.check_complete
-        self.has_emptyroom_info.value = self._file.has_empty_room
+        self.task_info.value = self.file.task
+        self.task_info.validate_cmd = self.file.validate
+        self.acq_info.value = self.file.acquisition
+        self.acq_info.validate_cmd = self.file.validate
+        self.mrks_info.value = self.file.hpi
+        self.mrks_info.validate_cmd = self.file.validate
+        self.is_junk_info.value = self.file.is_junk
+        self.is_junk_info.validate_cmd = self.file.validate
+        self.is_emptyroom_info.value = self.file.is_empty_room
+        self.is_emptyroom_info.validate_cmd = self.file.validate
+        self.has_emptyroom_info.value = self.file.has_empty_room
 
     @property
     def file(self):
         return self._file
 
+    # !UPDATE
     @file.setter
     def file(self, value):
         self._file = value
