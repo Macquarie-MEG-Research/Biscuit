@@ -30,8 +30,7 @@ class OptionsVar(Variable):
 
         for option in options:
             self._options.append(StringVar(value=str(option)))
-        # set the first value as the default one
-        self._set_initial()
+        self._set_initial(value)
 
     def get(self):
         value = self._tk.globalgetvar(self._name)
@@ -42,12 +41,16 @@ class OptionsVar(Variable):
     def __len__(self):
         return len(self._options)
 
-    def _set_initial(self):
-        if len(self) != 0:
-            self._tk.globalsetvar(self._name, self._options[0].get())
+    def _set_initial(self, value):
+        """ Set the value when a new instance of OptionsVar is created """
+        if value is not None:
+            self.set(value)
         else:
-            # set as empty string
-            self._tk.globalsetvar(self._name, '')
+            if len(self) != 0:
+                self._tk.globalsetvar(self._name, self._options[0].get())
+            else:
+                # set as empty string
+                self._tk.globalsetvar(self._name, '')
 
     def set(self, value):
         """

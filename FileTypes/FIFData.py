@@ -158,9 +158,18 @@ class FIFData(BIDSContainer, BIDSFile):
     def __getstate__(self):
         data = BIDSContainer.__getstate__(self)
         data.update(BIDSFile.__getstate__(self))
+        data['chs'] = dict()
+        for num, ch_data in self.channel_info.items():
+            data['chs'][num] = [ch_data['ch_name'].get(),
+                                ch_data['ch_type'].get()]
         return data
 
     def __setstate__(self, state):
         BIDSContainer.__setstate__(self, state)
         # Why do we not need this one too???
         #BIDSFile.__setstate__(self, state)
+        for key in state['chs']:
+            self.channel_info[key] = {
+                'ch_name': StringVar(value=state['chs'][key][0]),
+                'ch_type': OptionsVar(value=state['chs'][key][1],
+                                      options=['EOG', 'ECG', 'EMG'])}
