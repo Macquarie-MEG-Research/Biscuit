@@ -5,5 +5,3 @@ from .SessionInfoFrame import SessionInfoFrame  # noqa
 from .EventInfoFrame import EventInfoFrame  # noqa
 from .GenericInfoFrame import GenericInfoFrame  # noqa
 from .ScrolledTextInfoFrame import ScrolledTextInfoFrame  # noqa
-
-# TODO: add new channel frame, remove old?

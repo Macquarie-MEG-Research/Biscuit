@@ -7,6 +7,7 @@ import shutil as sh
 from mne.externals.six import string_types
 from .config import BIDS_VERSION
 from os.path import splitext
+from mne.channels import read_montage
 
 
 def _mkdir_p(path, overwrite=False, verbose=False):
@@ -275,3 +276,36 @@ def _get_ext(fname):
             return '.{0}'.format(name)
     else:
         return ext
+
+
+def _infer_eeg_placement_scheme(raw):
+    """Based on the channel names, try to infer an EEG placement scheme.
+
+    Parameters
+    ----------
+    raw : instance of Raw
+        The data as MNE-Python Raw object.
+
+    Returns
+    -------
+    placement_scheme : str
+        Description of the EEG placement scheme. Will be "n/a" for unsuccessful
+        extraction.
+
+    """
+    placement_scheme = 'n/a'
+    # Check if the raw data contains eeg data at all
+    if 'eeg' not in raw:
+        return placement_scheme
+
+    # How many of the channels in raw are based on the extended 10/20 system
+    raw.load_data()
+    raw.pick_types(meg=False, eeg=True)
+    channel_names = [ch.lower() for ch in raw.ch_names]
+    montage1005 = read_montage(kind='standard_1005')
+    montage1005_names = [ch.lower() for ch in montage1005.ch_names]
+
+    if set(channel_names).issubset(set(montage1005_names)):
+        placement_scheme = 'based on the extended 10/20 system'
+
+    return placement_scheme

@@ -59,7 +59,7 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
                    megrefgradaxial='MEGREFGRADAXIAL',
                    meggradplanar='MEGGRADPLANAR',
                    megmag='MEGMAG', megrefmag='MEGREFMAG',
-                   eeg='EEG', misc='MISC', stim='TRIG',
+                   eeg='EEG', misc='MISC', stim='TRIG', emg='EMG',
                    ecog='ECOG', seeg='SEEG', eog='EOG', ecg='ECG')
     map_desc = defaultdict(lambda: 'Other type of channel')
     map_desc.update(meggradaxial='Axial Gradiometer',
@@ -72,6 +72,7 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
                     seeg='StereoEEG',
                     ecg='ElectroCardioGram',
                     eog='ElectrOculoGram',
+                    emg='ElectroMyoGram',
                     misc='Miscellaneous')
     get_specific = ('mag', 'ref_meg', 'grad')
 
@@ -83,14 +84,11 @@ def _channels_tsv(raw, fname, verbose, manufacturer, overwrite):
     status, ch_type, description = list(), list(), list()
     for idx, ch in enumerate(raw.info['ch_names']):
         status.append('bad' if ch in raw.info['bads'] else 'good')
-        _coil_type = coil_type(raw.info, idx)
         _channel_type = channel_type(raw.info, idx)
         if _channel_type in get_specific:
-            final_type = _coil_type
-        else:
-            final_type = _channel_type
-        ch_type.append(map_chs[final_type])
-        description.append(map_desc[final_type])
+            _channel_type = coil_type(raw.info, idx)
+        ch_type.append(map_chs[_channel_type])
+        description.append(map_desc[_channel_type])
     low_cutoff, high_cutoff = (raw.info['highpass'], raw.info['lowpass'])
     units = [_unit2human.get(ich['unit'], 'n/a') for ich in raw.info['chs']]
     n_channels = raw.info['nchan']

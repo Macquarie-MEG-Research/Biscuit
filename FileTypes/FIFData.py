@@ -1,7 +1,9 @@
 from mne.io import read_raw_fif
+from mne.io.constants import FIFF
 from datetime import datetime
 from numpy import ndarray
-from tkinter import messagebox
+from tkinter import messagebox, StringVar
+from Management import OptionsVar
 
 import os.path as path
 import re
@@ -78,11 +80,20 @@ class FIFData(BIDSContainer, BIDSFile):
                         self.raw.info['subject_info']['sex'], 0)
                     self.subject_gender.set(gender)
                 else:
-                    # TODO: raise popup to notify the user that there is no subject
-                    # info and that they need to enter it manually
+                    # TODO: raise popup to notify the user that there is no
+                    # subject info and that they need to enter it manually
                     self.subject_ID.set('')
                     self.subject_age.set('Unknown')
                     self.subject_gender.set('U')
+
+                # load just the BIO channel info if there is any
+                for ch in self.raw.info['chs']:
+                    if ch['kind'] == FIFF.FIFFV_BIO_CH:
+                        self.channel_info[ch['scanno']] = {
+                            'ch_name': StringVar(value=ch['ch_name']),
+                            'ch_type': OptionsVar(
+                                value='EOG',
+                                options=['EOG', 'ECG', 'EMG'])}
 
             self.loaded = True
 
@@ -112,6 +123,21 @@ class FIFData(BIDSContainer, BIDSFile):
             events.append(self._process_event(lst['event'].get()))
             descriptions.append(lst['description'].get())
         return events, descriptions
+
+    def prepare(self):
+        BIDSContainer.prepare(self)
+        ch_name_map = dict()
+        ch_type_map = dict()
+        # find any changed names or specified types and set them
+        for ch_num, ch_data in self.channel_info.items():
+            for ch in self.raw.info['chs']:
+                if ch['scanno'] == ch_num:
+                    ch_name_map[ch['ch_name']] = ch_data['ch_name'].get()
+                    ch_type = ch_data['ch_type'].get()
+                    ch_type_map[ch_data['ch_name'].get()] = ch_type.lower()
+                    break
+        self.raw.rename_channels(ch_name_map)
+        self.raw.set_channel_types(ch_type_map)
 
     def _process_event(self, evt):
         """ Take the event provided and convert to the format stored

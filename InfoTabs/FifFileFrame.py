@@ -1,7 +1,8 @@
 from tkinter import Frame, StringVar, BooleanVar, DISABLED, NORMAL
-from tkinter.ttk import Label, Separator, Button
+from tkinter.ttk import Label, Separator, Button, Combobox, Entry
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
+from CustomWidgets import WidgetTable
 from Management import OptionsVar, convert, ToolTipManager
 
 # assign the tool tip manager
@@ -94,6 +95,8 @@ class FifFileFrame(Frame):
 
         Separator(self, orient='horizontal').grid(column=0, row=12,
                                                   columnspan=2, sticky='ew')
+
+        # optional info
         Label(self, text="Optional Information:").grid(column=0, row=13,
                                                        columnspan=2)
         self.is_emptyroom_info = InfoCheck(self, 'Is empty room',
@@ -106,6 +109,17 @@ class FifFileFrame(Frame):
         self.has_emptyroom_info.label.grid(column=0, row=15)
         self.has_emptyroom_info.value.grid(column=1, row=15)
 
+        # channels area (just to rename/set BIO channels)
+        self.channel_table = WidgetTable(
+            self,
+            headings=["Channel name", "Type"],
+            pattern=[StringVar, OptionsVar],
+            widgets_pattern=[Entry, Combobox],
+            adder_script=DISABLED)
+        self.channel_table.grid(sticky='nsew', column=3, row=7,
+                                columnspan=2, rowspan=9)
+
+        # bottom matter (BIDS conversion button)
         self.bids_gen_btn = Button(self, text="Generate BIDS",
                                    command=self.convert_to_bids,
                                    state=DISABLED)
@@ -151,6 +165,11 @@ class FifFileFrame(Frame):
         self.is_emptyroom_info.value = self.file.is_empty_room
         self.is_emptyroom_info.validate_cmd = self.file.validate
         self.has_emptyroom_info.value = self.file.has_empty_room
+        # update channel table
+        channel_data = []
+        for ch in self.file.channel_info.values():
+            channel_data.append([ch['ch_name'], ch['ch_type']])
+        self.channel_table.set(channel_data)
 
     @property
     def file(self):

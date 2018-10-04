@@ -3,8 +3,9 @@ from tkinter.ttk import Notebook
 
 from FileTypes import FileInfo, Folder, FIFData
 from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
-                      EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame)
-from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
+                      EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame,
+                      ChannelInfoFrame)
+#from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 # some global names:
 T_CON = 'con_tab'
@@ -47,7 +48,7 @@ class InfoManager(Notebook):
         self._tabs[T_CON] = 2
 
         # channels tab (will only be for .con files)
-        self.channel_tab = CIF(self, self.parent.settings)
+        self.channel_tab = ChannelInfoFrame(self, self.parent.settings)
         self.add(self.channel_tab, text="Channels")
         self._tabs[T_CHANNELS] = 3
 

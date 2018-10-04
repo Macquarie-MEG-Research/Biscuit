@@ -1,4 +1,4 @@
-from tkinter import Checkbutton, Variable
+from tkinter import Checkbutton, Variable, DISABLED
 from tkinter import Button as tkButton
 from tkinter.ttk import Label, Separator, Button, Frame, Entry, Combobox
 from PIL import Image, ImageTk
@@ -76,6 +76,7 @@ class WidgetTable(Frame):
         self.separator_offset = 0
 
         self.widgets = []
+        self.add_button = None
         self._create_widgets()
 
         self.separators = []
@@ -126,7 +127,6 @@ class WidgetTable(Frame):
             self.nameselection.bind("<<ComboboxSelected>>",
                                     self.add_row_from_selection)
             self.separator_offset = 1
-            self.add_button = None
             add_option_frame.grid(column=0, row=0, sticky='w', padx=2, pady=2)
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=1, sticky='nsew')
@@ -137,10 +137,11 @@ class WidgetTable(Frame):
         else:
             self.sf = ScrollableFrame(self)
             self.sf.grid(column=0, row=0, sticky='nsew')
-            self.add_button = Button(self.sf.frame, text="Add Row",
-                                     command=self.add_row_from_button)
-            self.add_button.grid(row=2, column=2 * self.num_columns - 1)
-            self.add_button.bind('<Control-n>', self._add_row_from_key)
+            if self.adder_script != DISABLED:
+                self.add_button = Button(self.sf.frame, text="Add Row",
+                                         command=self.add_row_from_button)
+                self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+                self.add_button.bind('<Control-n>', self._add_row_from_key)
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
@@ -316,7 +317,6 @@ class WidgetTable(Frame):
     def _assign_data(self, data):
         """
         This is used to assign raw data to the underlying variables
-        If data is passed as variables already this isn't ever used
         """
         # clear self.data
         self.data = []
@@ -353,6 +353,15 @@ class WidgetTable(Frame):
                 elif issubclass(w, Button):
                     apply = lambda wgt, var: wgt.configure(text=var['text'],
                                                            command=var['func'])
+                elif issubclass(w, Combobox):
+                    # we will be assuming that the underlying data type is an
+                    # OptionsVar to provide simplest functionality
+                    def apply(wgt, var):
+                        wgt.configure(values=var.options, state='readonly')
+                        wgt.set(var.get())
+                        # set the selection binding
+                        select_value = lambda e, w=wgt: var.set(wgt.get())
+                        wgt.bind("<<ComboboxSelected>>", select_value)
             except TypeError:
                 print('unsupported Widget Type??')
                 print(w, w.__name__)
