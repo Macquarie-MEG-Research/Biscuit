@@ -1,5 +1,5 @@
-from tkinter import Frame
-from tkinter.ttk import Label
+#from tkinter import Frame
+from tkinter.ttk import Label, Frame
 
 
 class GenericInfoFrame(Frame):

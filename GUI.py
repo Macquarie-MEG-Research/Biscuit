@@ -49,8 +49,8 @@ class main(Frame):
         else:
             # this doesn't work :'(
             img = PhotoImage(file='assets/biscuit.png')
-            #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.master.wm_iconphoto(True, img)
+            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            #self.master.wm_iconphoto(True, img)
             #self.master.wm_iconbitmap(img)
         Frame.__init__(self, self.master)
 

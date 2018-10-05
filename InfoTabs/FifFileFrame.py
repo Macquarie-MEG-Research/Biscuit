@@ -1,5 +1,5 @@
-from tkinter import Frame, StringVar, BooleanVar, DISABLED, NORMAL
-from tkinter.ttk import Label, Separator, Button, Combobox, Entry
+from tkinter import StringVar, BooleanVar, DISABLED, NORMAL
+from tkinter.ttk import Frame, Label, Separator, Button, Combobox, Entry
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
 from CustomWidgets import WidgetTable

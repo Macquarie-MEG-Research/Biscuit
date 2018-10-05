@@ -1,5 +1,6 @@
-from tkinter import Frame, StringVar, BooleanVar, Checkbutton
-from tkinter.ttk import Label, Entry
+from tkinter import StringVar, BooleanVar
+from tkinter import Entry as tkEntry
+from tkinter.ttk import Frame, Label, Checkbutton, Entry
 from FileTypes import con_file
 from CustomWidgets.WidgetTable import WidgetTable
 
@@ -31,7 +32,7 @@ class ChannelInfoFrame(Frame):
                 {'var': BooleanVar, 'func': self._toggle_editable,
                  'func_has_row_ctx': True},
                 {'var': StringVar, 'configs': {'state': 'readonly'}}],
-            widgets_pattern=[Label, Checkbutton, Checkbutton, Entry],
+            widgets_pattern=[Label, Checkbutton, Checkbutton, tkEntry],
             add_options=['A', 'B'],
             adder_script=self.add_channel_from_selection,
             remove_script=self.remove_channel,

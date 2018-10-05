@@ -1,5 +1,5 @@
-from tkinter import Frame, DISABLED, StringVar, IntVar
-from tkinter.ttk import Label, Separator, Button
+from tkinter import DISABLED, StringVar, IntVar
+from tkinter.ttk import Label, Separator, Button, Frame
 from CustomWidgets.InfoEntries import InfoEntry, InfoChoice
 from Management import OptionsVar, convert, ToolTipManager
 

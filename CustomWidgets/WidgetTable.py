@@ -1,13 +1,14 @@
-from tkinter import Checkbutton, Variable, DISABLED
+from tkinter import Variable, DISABLED
 from tkinter import Button as tkButton
-from tkinter.ttk import Label, Separator, Button, Frame, Entry, Combobox
+from tkinter import Entry as tkEntry
+from tkinter.ttk import (Label, Separator, Button, Frame, Entry, Checkbutton,
+                         Combobox, Style)
 from PIL import Image, ImageTk
 # import copy so we can create static copies of the reference functions in the
 # underlying pattern of a row if any.
 from copy import copy
 
 from .ScrollableFrame import ScrollableFrame
-
 
 class WidgetTable(Frame):
     """
@@ -56,6 +57,10 @@ class WidgetTable(Frame):
         """
 
         self.master = master
+
+        s = Style(self.master)
+        s.configure('proper.TEntry', background='green')
+
 
         super(WidgetTable, self).__init__(self.master, *args, **kwargs)
 
@@ -194,7 +199,8 @@ class WidgetTable(Frame):
             delete_button = tkButton(
                 self.sf.frame,
                 command=lambda x=curr_row: self.delete_rows_and_update(x),
-                relief='flat', borderwidth=0, highlightthickness=0)
+                relief='flat', borderwidth=0, highlightthickness=0,
+                takefocus=0)
             delete_button.config(image=self.delete_icon)
             delete_button.grid(row=rows, column=2 * self.num_columns - 1)
             row_widgets.append(delete_button)
@@ -333,7 +339,7 @@ class WidgetTable(Frame):
             # first, create a lambda which can be re-used for each row
             w = self.widgets_pattern[column]
             try:
-                if issubclass(w, (Entry, Label)):
+                if issubclass(w, Label):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
                         apply = lambda wgt, var: wgt.configure(
@@ -342,6 +348,19 @@ class WidgetTable(Frame):
                     else:
                         apply = lambda wgt, var: wgt.configure(
                             textvariable=var)
+                if issubclass(w, tkEntry):
+                    if isinstance(self.pattern[column], dict):
+                        # apply any provided configs:
+                        apply = lambda wgt, var: wgt.configure(
+                            textvariable=var['var'],
+                            highlightbackground='#E9E9E9',
+                            readonlybackground='#00AA00',
+                            **var.get('configs', dict()))
+                    else:
+                        apply = lambda wgt, var: wgt.configure(
+                            textvariable=var,
+                            highlightbackground='#E9E9E9',
+                            readonlybackground='#00AA00',)
                 if issubclass(w, Checkbutton):
                     # check underlying data type to provide correct function
                     if isinstance(self.pattern[column], dict):
