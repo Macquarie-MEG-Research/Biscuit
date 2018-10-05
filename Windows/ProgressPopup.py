@@ -12,10 +12,13 @@ class ProgressPopup(Toplevel):
 
     def _create_widgets(self):
         main_frame = Frame(self)
-        Label(main_frame, text="Progress: ").grid(column=0, row=0)
-        Label(main_frame, textvariable=self.progress_var).grid(column=1, row=0)
+        Label(main_frame,
+              text="Converting, please wait.").grid(row=0, column=0,
+                                                    columnspan=2)
+        Label(main_frame, text="Progress: ").grid(column=0, row=1)
+        Label(main_frame, textvariable=self.progress_var).grid(column=1, row=1)
         Button(main_frame, text="Close",
-               command=self._exit).grid(column=0, row=1)
+               command=self._exit).grid(column=0, row=2)
         main_frame.grid()
 
     def _exit(self):

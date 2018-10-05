@@ -3,10 +3,13 @@ import os.path as path
 from os import makedirs
 #from FileTypes import KITData, FIFData
 from mne_bids import raw_to_bids
+from utils import Capturing
+from Windows import ProgressPopup
+from tkinter import StringVar
 
 
 @threaded
-def convert(container, settings):
+def convert(container, settings, parent=None):
     """
     Main function to take all the data from some container (IC or fif file
     currently) and call the bids conversion function (from mne_bids).
@@ -19,12 +22,14 @@ def convert(container, settings):
     if not path.exists(bids_folder_path):
         makedirs(bids_folder_path)
 
+    progress = StringVar(value="Test")
+
+    ProgressPopup(parent, progress)
+
     for job in container.jobs:
         if not job.is_junk.get():
-            print(job)
-            print(job.raw, 'raw')
-            progress = "Working on acquisition: {0}, task: {1}".format(
-                job.acquisition.get(), job.task.get())
+            #progress = "Working on acquisition: {0}, task: {1}".format(
+            #    job.acquisition.get(), job.task.get())
             target_folder = path.join(bids_folder_path,
                                       container.proj_name.get())
 
@@ -77,14 +82,16 @@ def convert(container, settings):
             mrks = [mrk.file for mrk in job.hpi]
 
             # finally, run the actual conversion
-            raw_to_bids(subject_id=subject_id, task=job.task.get(),
-                        raw_file=job.raw, output_path=target_folder,
-                        session_id=sess_id, kind='meg', event_id=event_ids,
-                        hpi=mrks, acquisition=job.acquisition.get(),
-                        emptyroom=emptyroom, extra_data=extra_data,
-                        participant_data=participant_data,
-                        readme_text=container.readme, verbose=True,
-                        **container.make_specific_data)
+            with Capturing() as output_progress:
+                raw_to_bids(subject_id=subject_id, task=job.task.get(),
+                            raw_file=job.raw, output_path=target_folder,
+                            session_id=sess_id, kind='meg', event_id=event_ids,
+                            hpi=mrks, acquisition=job.acquisition.get(),
+                            emptyroom=emptyroom, extra_data=extra_data,
+                            participant_data=participant_data,
+                            readme_text=container.readme, verbose=True,
+                            **container.make_specific_data)
+            print(output_progress)
 
     print("All done!!!")
     """

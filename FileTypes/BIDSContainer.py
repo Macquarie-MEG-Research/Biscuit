@@ -39,8 +39,6 @@ class BIDSContainer(FileInfo):
         self.subject_group = OptionsVar()
         self.subject_group.trace("w", self._update_groups)
 
-        self.bids_conversion_progress = StringVar()
-
         self.contains_required_files = True
 
         self.extra_data = dict()

@@ -94,8 +94,7 @@ class SessionInfoFrame(Frame):
         self.dewar_position_entry.value = self.file.dewar_position
 
     def convert_to_bids(self):
-        print('converting to bids')
-        convert(self.file, self.settings)
+        convert(self.file, self.settings, self)
 
     """
     def _folder_to_bids(self):

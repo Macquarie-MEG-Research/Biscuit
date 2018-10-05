@@ -140,8 +140,7 @@ class FifFileFrame(Frame):
             self.bids_gen_btn.config(state=DISABLED)
 
     def convert_to_bids(self):
-        print('converting to bids')
-        convert(self.file, self.settings)
+        convert(self.file, self.settings, self)
 
     def update_widgets(self):
         # update info

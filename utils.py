@@ -3,6 +3,9 @@ from tkinter import IntVar, BooleanVar, DoubleVar, StringVar
 import os.path as path
 from os import makedirs
 
+from io import StringIO
+import sys
+
 
 def create_folder(location):
     # simple wrapper to create a folder.
@@ -96,41 +99,20 @@ def generate_readme(data):
     return out_str
 
 
-def pickle_var(var):
+class Capturing(list):
     """
-    Takes in a Variable type object var and returns a tuple with the type as a
-    string and value
+    Context manager to capture stdout data
+    c/o Kindall: https://stackoverflow.com/a/16571630
     """
-    if isinstance(var, IntVar):
-        return ('int', var.get())
-    elif isinstance(var, StringVar):
-        return ('string', var.get())
-    elif isinstance(var, BooleanVar):
-        return ('bool', var.get())
-    elif isinstance(var, DoubleVar):
-        return ('double', var.get())
-    else:
-        raise TypeError
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
 
-
-def unpickle_var(data):
-    """
-    Takes in a tuple of the form (type (str), value) and returns an actual
-    Variable subclass object
-    """
-    if data[0] == 'int':
-        _temp = IntVar()
-    elif data[0] == 'string':
-        _temp = StringVar()
-    elif data[0] == 'bool':
-        _temp = BooleanVar()
-    elif data[0] == 'double':
-        _temp = DoubleVar()
-    else:
-        print(data)
-        raise ValueError(data[0])
-    _temp.set(data[1])
-    return _temp
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio    # free up some memory
+        sys.stdout = self._stdout
 
 
 if __name__ == "__main__":
