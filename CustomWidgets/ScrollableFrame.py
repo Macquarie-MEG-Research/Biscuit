@@ -21,8 +21,12 @@ class ScrollableFrame(Frame):
         self.vsb = Scrollbar(self, orient="vertical")
         self.vsb.grid(row=0, column=1, sticky='ns')
 
-        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
-                             bg='#E9E9E9', highlightthickness=0)
+        if os_name() == 'Windows':
+            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                                 highlightthickness=0)
+        else:
+            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                                 bg='#E9E9E9', highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
         # everything will go in this frame
@@ -45,11 +49,11 @@ class ScrollableFrame(Frame):
     def _unbound_to_mousewheel(self, event):
         self.canvas.unbind_all("<MouseWheel>")
 
-    # TODO: fix for potential issues with mac??
     def _on_mousewheel(self, event):
         if self.vsb.get() != (0.0, 1.0):
             if os_name() == 'Windows':
-                self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                self.canvas.yview_scroll(int(-1 * (event.delta / 120)),
+                                         "units")
             else:
                 self.canvas.yview_scroll(-event.delta, "units")
 
