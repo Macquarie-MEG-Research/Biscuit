@@ -1,10 +1,8 @@
 from functools import wraps
-from tkinter import IntVar, BooleanVar, DoubleVar, StringVar
+from tkinter import StringVar
 import os.path as path
 from os import makedirs
-
-from io import StringIO
-import sys
+import re
 
 
 def create_folder(location):
@@ -99,20 +97,38 @@ def generate_readme(data):
     return out_str
 
 
-class Capturing(list):
-    """
-    Context manager to capture stdout data
-    c/o Kindall: https://stackoverflow.com/a/16571630
-    """
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
+class StreamedVar(StringVar):
+    def __init__(self, patterns=[], *args, **kwargs):
+        """
+        pattern is a regex pattern which can be matched
+        to only allow the value to be updated if there is a match.
+        This allows filtering of output
+        """
+        super(StreamedVar, self).__init__(*args, **kwargs)
+        self._curr_value = StringVar()
+        #if pattern is not None:
+        #    self.pattern = re.compile(pattern)
+        self.pattern = patterns
 
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        sys.stdout = self._stdout
+    def write(self, value):
+        if value != '\n':
+            self.set(self.get() + value)
+        else:
+            #if re.match(self.pattern, self.get()):
+            for pattern in self.pattern:
+                if pattern in self.get():
+                    self.curr_value.set(self.get())
+                    self.set('')
+                    break
+            else:
+                self.set('')
+
+    def get_curr(self):
+        return self.curr_value.get()
+
+    @property
+    def curr_value(self):
+        return self._curr_value
 
 
 if __name__ == "__main__":

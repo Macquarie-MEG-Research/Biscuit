@@ -2,11 +2,20 @@ from tkinter import Toplevel, Frame, Label, Button
 
 
 class ProgressPopup(Toplevel):
+    """
+    TODO: completely overhaul
+    - add a tab system (Basic/Advanced output tabs)
+    Basic tab:
+        - maybe a condensed version of the output? Just the 'writeline' parts
+    Advanced tab:
+        - full output directly from mne-bids
+    """
     def __init__(self, master, progress_var):
         self.master = master
         Toplevel.__init__(self, self.master)
 
-        self.progress_var = progress_var
+        self.streamedvar = progress_var
+        self.progress_var = self.streamedvar.curr_value
 
         self._create_widgets()
 

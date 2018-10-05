@@ -8,7 +8,10 @@ from PIL import Image, ImageTk
 # underlying pattern of a row if any.
 from copy import copy
 
+from platform import system as os_name
+
 from .ScrollableFrame import ScrollableFrame
+
 
 class WidgetTable(Frame):
     """
@@ -58,9 +61,8 @@ class WidgetTable(Frame):
 
         self.master = master
 
-        s = Style(self.master)
-        s.configure('proper.TEntry', background='green')
-
+        #s = Style(self.master)
+        #s.configure('proper.TEntry', background='green')
 
         super(WidgetTable, self).__init__(self.master, *args, **kwargs)
 
@@ -73,6 +75,12 @@ class WidgetTable(Frame):
         self.adder_script = adder_script
         self.remove_script = remove_script
         self.sort_column = sort_column
+
+        if os_name() == 'Windows':
+            self.entry_config = {}
+        else:
+            self.entry_config = {'highlightbackground': '#E9E9E9',
+                                 'readonlybackground': '#00AA00'}
 
         # the index we need to redraw the rows after
         self.first_redraw_row = 0
@@ -352,15 +360,11 @@ class WidgetTable(Frame):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
                         apply = lambda wgt, var: wgt.configure(
-                            textvariable=var['var'],
-                            highlightbackground='#E9E9E9',
-                            readonlybackground='#00AA00',
+                            textvariable=var['var'], **self.entry_config,
                             **var.get('configs', dict()))
                     else:
                         apply = lambda wgt, var: wgt.configure(
-                            textvariable=var,
-                            highlightbackground='#E9E9E9',
-                            readonlybackground='#00AA00',)
+                            textvariable=var, **self.entry_config)
                 if issubclass(w, Checkbutton):
                     # check underlying data type to provide correct function
                     if isinstance(self.pattern[column], dict):
