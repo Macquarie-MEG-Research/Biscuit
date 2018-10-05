@@ -1,7 +1,7 @@
 from tkinter import ALL
 # import this specifically like this because we can actually set the bg colour
 from tkinter import Entry as tkEntry
-from tkinter.ttk import Label, Checkbutton, Frame, Combobox
+from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
 from utils import clear_widget
 
 
@@ -121,10 +121,11 @@ class InfoEntry(InfoMaster):
         # draw the label and entry box
         #self._label = Label(self._master, text="{0}: ".format(data[0]))
         if bad_values == []:
-            self._value = tkEntry(self._master, textvariable=value)
+            self._value = Entry(self._master, textvariable=value)
         else:
             self._value = ValidatedEntry(self._master, bad_values=bad_values,
                                          textvariable=value,
+                                         highlightbackground='#E9E9E9',
                                          validate_cmd=validate_cmd)
 
     def check_valid(self):

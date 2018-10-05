@@ -1,4 +1,5 @@
-from tkinter import Tk, ALL, Canvas, Frame, Scrollbar
+from tkinter import ALL, Canvas, Scrollbar
+from tkinter.ttk import Frame
 
 from platform import system as os_name
 
@@ -20,11 +21,12 @@ class ScrollableFrame(Frame):
         self.vsb = Scrollbar(self, orient="vertical")
         self.vsb.grid(row=0, column=1, sticky='ns')
 
-        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set)
+        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                             bg='#E9E9E9', highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
         # everything will go in this frame
-        self.frame = Frame(self.canvas, bd=0)
+        self.frame = Frame(self.canvas)
         self.frame.grid(row=0, column=0, sticky='nsew')
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
@@ -62,7 +64,7 @@ class ScrollableFrame(Frame):
 
 
 if __name__ == "__main__":
-    from tkinter import Label, W, Button
+    from tkinter import Label, W, Button, Tk
 
     class main(Frame):
         def __init__(self, master):
