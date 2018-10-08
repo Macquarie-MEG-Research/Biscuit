@@ -24,6 +24,9 @@ class ScrollableFrame(Frame):
         if os_name() == 'Windows':
             self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
                                  highlightthickness=0)
+        elif os_name() == 'Linux':
+            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                                 bg='#D9D9D9', highlightthickness=0)
         else:
             self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
                                  bg='#E9E9E9', highlightthickness=0)

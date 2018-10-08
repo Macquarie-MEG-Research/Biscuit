@@ -46,6 +46,9 @@ class main(Frame):
         if os_name() == 'Windows':
             #self.master.iconbitmap('assets/biscuit_icon_windows.ico')
             self.master.iconbitmap('assets/bisc.ico')
+        elif os_name() == 'Linux':
+            img = PhotoImage(file='assets/bisc.png')
+            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
         else:
             # this doesn't work :'(
             img = PhotoImage(file='assets/biscuit.png')
@@ -481,8 +484,12 @@ class main(Frame):
                         if isinstance(obj, generic_file):
                             obj.dtype = ext
                         obj.load_data()
-                        # finally, add the object to the preloaded data
-                        self.preloaded_data[id_] = obj
+                    else:
+                        obj = generic_file(id_=id_, file=path_,
+                                           parent=self)
+                        obj.dtype = ext
+                    # finally, add the object to the preloaded data
+                    self.preloaded_data[id_] = obj
         self._populate_info_panel(sids)
         return
 
