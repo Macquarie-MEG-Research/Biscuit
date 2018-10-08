@@ -203,15 +203,16 @@ class WidgetTable(Frame):
                 row_widgets.append(w_actual)
 
             # add the delete button at the end of the row
-            curr_row = initial_rows + r
-            delete_button = tkButton(
-                self.sf.frame,
-                command=lambda x=curr_row: self.delete_rows_and_update(x),
-                relief='flat', borderwidth=0, highlightthickness=0,
-                takefocus=0)
-            delete_button.config(image=self.delete_icon)
-            delete_button.grid(row=rows, column=2 * self.num_columns - 1)
-            row_widgets.append(delete_button)
+            if self.remove_script != DISABLED:
+                curr_row = initial_rows + r
+                delete_button = tkButton(
+                    self.sf.frame,
+                    command=lambda x=curr_row: self.delete_rows_and_update(x),
+                    relief='flat', borderwidth=0, highlightthickness=0,
+                    takefocus=0)
+                delete_button.config(image=self.delete_icon)
+                delete_button.grid(row=rows, column=2 * self.num_columns - 1)
+                row_widgets.append(delete_button)
             self.widgets.append(row_widgets)
 
         if count != 0:

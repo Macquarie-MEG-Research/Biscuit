@@ -51,6 +51,9 @@ class FileInfo():
 
         self.loaded_from_save = False
 
+        # used for files that are viewed with the text viewer
+        self.saved_time = "Never"
+
     def check_valid(self):
         """ Returns True (method will be overriden by derived classes) """
         return True

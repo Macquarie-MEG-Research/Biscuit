@@ -11,7 +11,6 @@ class ProjectSettingsWindow(Toplevel):
     def __init__(self, master, settings=dict()):
         self.master = master
         Toplevel.__init__(self, self.master)
-        print(self, 'psw')
         self.withdraw()
         if master.winfo_viewable():
             self.transient(master)
@@ -89,6 +88,21 @@ class ProjectSettingsWindow(Toplevel):
         self.save_btn = Button(self.frame, text="Save",
                                command=self._write_settings)
         self.save_btn.grid(column=4, row=9)
+
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+        self.frame.grid_columnconfigure(2, weight=1)
+        self.frame.grid_columnconfigure(3, weight=1)
+        self.frame.grid_columnconfigure(4, weight=0)
+        self.frame.grid_rowconfigure(0, weight=0)
+        self.frame.grid_rowconfigure(1, weight=0)
+        self.frame.grid_rowconfigure(2, weight=0)
+        self.frame.grid_rowconfigure(3, weight=1)
+        self.frame.grid_rowconfigure(8, weight=1)
+        self.frame.grid_rowconfigure(9, weight=0)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def get_settings(self):
         """

@@ -115,7 +115,8 @@ class FifFileFrame(Frame):
             headings=["Channel name", "Type"],
             pattern=[StringVar, OptionsVar],
             widgets_pattern=[Entry, Combobox],
-            adder_script=DISABLED)
+            adder_script=DISABLED,
+            remove_script=DISABLED)
         self.channel_table.grid(sticky='nsew', column=3, row=7,
                                 columnspan=2, rowspan=9)
 

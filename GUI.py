@@ -33,7 +33,7 @@ root.geometry("1080x600")
 
 tt = ToolTipManager()
 
-s = Style()
+style = Style()
 
 
 class main(Frame):
@@ -53,6 +53,10 @@ class main(Frame):
             #self.master.wm_iconphoto(True, img)
             #self.master.wm_iconbitmap(img)
         Frame.__init__(self, self.master)
+
+        # sort out some styling
+        self.text_size = 10
+        style.configure("Treeview", font=("TkTextFont", self.text_size))
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
@@ -93,11 +97,13 @@ class main(Frame):
         # options: "ASSOCIATING", "NORMAL"
 
         # set some tag configurations
+
         self.file_treeview.tag_configure('ASSOC_FILES', foreground="Blue")
         self.file_treeview.tag_configure('BAD_FILE', foreground="Red")
         self.file_treeview.tag_configure('GOOD_FILE', foreground="Green")
-        self.file_treeview.tag_configure('JUNK_FILE',
-                                         font=(None, 8, 'overstrike'))
+        self.file_treeview.tag_configure(
+            'JUNK_FILE', font=("TkTextFont", self.text_size, 'overstrike'))
+        #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
 
