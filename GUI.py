@@ -46,20 +46,23 @@ class main(Frame):
         if os_name() == 'Windows':
             #self.master.iconbitmap('assets/biscuit_icon_windows.ico')
             self.master.iconbitmap('assets/bisc.ico')
+            self.treeview_text_size = 10
         elif os_name() == 'Linux':
             img = PhotoImage(file='assets/bisc.png')
             self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            self.treeview_text_size = 12
         else:
             # this doesn't work :'(
             img = PhotoImage(file='assets/biscuit.png')
             self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            self.treeview_text_size = 13
             #self.master.wm_iconphoto(True, img)
             #self.master.wm_iconbitmap(img)
         Frame.__init__(self, self.master)
 
         # sort out some styling
-        self.text_size = 10
-        style.configure("Treeview", font=("TkTextFont", self.text_size))
+        
+        style.configure("Treeview", font=("TkTextFont", self.treeview_text_size))
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
@@ -105,7 +108,7 @@ class main(Frame):
         self.file_treeview.tag_configure('BAD_FILE', foreground="Red")
         self.file_treeview.tag_configure('GOOD_FILE', foreground="Green")
         self.file_treeview.tag_configure(
-            'JUNK_FILE', font=("TkTextFont", self.text_size, 'overstrike'))
+            'JUNK_FILE', font=("TkTextFont", self.treeview_text_size, 'overstrike'))
         #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
