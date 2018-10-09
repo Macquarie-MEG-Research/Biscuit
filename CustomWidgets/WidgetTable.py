@@ -1,8 +1,8 @@
 from tkinter import Variable, DISABLED
 from tkinter import Button as tkButton
 from tkinter import Entry as tkEntry
-from tkinter.ttk import (Label, Separator, Button, Frame, Entry, Checkbutton,
-                         Combobox, Style)
+from tkinter.ttk import (Label, Separator, Button, Frame, Checkbutton,
+                         Combobox)
 from PIL import Image, ImageTk
 # import copy so we can create static copies of the reference functions in the
 # underlying pattern of a row if any.
@@ -79,6 +79,7 @@ class WidgetTable(Frame):
         if os_name() == 'Windows':
             self.entry_config = {}
         else:
+            # TODO: make this a proper colour
             self.entry_config = {'highlightbackground': '#E9E9E9',
                                  'readonlybackground': '#00AA00'}
 
@@ -125,7 +126,7 @@ class WidgetTable(Frame):
         # add_options list.
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self.sf.configure_view()
+            self.sf.configure_view(resize_canvas=False)
 
     def _create_widgets(self):
         if isinstance(self.add_options, list):
@@ -426,7 +427,7 @@ class WidgetTable(Frame):
         self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
-        self.sf.configure_view()
+        self.sf.configure_view(resize_canvas=False)
 
     def _draw_separators(self):
         rows = self.sf.frame.grid_size()[1]
@@ -455,7 +456,7 @@ class WidgetTable(Frame):
                 pass
         else:
             self.add_rows()
-        self.sf.configure_view(move_to_bottom=True)
+        self.sf.configure_view(move_to_bottom=True, resize_canvas=False)
 
     def add_row_from_selection(self, event):
         # this only needs to be different to implement the functionality to
@@ -467,7 +468,7 @@ class WidgetTable(Frame):
                 self.add_rows()
             else:
                 self.add_rows(ret)
-        self.sf.configure_view()
+        self.sf.configure_view(resize_canvas=False)
 
     def get(self, values=True):
         """

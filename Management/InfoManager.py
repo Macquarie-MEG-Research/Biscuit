@@ -32,13 +32,17 @@ class InfoManager(Notebook):
         self.requires_update = True
         self.context = context
 
+        #TODO: just pass parent instead of parent.settings and allow settings
+        # to be retreived one step further down?
+
         # generic info frame
         self.info_tab = GenericInfoFrame(self)
         self.add(self.info_tab, text="Info")
         self._tabs[T_MISC] = 0
 
         # Session info tab (for BIDS-compatible folders)
-        self.session_tab = SessionInfoFrame(self, self.parent.settings)
+        self.session_tab = SessionInfoFrame(self, self.parent.settings,
+                                            self.parent)
         self.add(self.session_tab, text=" Folder Info")
         self._tabs[T_FOLDER] = 1
 
@@ -53,7 +57,8 @@ class InfoManager(Notebook):
         self._tabs[T_CHANNELS] = 3
 
         # fif file tab
-        self.fif_info_tab = FifFileFrame(self, self.parent.settings)
+        self.fif_info_tab = FifFileFrame(self, self.parent.settings,
+                                         self.parent)
         self.add(self.fif_info_tab, text="File Info")
         self._tabs[T_FIF] = 4
 

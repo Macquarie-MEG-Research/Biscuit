@@ -2,12 +2,13 @@ from mne.io import read_raw_fif
 from os.path import join
 from mne.io.constants import FIFF
 
-basefolder = 'C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\3000'
-fname = 'rs_asd_rs_aliens_quat_tsss.fif'
+basefolder = 'C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\Swinburne_Elekta'
+fname = 'jo_test1_120.fif'
 f = join(basefolder, fname)
 
 a = read_raw_fif(f)
 i = a.info
+"""
 max_info = i['proc_history'][0]['max_info']
 
 COORDINATE_FRAMES = {FIFF.FIFFV_COORD_UNKNOWN: 'Unknown',
@@ -30,3 +31,9 @@ if max_info.get('sss_info'):
     software_filters['SSS'] = sss_info
 print(software_filters)
 print('SSS' in software_filters)
+"""
+
+bday = i['subject_info']['birthday']
+print(bday)
+for i in bday:
+    print(type(i))

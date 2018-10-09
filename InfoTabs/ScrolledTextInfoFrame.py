@@ -1,8 +1,17 @@
 from tkinter import WORD, END, StringVar
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button, Label
-from pygments import lex
-from pygments.lexers.python import Python3Lexer
+try:
+    from pygments import lex
+    from pygments.lexers.python import Python3Lexer
+    from pygments.lexers.matlab import MatlabLexer
+    HAS_PYGMENTS = True
+except ImportError:
+    HAS_PYGMENTS = False
+    print("Python library `pygments` not found. This isn't an issue, however "
+          "if you install it you can have nice syntax highlighting when "
+          "opening files containing code such as matlab (.m) or python (.py) "
+          "files.")
 from datetime import datetime
 
 
@@ -14,6 +23,8 @@ class ScrolledTextInfoFrame(Frame):
                                                     **kwargs)
 
         self.saved_time = StringVar()
+
+        self.highlighter = Highlighter()
 
         self._create_widgets()
 
@@ -32,24 +43,8 @@ class ScrolledTextInfoFrame(Frame):
         self.textentry = ScrolledText(self, wrap=WORD)
         self.textentry.grid(column=0, row=0, columnspan=2, sticky='nsew')
         #self.textentry.bind("<Tab>", self.insert_tab)
-        self.textentry.tag_configure("Token.Literal.String.Single",
-                                     foreground="#00AA00")
-        self.textentry.tag_configure("Token.Literal.String.Double",
-                                     foreground="#00AA00")
-        self.textentry.tag_configure("Token.Literal.String.Doc",
-                                     foreground="#00AA00")
-        self.textentry.tag_configure("Token.Operator.Word",
-                                     foreground="#900090")
-        self.textentry.tag_configure("Token.Comment.Single",
-                                     foreground="#DD0000")
-        self.textentry.tag_configure("Token.Keyword",
-                                     foreground="#FF7700")
-        self.textentry.tag_configure("Token.Keyword.Namespace",
-                                     foreground="#FF7700")
-        self.textentry.tag_configure("Token.Name.Function",
-                                     foreground="#0000FF")
-        self.textentry.tag_configure("Token.Name.Builtin",
-                                     foreground="#900090")
+        for key, value in self.highlighter.style:
+            self.textentry.tag_configure(key, foreground=value)
         self.save_label = Label(self, textvar=self.saved_time)
         self.save_label.grid(column=0, row=1, sticky='es')
         self.save_btn = Button(self, text="Save", command=self.save_file)
@@ -64,24 +59,35 @@ class ScrolledTextInfoFrame(Frame):
         self.textentry.delete(1.0, END)
         with open(self.file.file, 'r') as file:
             self.textentry.insert(END, file.read())
-        self.syn()
+        if HAS_PYGMENTS:
+            if self.highlighter.change_type(self.file.dtype):
+                # remove current tags
+                for tag in self.textentry.tag_names():
+                    self.textentry.tag_configure(tag, foreground="#000000")
+                for key, value in self.highlighter.style.items():
+                    self.textentry.tag_configure(key, foreground=value)
+            self.syn()
 
     def _update_savetime(self):
         self.saved_time.set("Last saved:\t{0}\t".format(self.file.saved_time))
 
     def syn(self, event=None):
         """
-        # TODO: find source/reference this!!
-        Allow for syntax highlighting
+        Allow for syntax highlighting.
+        Source: https://stackoverflow.com/a/30199105
+        This will highlight the entire document once. Dynamic highlighting not
+        yet supported.
+        #TODO: (maybe?): https://stackoverflow.com/questions/32058760/improve-pygments-syntax-highlighting-speed-for-tkinter-text/32064481  # noqa
         """
         self.textentry.mark_set("range_start", "1.0")
         data = self.textentry.get("1.0", "end-1c")
-        for token, content in lex(data, Python3Lexer()):
-            #print(token, content)
-            self.textentry.mark_set("range_end",
-                                    "range_start + %dc" % len(content))
-            self.textentry.tag_add(str(token), "range_start", "range_end")
-            self.textentry.mark_set("range_start", "range_end")
+        lexer = self.highlighter.lexer
+        if lexer is not None:
+            for token, content in lex(data, lexer()):
+                self.textentry.mark_set("range_end",
+                                        "range_start + %dc" % len(content))
+                self.textentry.tag_add(str(token), "range_start", "range_end")
+                self.textentry.mark_set("range_start", "range_end")
 
     def save_file(self):
         """ Write the current data in the text widget back to the file """
@@ -109,3 +115,45 @@ class ScrolledTextInfoFrame(Frame):
         if other != self._file:
             self._file = other
             self.update()
+
+
+class Highlighter():
+    def __init__(self):
+        self.dtype = None
+
+    @property
+    def style(self):
+        """ Returns the appropriate syntax highlighting colours """
+        if self.dtype == '.py':
+            return {"Token.Literal.String.Single": "#00AA00",
+                    "Token.Literal.String.Double": "#00AA00",
+                    "Token.Literal.String.Doc": "#00AA00",
+                    "Token.Operator.Word": "#900090",
+                    "Token.Comment.Single": "#DD0000",
+                    "Token.Keyword": "#FF7700",
+                    "Token.Keyword.Namespace": "#FF7700",
+                    "Token.Name.Function": "#0000FF",
+                    "Token.Name.Builtin": "#900090"}
+        elif self.dtype == '.m':
+            return {"Token.Literal.String": "#A020F0",
+                    "Token.Comment": "#228B22",
+                    "Token.Keyword": "#0000FF"}
+        else:
+            return dict()
+
+    @property
+    def lexer(self):
+        if self.dtype == '.py':
+            return Python3Lexer
+        elif self.dtype == '.m':
+            return MatlabLexer
+        else:
+            return None
+
+    def change_type(self, dtype):
+        """ sets the data type and returns true if the type has changed """
+        if dtype != self.dtype:
+            self.dtype = dtype
+            return True
+        else:
+            return False

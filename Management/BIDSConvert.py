@@ -14,6 +14,7 @@ def convert(container, settings, parent=None):
     """
     Main function to take all the data from some container (IC or fif file
     currently) and call the bids conversion function (from mne_bids).
+    parent is the main GUI object
     """
 
     # first, make sure that the container obejct is ready for conversion
@@ -22,6 +23,13 @@ def convert(container, settings, parent=None):
     bids_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
     if not path.exists(bids_folder_path):
         makedirs(bids_folder_path)
+        bids_folder_sid = parent.file_treeview.ordered_insert(
+            '', text='BIDS', values=('', bids_folder_path))
+    else:
+        for sid in parent.file_treeview.get_children():
+            if parent.file_treeview.item(sid)['text'] == 'BIDS':
+                bids_folder_sid = sid
+                break
 
     progress = StreamedVar(['Writing', 'Conversion done'])
 
@@ -41,18 +49,13 @@ def convert(container, settings, parent=None):
                 sess_id = container.session_ID.get()
 
                 extra_data = job.extra_data
-
-                # TODO: will only need the group info once we make men_bids use
-                # the information stored within the raw data.
-                participant_data = {'age': container.subject_age.get(),
-                                    'gender': container.subject_gender.get(),
-                                    'group': container.subject_group.get()}
+                subject_group = container.subject_group.get()
 
                 if sess_id == '':
                     sess_id = None
                 emptyroom_path = ''
 
-                # TODO: change this toi just use the event_info property
+                # TODO: change this to just use the event_info property
                 trigger_channels, descriptions = job.get_event_data()
 
                 # assume there is only one for now??
@@ -88,7 +91,7 @@ def convert(container, settings, parent=None):
                             session_id=sess_id, kind='meg', event_id=event_ids,
                             hpi=mrks, acquisition=job.acquisition.get(),
                             emptyroom=emptyroom, extra_data=extra_data,
-                            participant_data=participant_data,
+                            subject_group=subject_group,
                             readme_text=container.readme, verbose=True,
                             **container.make_specific_data)
                 print("Conversion done! Closing window in 3...")
@@ -98,6 +101,8 @@ def convert(container, settings, parent=None):
                 print("Conversion done! Closing window in 1...")
                 sleep(1)
                 p._exit()
+
+    parent._fill_file_tree(bids_folder_sid, bids_folder_path)
 
     """
     # fill the tree all at once??

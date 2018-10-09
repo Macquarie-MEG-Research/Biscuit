@@ -163,20 +163,22 @@ class KITData(BIDSContainer):
                 bads = con_file.bad_channels()
                 # set the bads
                 raw.info['bads'] = bads
-                # TODO: use this
-                """ Might be needed???
-                # assign any participant info we have:
-                # first we need to process what we have:
-                his_id = self.subject_ID.get()
-                age = self.subject_age.get()
+
+                # assign the subject data
+                try:
+                    bday = (int(self.subject_age[2].get()),
+                            int(self.subject_age[1].get()),
+                            int(self.subject_age[0].get()))
+                except ValueError:
+                    bday = None
                 sex = self.subject_gender.get()
                 # map the sex to the data used by the raw info
-                sex = {U': 0, 'M': 1, 'F': 2}.get(sex, 0)
-                subject_info = self.raw_files[acq].info['subject_info']
-                subject_info['his_id'] = his_id
-                subject_info['birthday'] = his_id
-                subject_info['sex'] = sex
-                """
+                sex = {'U': 0, 'M': 1, 'F': 2}.get(sex, 0)
+                if raw.info['subject_info'] is None:
+                    raw.info['subject_info'] = dict()
+                raw.info['subject_info']['birthday'] = bday
+                raw.info['subject_info']['sex'] = sex
+
                 # change the channel type of any channels that are triggers
                 for ch in trigger_channels:
                     i = int(ch) - 1

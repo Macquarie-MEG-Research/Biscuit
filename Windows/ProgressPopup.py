@@ -14,6 +14,8 @@ class ProgressPopup(Toplevel):
         self.master = master
         Toplevel.__init__(self, self.master)
 
+        self.title('Conversion Progress')
+
         self.streamedvar = progress_var
         self.progress_var = self.streamedvar.curr_value
 

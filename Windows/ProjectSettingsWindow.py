@@ -54,14 +54,12 @@ class ProjectSettingsWindow(Toplevel):
         Label(self.frame, text="Start Date:").grid(
             column=0, row=1, pady=2, padx=2)
         self.sd_entry = DateEntry(
-            self.frame, text=self.settings.get('StartDate', ['', '', '']),
-            border=0)
+            self.frame, text=self.settings.get('StartDate', ['', '', '']))
         self.sd_entry.grid(column=1, row=1, pady=2, padx=2)
         Label(self.frame, text="End Date:").grid(
             column=2, row=1, pady=2, padx=2)
         self.ed_entry = DateEntry(
-            self.frame, text=self.settings.get('EndDate', ['', '', '']),
-            border=0)
+            self.frame, text=self.settings.get('EndDate', ['', '', '']))
         self.ed_entry.grid(column=3, row=1, pady=2, padx=2)
         Label(self.frame, text="Project description:").grid(
             column=0, row=2, padx=2, pady=2)

@@ -2,7 +2,7 @@ from tkinter import StringVar, BooleanVar, DISABLED, NORMAL
 from tkinter.ttk import Frame, Label, Separator, Button, Combobox, Entry
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
-from CustomWidgets import WidgetTable
+from CustomWidgets import WidgetTable, DateEntry
 from Management import OptionsVar, convert, ToolTipManager
 
 # assign the tool tip manager
@@ -10,9 +10,10 @@ tt = ToolTipManager()
 
 
 class FifFileFrame(Frame):
-    def __init__(self, master, settings, *args, **kwargs):
+    def __init__(self, master, settings, parent=None, *args, **kwargs):
         self.master = master
         self.settings = settings
+        self.parent = parent
         super(FifFileFrame, self).__init__(self.master, *args, **kwargs)
 
         self._file = None
@@ -51,9 +52,15 @@ class FifFileFrame(Frame):
         self.sub_id_entry.label.grid(column=3, row=2, sticky='ew', pady=2)
         self.sub_id_entry.value.grid(column=4, row=2, sticky='ew', pady=2)
         self.require_verification.append(self.sub_id_entry)
+        Label(self, text="Subject DOB").grid(column=3, row=3, sticky='ew',
+                                             pady=2)
+        self.sub_age_entry = DateEntry(self, ["", "", ""])
+        self.sub_age_entry.grid(column=4, row=3, sticky='ew', pady=2)
+        """
         self.sub_age_entry = InfoEntry(self, "Subject DOB", StringVar())
         self.sub_age_entry.label.grid(column=3, row=3, sticky='ew', pady=2)
         self.sub_age_entry.value.grid(column=4, row=3, sticky='ew', pady=2)
+        """
         self.sub_gender_entry = InfoChoice(self, "Subject gender",
                                            OptionsVar())
         self.sub_gender_entry.label.grid(column=3, row=4, sticky='ew', pady=2)
@@ -141,7 +148,7 @@ class FifFileFrame(Frame):
             self.bids_gen_btn.config(state=DISABLED)
 
     def convert_to_bids(self):
-        convert(self.file, self.settings, self)
+        convert(self.file, self.settings, self.parent)
 
     def update_widgets(self):
         # update info
@@ -151,7 +158,7 @@ class FifFileFrame(Frame):
         # update subject info
         self.sub_id_entry.value = self.file.subject_ID
         self.sub_id_entry.validate_cmd = self.file.validate
-        self.sub_age_entry.value = self.file.subject_age
+        self.sub_age_entry.setvar(self.file.subject_age)
         self.sub_gender_entry.value = self.file.subject_gender
         self.sub_group_entry.value = self.file.subject_group
         # update required info

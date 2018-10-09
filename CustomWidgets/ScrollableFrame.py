@@ -60,9 +60,15 @@ class ScrollableFrame(Frame):
             else:
                 self.canvas.yview_scroll(-event.delta, "units")
 
-    def configure_view(self, event=None, move_to_bottom=False):
+    def configure_view(self, event=None, move_to_bottom=False,
+                       resize_canvas=True):
         self.update_idletasks()
-        self.canvas.config(scrollregion=self.canvas.bbox(ALL))
+        bbox = self.canvas.bbox(ALL)
+        if resize_canvas:
+            self.canvas.config(scrollregion=bbox, height=bbox[3],
+                               width=bbox[2])
+        else:
+            self.canvas.config(scrollregion=bbox)
         if move_to_bottom:
             self.canvas.yview_moveto(1.0)
 

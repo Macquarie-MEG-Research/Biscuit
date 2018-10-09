@@ -269,9 +269,15 @@ class main(Frame):
         self.pw.grid(column=0, row=0, sticky="nsew")
         main_frame.grid(column=0, row=0, sticky="nsew")
 
-        self.exitButton = Button(main_frame, text="Exit",
+        buttonFrame = Frame(main_frame)
+        buttonFrame.grid(column=0, row=1, columnspan=2)
+
+        self.saveButton = Button(buttonFrame, text="Save",
+                                 command=lambda: self.save_handler.save())
+        self.saveButton.grid(column=0, row=0, padx=5)
+        self.exitButton = Button(buttonFrame, text="Exit",
                                  command=self._check_exit)
-        self.exitButton.grid(column=0, row=1, columnspan=2)
+        self.exitButton.grid(column=1, row=0, padx=5)
 
         # add resizing stuff:
         self.master.columnconfigure(0, weight=1)

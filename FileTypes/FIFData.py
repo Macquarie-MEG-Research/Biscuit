@@ -72,10 +72,10 @@ class FIFData(BIDSContainer, BIDSFile):
                 if subject_info is not None:
                     self.subject_ID.set(
                         self.raw.info['subject_info'].get('id', ''))
-                    bday = [str(i) for i in
-                            self.raw.info['subject_info']['birthday']]
+                    bday = list(self.raw.info['subject_info']['birthday'])
                     bday.reverse()
-                    self.subject_age.set('/'.join(bday))
+                    for i, num in enumerate(bday):
+                        self.subject_age[i].set(num)
                     gender = {0: 'U', 1: 'M', 2: 'F'}.get(
                         self.raw.info['subject_info']['sex'], 0)
                     self.subject_gender.set(gender)
@@ -83,7 +83,8 @@ class FIFData(BIDSContainer, BIDSFile):
                     # TODO: raise popup to notify the user that there is no
                     # subject info and that they need to enter it manually
                     self.subject_ID.set('')
-                    self.subject_age.set('Unknown')
+                    for i in self.subject_age:
+                        i.set('')
                     self.subject_gender.set('U')
 
                 # load just the BIO channel info if there is any
@@ -138,6 +139,21 @@ class FIFData(BIDSContainer, BIDSFile):
                     break
         self.raw.rename_channels(ch_name_map)
         self.raw.set_channel_types(ch_type_map)
+
+        # assign the subject data
+        try:
+            bday = (int(self.subject_age[2].get()),
+                    int(self.subject_age[1].get()),
+                    int(self.subject_age[0].get()))
+        except ValueError:
+            bday = None
+        sex = self.subject_gender.get()
+        # map the sex to the data used by the raw info
+        sex = {'U': 0, 'M': 1, 'F': 2}.get(sex, 0)
+        if self.raw.info['subject_info'] is None:
+            self.raw.info['subject_info'] = dict()
+        self.raw.info['subject_info']['birthday'] = bday
+        self.raw.info['subject_info']['sex'] = sex
 
     def _process_event(self, evt):
         """ Take the event provided and convert to the format stored
