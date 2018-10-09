@@ -1,5 +1,5 @@
-from tkinter import Toplevel, StringVar, WORD, IntVar, END
-from tkinter.ttk import Frame, Label, Entry, Button
+from tkinter import Toplevel, StringVar, WORD, IntVar, END, Entry
+from tkinter.ttk import Frame, Label, Button
 from tkinter.scrolledtext import ScrolledText
 from CustomWidgets import DateEntry
 from CustomWidgets.InfoEntries import InfoEntry

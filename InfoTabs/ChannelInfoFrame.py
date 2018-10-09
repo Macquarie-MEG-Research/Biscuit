@@ -1,6 +1,6 @@
 from tkinter import StringVar, BooleanVar
 from tkinter import Entry as tkEntry
-from tkinter.ttk import Frame, Label, Checkbutton, Entry
+from tkinter.ttk import Frame, Label, Checkbutton
 from FileTypes import con_file
 from CustomWidgets.WidgetTable import WidgetTable
 

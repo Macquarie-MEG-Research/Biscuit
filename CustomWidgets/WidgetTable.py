@@ -81,7 +81,7 @@ class WidgetTable(Frame):
         else:
             # TODO: make this a proper colour
             self.entry_config = {'highlightbackground': '#E9E9E9',
-                                 'readonlybackground': '#00AA00'}
+                                 'readonlybackground': '#E0E0E0'}
 
         # the index we need to redraw the rows after
         self.first_redraw_row = 0
@@ -126,7 +126,7 @@ class WidgetTable(Frame):
         # add_options list.
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self.sf.configure_view(resize_canvas=False)
+            self.sf.configure_view(resize_canvas='x')
 
     def _create_widgets(self):
         if isinstance(self.add_options, list):
@@ -427,7 +427,7 @@ class WidgetTable(Frame):
         self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
-        self.sf.configure_view(resize_canvas=False)
+        self.sf.configure_view(resize_canvas='')
 
     def _draw_separators(self):
         rows = self.sf.frame.grid_size()[1]
@@ -456,7 +456,7 @@ class WidgetTable(Frame):
                 pass
         else:
             self.add_rows()
-        self.sf.configure_view(move_to_bottom=True, resize_canvas=False)
+        self.sf.configure_view(move_to_bottom=True, resize_canvas='x')
 
     def add_row_from_selection(self, event):
         # this only needs to be different to implement the functionality to
@@ -468,7 +468,7 @@ class WidgetTable(Frame):
                 self.add_rows()
             else:
                 self.add_rows(ret)
-        self.sf.configure_view(resize_canvas=False)
+        self.sf.configure_view(resize_canvas='x')
 
     def get(self, values=True):
         """
