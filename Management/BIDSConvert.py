@@ -61,7 +61,6 @@ def convert(container, settings, parent=None):
                 # assume there is only one for now??
                 event_ids = dict(zip(descriptions,
                                      [int(i) for i in trigger_channels]))
-                print(event_ids, 'event id data')
 
                 # also check to see if the file is meant to have an associated
                 # empty room file

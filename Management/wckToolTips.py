@@ -12,7 +12,7 @@
 # See the README file for license details.
 #
 
-from tkinter import *
+from tkinter import Label, LEFT, Toplevel
 
 
 class ToolTipManager:
@@ -35,7 +35,7 @@ class ToolTipManager:
             try:
                 self.bg = "systeminfobackground"
                 self.fg = "systeminfotext"
-                widget.winfo_rgb(self.fg) # make sure system colors exist
+                widget.winfo_rgb(self.fg)  # make sure system colors exist
                 widget.winfo_rgb(self.bg)
             except:
                 self.bg = "#ffffe0"
@@ -63,9 +63,8 @@ class ToolTipManager:
             self.popup = Toplevel(bg=self.fg, bd=1)
             self.popup.overrideredirect(1)
             self.popup.withdraw()
-            self.label = Label(
-                self.popup, fg=self.fg, bg=self.bg, bd=0, padx=2, justify=LEFT
-                )
+            self.label = Label(self.popup, fg=self.fg, bg=self.bg, bd=0,
+                               padx=2, justify=LEFT)
             self.label.pack()
             self.active = 0
         self.xy = event.x_root + 16, event.y_root + 10
@@ -94,27 +93,32 @@ class ToolTipManager:
             widget.after_cancel(self.after_id)
             self.after_id = None
 
+
 _manager = ToolTipManager()
 
-##
-# Registers a tooltip for a given widget.
-#
-# @param widget The widget object.
-# @param text The tooltip text.  This can be either a string, or a callable
-#     object. If callable, it is called as text(widget) when the tooltip is
-#     about to be displayed, and the returned text is displayed instead.
 
 def register(widget, text):
+    """
+    Registers a tooltip for a given widget.
+
+    @param widget The widget object.
+    @param text The tooltip text. This can be either a string, or a callable
+        object. If callable, it is called as text(widget) when the tooltip is
+        about to be displayed, and the returned text is displayed instead.
+    """
     _manager.register(widget, text)
 
-##
-# Unregisters a tooltip.  Note that the tooltip information is automatically
-# destroyed when the widget is destroyed.
 
 def unregister(widget):
+    """
+    Unregisters a tooltip. Note that the tooltip information is automatically
+    destroyed when the widget is destroyed.
+    """
     _manager.unregister(widget)
 
+
 if __name__ == "__main__":
+    from tkinter import Tk, Button, mainloop
 
     root = Tk()
 

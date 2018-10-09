@@ -3,6 +3,9 @@ from tkinter import ALL
 from tkinter import Entry as tkEntry
 from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
 from utils import clear_widget
+from Management import ToolTipManager
+
+ttm = ToolTipManager()
 
 
 class InfoMaster():
@@ -28,8 +31,13 @@ class InfoMaster():
 
     def _set_value(self, value):
         """ a method to be overwridden by other classes """
-        #self._label.config(text="{0}: ".format(self._data[0]))
         pass
+
+    def tooltip(self, text):
+        """ Register the text specified with the tool tip manager (ttm) for
+        both label and value widgets """
+        ttm.register(self.label, text)
+        ttm.register(self.value, text)
 
     @property
     def label(self):
@@ -46,12 +54,6 @@ class InfoMaster():
     @property
     def master(self):
         return self._master
-
-    """
-    @property
-    def data(self):
-        return self._data
-    """
 
     @value.setter
     def value(self, value):

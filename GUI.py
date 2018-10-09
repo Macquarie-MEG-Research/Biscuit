@@ -16,10 +16,10 @@ from FileTypes import generic_file, con_file, Folder, KITData, BIDSFile
 
 from CustomWidgets import EnhancedTreeview
 
-from Management import ClickContext, ToolTipManager
+from Management import ClickContext
 from Management.InfoManager import InfoManager
 from Management.SaveManager import SaveManager
-from Windows import SettingsWindow, ProgressPopup, CheckSavePopup
+from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 
 from utils import threaded, get_object_class, create_folder
 
@@ -29,9 +29,13 @@ DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}
 
 root = Tk()
-root.geometry("1080x600")
+# TODO: make this not fixed?? Possibly add as a setting.
 
-tt = ToolTipManager()
+screen_width = root.winfo_screenwidth()
+screen_height = root.winfo_screenheight()
+screen_dimensions = "{0}x{1}".format(screen_width - 120, screen_height - 120)
+
+root.geometry(screen_dimensions)
 
 style = Style()
 
@@ -53,7 +57,7 @@ class main(Frame):
             self.treeview_text_size = 12
         else:
             # this doesn't work :'(
-            img = PhotoImage(file='assets/biscuit.png')
+            img = PhotoImage(file='assets/bisc.png')
             self.master.tk.call('wm', 'iconphoto', self.master._w, img)
             self.treeview_text_size = 13
             #self.master.wm_iconphoto(True, img)
@@ -62,7 +66,8 @@ class main(Frame):
 
         # sort out some styling
         
-        style.configure("Treeview", font=("TkTextFont", self.treeview_text_size))
+        style.configure("Treeview", font=("TkTextFont",
+                                          self.treeview_text_size))
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
@@ -108,7 +113,8 @@ class main(Frame):
         self.file_treeview.tag_configure('BAD_FILE', foreground="Red")
         self.file_treeview.tag_configure('GOOD_FILE', foreground="Green")
         self.file_treeview.tag_configure(
-            'JUNK_FILE', font=("TkTextFont", self.treeview_text_size, 'overstrike'))
+            'JUNK_FILE', font=("TkTextFont", self.treeview_text_size,
+                               'overstrike'))
         #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
@@ -219,10 +225,14 @@ class main(Frame):
         # add options to the options menu:
         self.options_menu.add_command(label="Set data directory",
                                       command=self._get_data_location)
-        self.options_menu.add_command(label="Matlab path",
-                                      command=self._get_matlab_location)
+        #self.options_menu.add_command(label="Matlab path",
+        #                              command=self._get_matlab_location)
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
+
+        # credits menu
+        self.menu_bar.add_command(label="Credits",
+                                  command=self._display_credits_popup)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -553,6 +563,9 @@ class main(Frame):
             for obj in self.preloaded_data.values():
                 if isinstance(obj, KITData):
                     obj.settings = self.proj_settings
+
+    def _display_credits_popup(self):
+        CreditsPopup(self)
 
     def get_selection_info(self):
         data = []

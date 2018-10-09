@@ -5,7 +5,7 @@ from CustomWidgets import DateEntry
 from Management import OptionsVar, convert, ToolTipManager
 
 # assign the tool tip manager
-tt = ToolTipManager()
+ttm = ToolTipManager()
 
 
 class SessionInfoFrame(Frame):
@@ -40,6 +40,12 @@ class SessionInfoFrame(Frame):
         self.require_verification.append(self.proj_name_entry)
         self.proj_name_entry.label.grid(column=0, row=2, sticky='ew', pady=2)
         self.proj_name_entry.value.grid(column=1, row=2, sticky='ew', pady=2)
+        self.proj_name_entry.tooltip(
+            "Name of project this collection of file belongs to.\n"
+            "If you enter the name of a project listed in the project "
+            "settings\n"
+            "(Options > 'Set Defaults'), a number of values can be set by "
+            "default.")
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
                                        bad_values=[''],
                                        validate_cmd=None)
@@ -81,7 +87,8 @@ class SessionInfoFrame(Frame):
                                    command=self.convert_to_bids,
                                    state=DISABLED)
         self.bids_gen_btn.grid(column=3, row=7)
-        tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
+        ttm.register(self.bids_gen_btn,
+                     ("Convert session data to BIDS format"))
         self.grid()
 
     def update_widgets(self):

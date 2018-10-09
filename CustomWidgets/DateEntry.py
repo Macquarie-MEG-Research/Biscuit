@@ -1,4 +1,5 @@
 from tkinter import Entry, Frame, FLAT, Label, END, SUNKEN, LEFT
+from datetime import datetime
 
 """
 Code c/o pydesigner from stackoverflow:
@@ -54,11 +55,6 @@ class DateEntry(Frame):
 
         self.entries = [self.entry_1, self.entry_2, self.entry_3]
 
-        #self.entry_1.bind('<KeyRelease>', lambda e: self._check(0, 2))
-        #self.entry_2.bind('<KeyRelease>', lambda e: self._check(1, 2))
-        #self.entry_3.bind('<KeyRelease>', lambda e: self._check(2, 4))
-        #self.entry_3.bind('<Shift-Tab>', self._move_back)
-
     def _move_back(self, event):
         self.moved_back = True
 
@@ -86,6 +82,16 @@ class DateEntry(Frame):
 
     def get(self):
         return [e.get() for e in self.entries]
+
+    @property
+    def valid(self):
+        """ Whether or not the date entered is a valid date """
+        date = self.get()
+        try:
+            datetime(int(date[2]), int(date[1]), int(date[0]))
+            return True
+        except ValueError:
+            return False
 
     def set(self, value):
         """
