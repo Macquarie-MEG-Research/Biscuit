@@ -1,5 +1,5 @@
 from tkinter import (Toplevel, Frame, Button, Text, END, FLAT, DISABLED)
-import webbrowser
+from webbrowser import open_new as open_hyperlink
 
 from constants import OSCONST
 
@@ -25,7 +25,7 @@ class CreditsPopup(Toplevel):
         self._create_widgets()
 
     def _open_link(self):
-        webbrowser.open_new(self.git_link)
+        webbrowser.open_hyperlink(self.git_link)
 
     def _create_widgets(self):
         main_frame = Frame(self)

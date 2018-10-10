@@ -11,6 +11,7 @@ import os.path as path
 from os import listdir
 
 from platform import system as os_name
+from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, con_file, Folder, KITData, BIDSFile
 
@@ -242,9 +243,15 @@ class main(Frame):
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
 
+        # info menu
+        self.info_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Info", menu=self.info_menu)
+
         # credits menu
-        self.menu_bar.add_command(label="Credits",
+        self.info_menu.add_command(label="Credits",
                                   command=self._display_credits_popup)
+        self.info_menu.add_command(label="Help",
+                                  command=self._load_help_link)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -578,6 +585,10 @@ class main(Frame):
 
     def _display_credits_popup(self):
         CreditsPopup(self)
+
+    def _load_help_link(self):
+        # TODO: actually set this up
+        open_hyperlink("https://github.com/Macquarie-MEG-Research/Biscuit/wiki")  # noqa
 
     def get_selection_info(self):
         data = []
