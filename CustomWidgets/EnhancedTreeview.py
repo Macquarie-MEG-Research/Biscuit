@@ -1,6 +1,7 @@
-from tkinter import *
+from tkinter import HORIZONTAL, RIGHT, Y, VERTICAL, LEFT, BOTTOM, X, W
+from tkinter import Toplevel, Label, TclError
 from tkinter import Entry as tkEntry
-from tkinter.ttk import *
+from tkinter.ttk import Treeview, Scrollbar
 import threading
 import shutil
 

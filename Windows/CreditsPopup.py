@@ -1,11 +1,9 @@
-from tkinter import Toplevel, Frame, Label, Button, PhotoImage
+from tkinter import (Toplevel, Frame, Button, Text, END, FLAT, DISABLED)
 import webbrowser
 
+from constants import OSCONST
 
-# Credit to Steven Summers from StackExchange
-# https://stackoverflow.com/a/32985240
-def callback(event, hyperlink):
-    webbrowser.open_new(hyperlink)
+from Management.tkHyperlinkManager import HyperlinkManager
 
 
 # TODO: change to using a Text widget so have the hyperlink within the text
@@ -26,19 +24,25 @@ class CreditsPopup(Toplevel):
 
         self._create_widgets()
 
+    def _open_link(self):
+        webbrowser.open_new(self.git_link)
+
     def _create_widgets(self):
         main_frame = Frame(self)
+        self.textbox = Text(main_frame, relief=FLAT, undo=False, takefocus=0,
+                            bg=OSCONST.TEXT_BG, height=4)
+        self.hyperlink = HyperlinkManager(self.textbox)
         info_text = ("Biscuit created by Matt Sanderson for Macquarie "
                      "University.\n"
-                     "To find the latest version head to:")
+                     "To find the latest version head to the ")
         link_text = "Biscuit GitHub Repository"
-        info_lbl = Label(main_frame, text=info_text)
-        info_lbl.grid(row=0, column=0)
-        link_lbl = Label(main_frame, text=link_text, fg='blue')
-        link_lbl.grid(row=1, column=0)
-        link_lbl.bind("<Button-1>", lambda e: callback(e, self.git_link))
+        self.textbox.insert(END, info_text)
+        self.textbox.insert(END, link_text,
+                            self.hyperlink.add(self._open_link))
+        self.textbox.grid(column=0, row=0)
+        self.textbox.config(state=DISABLED)
         Button(main_frame, text="Close",
-               command=self._exit).grid(column=0, row=2, sticky='w')
+               command=self._exit).grid(column=0, row=1, sticky='w')
         main_frame.grid()
 
     def _exit(self):

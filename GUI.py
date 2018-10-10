@@ -29,13 +29,9 @@ DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}
 
 root = Tk()
-# TODO: make this not fixed?? Possibly add as a setting.
 
-screen_width = root.winfo_screenwidth()
-screen_height = root.winfo_screenheight()
-screen_dimensions = "{0}x{1}".format(screen_width - 120, screen_height - 120)
+# TODO: add some kind of .withdraw to make the drawing look better
 
-root.geometry(screen_dimensions)
 
 style = Style()
 
@@ -43,6 +39,11 @@ style = Style()
 class main(Frame):
     def __init__(self, master):
         self.master = master
+
+        self.master.withdraw()
+        if self.master.winfo_viewable():
+            self.master.transient()
+
         self.master.protocol("WM_DELETE_WINDOW", self._check_exit)
         self.master.title("Biscuit")
         # this directory is weird because the cwd is the parent folder, not
@@ -65,7 +66,7 @@ class main(Frame):
         Frame.__init__(self, self.master)
 
         # sort out some styling
-        
+
         style.configure("Treeview", font=("TkTextFont",
                                           self.treeview_text_size))
 
@@ -118,6 +119,17 @@ class main(Frame):
         #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
+
+        self.master.deiconify()
+        self.focus_set()
+
+        self.update_idletasks()
+
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        screen_dimensions = "{0}x{1}+20+20".format(screen_width - 200,
+                                                   screen_height - 200)
+        root.geometry(screen_dimensions)
 
     def _fill_file_tree(self, parent, directory=None):
         """

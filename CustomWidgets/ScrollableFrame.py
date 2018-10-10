@@ -1,6 +1,8 @@
 from tkinter import ALL, Canvas, Scrollbar
 from tkinter.ttk import Frame
 
+from constants import OSCONST
+
 from platform import system as os_name
 
 
@@ -21,15 +23,8 @@ class ScrollableFrame(Frame):
         self.vsb = Scrollbar(self, orient="vertical")
         self.vsb.grid(row=0, column=1, sticky='ns')
 
-        if os_name() == 'Windows':
-            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
-                                 highlightthickness=0)
-        elif os_name() == 'Linux':
-            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
-                                 bg='#D9D9D9', highlightthickness=0)
-        else:
-            self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
-                                 bg='#E9E9E9', highlightthickness=0)
+        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                             bg=OSCONST.CANVAS_BG, highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
         # everything will go in this frame

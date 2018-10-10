@@ -1,7 +1,7 @@
 from utils import threaded
 import os.path as path
 from os import makedirs
-#from FileTypes import KITData, FIFData
+from tkinter import StringVar
 from mne_bids import raw_to_bids
 from utils import StreamedVar
 from Windows import ProgressPopup
@@ -32,11 +32,14 @@ def convert(container, settings, parent=None):
                 break
 
     progress = StreamedVar(['Writing', 'Conversion done'])
+    job_name = StringVar()
 
-    p = ProgressPopup(parent, progress)
+    p = ProgressPopup(parent, progress, job_name)
 
     with redirect_stdout(progress):
         for job in container.jobs:
+            job_name.set("Acquisition: {0}, Task: {1}".format(
+                job.acquisition.get(), job.task.get()))
             if not job.is_junk.get():
                 #progress = "Working on acquisition: {0}, task: {1}".format(
                 #    job.acquisition.get(), job.task.get())
@@ -75,7 +78,7 @@ def convert(container, settings, parent=None):
                                       'sub-emptyroom_ses-{0}_task-'
                                       'noise_meg.con'.format(date))
 
-                if job.acquisition == 'emptyroom':
+                if job.is_empty_room.get():
                     emptyroom = True
                 else:
                     if emptyroom_path != '':
@@ -93,13 +96,13 @@ def convert(container, settings, parent=None):
                             subject_group=subject_group,
                             readme_text=container.readme, verbose=True,
                             **container.make_specific_data)
-                print("Conversion done! Closing window in 3...")
-                sleep(1)
-                print("Conversion done! Closing window in 2...")
-                sleep(1)
-                print("Conversion done! Closing window in 1...")
-                sleep(1)
-                p._exit()
+        print("Conversion done! Closing window in 3...")
+        sleep(1)
+        print("Conversion done! Closing window in 2...")
+        sleep(1)
+        print("Conversion done! Closing window in 1...")
+        sleep(1)
+        p._exit()
 
     parent._fill_file_tree(bids_folder_sid, bids_folder_path)
 

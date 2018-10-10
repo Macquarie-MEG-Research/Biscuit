@@ -231,6 +231,8 @@ class InfoChoice(InfoMaster):
         self._value.set(self.optVar.get())
         self._value.bind("<<ComboboxSelected>>", self.select_value)
 
+        self._value.bind('<KeyPress>', self._select_from_key)
+
     def select_value(self, event):
         self.optVar.set(self._value.get())
 
@@ -243,3 +245,13 @@ class InfoChoice(InfoMaster):
         # allow external overriding of the bind event
         self.select_value(event)
         self._value.bind(event, func)
+
+    def _select_from_key(self, *args):
+        """ select the first entry starting with the entered key """
+        # TODO: make it continue through them?
+        char = args[0].char.upper()
+        for opt in self.optVar.options:
+            if opt.upper().startswith(char):
+                self.optVar.set(opt)
+                self._value.set(self.optVar.get())
+                break

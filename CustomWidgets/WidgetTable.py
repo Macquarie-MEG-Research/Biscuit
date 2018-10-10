@@ -80,6 +80,7 @@ class WidgetTable(Frame):
             self.entry_config = {}
         else:
             # TODO: make this a proper colour
+            # TODO: use the OSCONST object for these
             self.entry_config = {'highlightbackground': '#E9E9E9',
                                  'readonlybackground': '#E0E0E0'}
 

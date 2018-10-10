@@ -543,9 +543,13 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     # which you wouldn't normally do if you just provide a raw
     # If raw files were to store all the paths we wouldn't need to do this
     # (other than empty room override...)
+    #TODO: implement mne_bids implementation
     extra_data["DigitizedLandmarks"] = (True if (electrode is not None and
-                                                 emptyroom is not True) else False)
-    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and emptyroom is not True) else False)
+                                                 emptyroom is not True)
+                                        else False)
+    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and
+                                                  emptyroom is not True)
+                                         else False)
 
     data_path = make_bids_folders(subject=subject_id, session=session_id,
                                   kind=kind, root=output_path,
