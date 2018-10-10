@@ -6,6 +6,8 @@
 # License: BSD (3-clause)
 
 import os
+import os.path as op
+from errno import EEXIST
 import shutil as sh
 import pandas as pd
 from collections import defaultdict, OrderedDict
@@ -22,7 +24,7 @@ from datetime import datetime
 from warnings import warn
 
 from .pick import coil_type
-from .utils import (make_bids_filename, make_bids_folders,
+from .utils import (make_bids_filename, make_bids_folders, age_on_date,
                     make_dataset_description, _write_json, make_readme)
 from .io import _parse_ext, _read_raw
 
@@ -147,28 +149,82 @@ def _events_tsv(events, raw, fname, event_id, verbose, overwrite):
     return fname
 
 
-def _participants_tsv(fname, subject_id="n/a", age="n/a", gender="n/a",
-                      group="n/a"):
-    """Create a tsv for participants"""
-    if not subject_id.startswith('sub-'):
-        subject_id = 'sub-' + subject_id
-    if os.path.exists(fname):
+def _participants_tsv(raw, subject_id, group, fname, write_mode='append',
+                      verbose=True):
+    """Create a participants.tsv file and save it.
+
+    This will append any new participant data to the current list if it
+    exists. Otherwise a new file will be created with the provided information.
+
+    Parameters
+    ----------
+    raw : instance of Raw
+        The data as MNE-Python Raw object.
+    subject_id : str
+        The subject name in BIDS compatible format ('01', '02', etc.)
+    group : str
+        Name of group participant belongs to.
+    fname : str
+        Filename to save the participants.tsv to.
+    write_mode : str, one of ('append', 'overwrite', 'error')
+        How the file should be handled if is exists already.
+        Defaults to 'append'.
+        If write_mode == `append` the previously existing file will have the
+        new data added to it, overwriting any duplicate entries found.
+        If write_mode == `overwrite` the previously existing file will be
+        removed and replaced with the new data.
+        If write_mode == `error` an `OSError` will be raised.
+    verbose : bool
+        Set verbose output to true or false.
+
+    """
+    if op.exists(fname) and write_mode == 'error':
+        raise OSError(EEXIST, '"%s" already exists. Please set'
+                      ' write_mode to "overwrite" or "append".' % fname)
+
+    subject_id = 'sub-' + subject_id
+    data = {'participant_id': [subject_id]}
+
+    subject_info = raw.info['subject_info']
+    if subject_info is not None:
+        genders = {0: 'U', 1: 'M', 2: 'F'}
+        sex = genders[subject_info.get('sex', 0)]
+
+        # determine the age of the participant
+        age = subject_info.get('birthday', None)
+        meas_date = raw.info.get('meas_date', None)
+        if isinstance(meas_date, (tuple, list, np.ndarray)):
+            meas_date = meas_date[0]
+
+        if meas_date is not None and age is not None:
+            bday = datetime(age[0], age[1], age[2])
+            meas_datetime = datetime.fromtimestamp(meas_date)
+            subject_age = age_on_date(bday, meas_datetime)
+        else:
+            subject_age = "n/a"
+
+        data.update({'age': [subject_age], 'sex': [sex], 'group': [group]})
+
+    # append the participant data to the existing file if it exists, otherwise
+    # if `write_mode == 'overwrite'` write the data to a new file.
+    if os.path.exists(fname) and write_mode == 'append':
         df = pd.read_csv(fname, sep='\t')
-        df = df.append(pd.DataFrame(data={'participant_id': [subject_id],
-                                          'age': [age], 'sex': [gender],
-                                          'group': [group]},
-                                    columns=['participant_id', 'age', 'sex',
-                                             'group']))
-        df.drop_duplicates(subset='participant_id', keep='last', inplace=True)
+        df = df.append(pd.DataFrame(data=data,
+                                    columns=['participant_id', 'age',
+                                             'sex', 'group']))
+        df.drop_duplicates(subset='participant_id', keep='last',
+                           inplace=True)
         df = df.sort_values(by='participant_id')
     else:
-        df = pd.DataFrame(data={'participant_id': [subject_id],
-                                'age': [age], 'sex': [gender],
-                                'group': [group]},
-                          columns=['participant_id', 'age', 'sex', 'group'])
-    df = df.fillna("n/a")
+        df = pd.DataFrame(data=data,
+                          columns=['participant_id', 'age', 'sex',
+                                   'group'])
 
-    df.to_csv(fname, sep='\t', index=False)
+    df.to_csv(fname, sep='\t', index=False, na_rep='n/a')
+
+    if verbose:
+        print(os.linesep + "Writing '%s'..." % fname + os.linesep)
+        print(df.head())
 
     return fname
 
@@ -369,7 +425,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                 acquisition=None, run=None, kind='meg', events_data=None,
                 event_id=None, hpi=None, electrode=None, hsp=None,
                 emptyroom=False, config=None, overwrite=True, verbose=False,
-                extra_data=dict(), participant_data=dict(), readme_text=None):
+                extra_data=dict(), subject_group='n/a', readme_text=None):
     """Walk over a folder of files and create bids compatible folder.
 
     Parameters
@@ -430,14 +486,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         Currently supported keys are:
         'InstitutionName', 'ManufacturersModelName','DewarPosition',
         'Name' (Name of the project), 'DeviceSerialNumber'
-    participant_data : dict
-        A dictionary containing the participant information the recording is of
-        This dictionary can have the following keys:
-        - age - The age of the participant in years
-        - gender - M (Male), F (Female) or O (other)(?)
-        - group - a string indicating the group within the study the
-            participant belongs to.
-        All values must be passed in as strings.
+    subject_group : string
+        the group within the study the participant belongs to.
     readme_text : string
         A string containing the contents of the readme file to be placed along
         side the data.
@@ -475,6 +525,7 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         task = 'noise'
         acquisition = None    # set back to None so it isn't displayed
 
+    """
     # do some sanitzation of the participant data provided:
     try:
         age = int(participant_data['age'])
@@ -486,14 +537,19 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         gender = 'n/a'
     participant_data['gender'] = gender
     participant_data['group'] = participant_data.get('group', 'n/a')
+    """
 
     # this will only work if the user specifies the electrode and hsp files,
     # which you wouldn't normally do if you just provide a raw
     # If raw files were to store all the paths we wouldn't need to do this
     # (other than empty room override...)
+    #TODO: implement mne_bids implementation
     extra_data["DigitizedLandmarks"] = (True if (electrode is not None and
-                                                 emptyroom is not True) else False)
-    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and emptyroom is not True) else False)
+                                                 emptyroom is not True)
+                                        else False)
+    extra_data["DigitizedHeadPoints"] = (True if (hsp is not None and
+                                                  emptyroom is not True)
+                                         else False)
 
     data_path = make_bids_folders(subject=subject_id, session=session_id,
                                   kind=kind, root=output_path,
@@ -519,10 +575,10 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
                     sss = True
                 if max_info['max_st'] != dict():
                     tsss = True
-    if tsss:
-        processing = 'tsss'
-    elif sss:
-        processing = 'sss'
+        if tsss:
+            processing = 'tsss'
+        elif sss:
+            processing = 'sss'
 
     # create filenames
     scans_fname = make_bids_filename(
@@ -580,9 +636,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     if isinstance(readme_text, string_types):
         make_readme(output_path, readme_text)
     if emptyroom is not True:
-        _participants_tsv(participants_fname, subject_id,
-                          participant_data['age'], participant_data['gender'],
-                          participant_data['group'])
+        _participants_tsv(raw, subject_id, subject_group, participants_fname,
+                          'append', verbose)
     _channel_json(raw, task, manufacturer, data_meta_fname, kind, verbose,
                   overwrite, **extra_data)
 

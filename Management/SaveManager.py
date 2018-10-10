@@ -2,6 +2,31 @@ import pickle
 from FileTypes import FIFData, con_file, mrk_file, KITData
 import os.path as path
 
+""" Save format specification/taken names:
+    # FileInfo:
+    file:   file name
+    jnk:    is junk
+    # BIDSFile:
+    acq:    acquisition
+    tsk:    task
+    hpi:    marker coils
+    ier:    is empty room
+    her:    has empty room
+    # BIDSContainer:
+    prj:    project ID
+    sid:    session ID
+    sji:    subject ID
+    sja:    subject age
+    sjs:    subject gender
+    sjg:    subject group
+    # KITData:
+    dwr:    dewar position
+    # con_file:
+    cin:    channel info        # TODO: merge with FIFData format (somehow???)
+    # FIFData:
+    chs:    channel info        # TODO: move to BIDSContainer
+"""
+
 
 class SaveManager():
     """

@@ -34,12 +34,11 @@ class BIDSContainer(FileInfo):
 
         # subject info
         self.subject_ID = StringVar()
-        self.subject_age = StringVar()  # need to think about this a bit...
+        # self.subject_age format [DD, MM, YYYY]
+        self.subject_age = [StringVar(), StringVar(), StringVar()]
         self.subject_gender = OptionsVar(options=['M', 'F', 'U'])
         self.subject_group = OptionsVar()
         self.subject_group.trace("w", self._update_groups)
-
-        self.bids_conversion_progress = StringVar()
 
         self.contains_required_files = True
 
@@ -152,7 +151,9 @@ class BIDSContainer(FileInfo):
         data['prj'] = self.proj_name.get()
         data['sid'] = self.session_ID.get()
         data['sji'] = self.subject_ID.get()
-        data['sja'] = self.subject_age.get()
+        data['sja'] = [self.subject_age[0].get(),
+                       self.subject_age[1].get(),
+                       self.subject_age[2].get()]
         data['sjs'] = self.subject_gender.get()
         data['sjg'] = self.subject_group.get()
 
@@ -163,6 +164,8 @@ class BIDSContainer(FileInfo):
         self.proj_name.set(state['prj'])
         self.session_ID.set(state['sid'])
         self.subject_ID.set(state['sji'])
-        self.subject_age.set(state['sja'])
+        self.subject_age[0].set(state['sja'][0])
+        self.subject_age[1].set(state['sja'][1])
+        self.subject_age[2].set(state['sja'][2])
         self.subject_gender.set(state['sjs'])
         self.subject_group.set(state['sjg'])

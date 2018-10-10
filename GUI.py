@@ -11,15 +11,16 @@ import os.path as path
 from os import listdir
 
 from platform import system as os_name
+from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, con_file, Folder, KITData, BIDSFile
 
 from CustomWidgets import EnhancedTreeview
 
-from Management import ClickContext, ToolTipManager
+from Management import ClickContext
 from Management.InfoManager import InfoManager
 from Management.SaveManager import SaveManager
-from Windows import SettingsWindow, ProgressPopup, CheckSavePopup
+from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 
 from utils import threaded, get_object_class, create_folder
 
@@ -29,16 +30,21 @@ DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}
 
 root = Tk()
-root.geometry("1080x600")
 
-tt = ToolTipManager()
+# TODO: add some kind of .withdraw to make the drawing look better
 
-s = Style()
+
+style = Style()
 
 
 class main(Frame):
     def __init__(self, master):
         self.master = master
+
+        self.master.withdraw()
+        if self.master.winfo_viewable():
+            self.master.transient()
+
         self.master.protocol("WM_DELETE_WINDOW", self._check_exit)
         self.master.title("Biscuit")
         # this directory is weird because the cwd is the parent folder, not
@@ -46,13 +52,24 @@ class main(Frame):
         if os_name() == 'Windows':
             #self.master.iconbitmap('assets/biscuit_icon_windows.ico')
             self.master.iconbitmap('assets/bisc.ico')
+            self.treeview_text_size = 10
+        elif os_name() == 'Linux':
+            img = PhotoImage(file='assets/bisc.png')
+            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            self.treeview_text_size = 12
         else:
             # this doesn't work :'(
-            img = PhotoImage(file='assets/biscuit.png')
-            #self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.master.wm_iconphoto(True, img)
+            img = PhotoImage(file='assets/bisc.png')
+            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+            self.treeview_text_size = 13
+            #self.master.wm_iconphoto(True, img)
             #self.master.wm_iconbitmap(img)
         Frame.__init__(self, self.master)
+
+        # sort out some styling
+
+        style.configure("Treeview", font=("TkTextFont",
+                                          self.treeview_text_size))
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
@@ -93,13 +110,27 @@ class main(Frame):
         # options: "ASSOCIATING", "NORMAL"
 
         # set some tag configurations
+
         self.file_treeview.tag_configure('ASSOC_FILES', foreground="Blue")
         self.file_treeview.tag_configure('BAD_FILE', foreground="Red")
         self.file_treeview.tag_configure('GOOD_FILE', foreground="Green")
-        self.file_treeview.tag_configure('JUNK_FILE',
-                                         font=(None, 8, 'overstrike'))
+        self.file_treeview.tag_configure(
+            'JUNK_FILE', font=("TkTextFont", self.treeview_text_size,
+                               'overstrike'))
+        #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
+
+        self.master.deiconify()
+        self.focus_set()
+
+        self.update_idletasks()
+
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        screen_dimensions = "{0}x{1}+20+20".format(screen_width - 200,
+                                                   screen_height - 200)
+        root.geometry(screen_dimensions)
 
     def _fill_file_tree(self, parent, directory=None):
         """
@@ -207,10 +238,20 @@ class main(Frame):
         # add options to the options menu:
         self.options_menu.add_command(label="Set data directory",
                                       command=self._get_data_location)
-        self.options_menu.add_command(label="Matlab path",
-                                      command=self._get_matlab_location)
+        #self.options_menu.add_command(label="Matlab path",
+        #                              command=self._get_matlab_location)
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
+
+        # info menu
+        self.info_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Info", menu=self.info_menu)
+
+        # credits menu
+        self.info_menu.add_command(label="Credits",
+                                  command=self._display_credits_popup)
+        self.info_menu.add_command(label="Help",
+                                  command=self._load_help_link)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -260,9 +301,15 @@ class main(Frame):
         self.pw.grid(column=0, row=0, sticky="nsew")
         main_frame.grid(column=0, row=0, sticky="nsew")
 
-        self.exitButton = Button(main_frame, text="Exit",
+        buttonFrame = Frame(main_frame)
+        buttonFrame.grid(column=0, row=1, columnspan=2)
+
+        self.saveButton = Button(buttonFrame, text="Save",
+                                 command=lambda: self.save_handler.save())
+        self.saveButton.grid(column=0, row=0, padx=5)
+        self.exitButton = Button(buttonFrame, text="Exit",
                                  command=self._check_exit)
-        self.exitButton.grid(column=0, row=1, columnspan=2)
+        self.exitButton.grid(column=1, row=0, padx=5)
 
         # add resizing stuff:
         self.master.columnconfigure(0, weight=1)
@@ -475,8 +522,12 @@ class main(Frame):
                         if isinstance(obj, generic_file):
                             obj.dtype = ext
                         obj.load_data()
-                        # finally, add the object to the preloaded data
-                        self.preloaded_data[id_] = obj
+                    else:
+                        obj = generic_file(id_=id_, file=path_,
+                                           parent=self)
+                        obj.dtype = ext
+                    # finally, add the object to the preloaded data
+                    self.preloaded_data[id_] = obj
         self._populate_info_panel(sids)
         return
 
@@ -532,6 +583,13 @@ class main(Frame):
                 if isinstance(obj, KITData):
                     obj.settings = self.proj_settings
 
+    def _display_credits_popup(self):
+        CreditsPopup(self)
+
+    def _load_help_link(self):
+        # TODO: actually set this up
+        open_hyperlink("https://github.com/Macquarie-MEG-Research/Biscuit/wiki")  # noqa
+
     def get_selection_info(self):
         data = []
         for sid in self.file_treeview.selection():
@@ -543,7 +601,9 @@ class main(Frame):
 
     def check_progress(self, progress):
         if not self.progress_popup:
-            self.progress_popup = ProgressPopup(self, progress)
+            # TODO: this is broken but we might not even want to call it from
+            # here anyway...?
+            self.progress_popup = ProgressPopup(self, progress, None)
 
     def _check_exit(self):
         """

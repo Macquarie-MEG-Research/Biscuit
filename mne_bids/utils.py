@@ -277,6 +277,27 @@ def _get_ext(fname):
     else:
         return ext
 
+def age_on_date(bday, exp_date):
+    """Calculate age from birthday and experiment date.
+
+    Parameters
+    ----------
+    bday : instance of datetime.datetime
+        The birthday of the participant.
+    exp_date : instance of datetime.datetime
+        The date the experiment was performed on.
+
+    """
+    if exp_date < bday:
+        raise ValueError("The experimentation date must be after the birth "
+                         "date")
+    if exp_date.month > bday.month:
+        return exp_date.year - bday.year
+    elif exp_date.month == bday.month:
+        if exp_date.day >= bday.day:
+            return exp_date.year - bday.year
+    return exp_date.year - bday.year - 1
+
 
 def _infer_eeg_placement_scheme(raw):
     """Based on the channel names, try to infer an EEG placement scheme.

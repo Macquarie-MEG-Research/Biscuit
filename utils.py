@@ -1,5 +1,5 @@
 from functools import wraps
-from tkinter import IntVar, BooleanVar, DoubleVar, StringVar
+from tkinter import StringVar
 import os.path as path
 from os import makedirs
 
@@ -96,41 +96,38 @@ def generate_readme(data):
     return out_str
 
 
-def pickle_var(var):
-    """
-    Takes in a Variable type object var and returns a tuple with the type as a
-    string and value
-    """
-    if isinstance(var, IntVar):
-        return ('int', var.get())
-    elif isinstance(var, StringVar):
-        return ('string', var.get())
-    elif isinstance(var, BooleanVar):
-        return ('bool', var.get())
-    elif isinstance(var, DoubleVar):
-        return ('double', var.get())
-    else:
-        raise TypeError
+class StreamedVar(StringVar):
+    def __init__(self, patterns=[], *args, **kwargs):
+        """
+        pattern is a regex pattern which can be matched
+        to only allow the value to be updated if there is a match.
+        This allows filtering of output
+        """
+        super(StreamedVar, self).__init__(*args, **kwargs)
+        self._curr_value = StringVar()
+        #if pattern is not None:
+        #    self.pattern = re.compile(pattern)
+        self.pattern = patterns
 
+    def write(self, value):
+        if value != '\n':
+            self.set(self.get() + value)
+        else:
+            #if re.match(self.pattern, self.get()):
+            for pattern in self.pattern:
+                if pattern in self.get():
+                    self.curr_value.set(self.get())
+                    self.set('')
+                    break
+            else:
+                self.set('')
 
-def unpickle_var(data):
-    """
-    Takes in a tuple of the form (type (str), value) and returns an actual
-    Variable subclass object
-    """
-    if data[0] == 'int':
-        _temp = IntVar()
-    elif data[0] == 'string':
-        _temp = StringVar()
-    elif data[0] == 'bool':
-        _temp = BooleanVar()
-    elif data[0] == 'double':
-        _temp = DoubleVar()
-    else:
-        print(data)
-        raise ValueError(data[0])
-    _temp.set(data[1])
-    return _temp
+    def get_curr(self):
+        return self.curr_value.get()
+
+    @property
+    def curr_value(self):
+        return self._curr_value
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
-from tkinter import Toplevel, StringVar, WORD, IntVar, END
-from tkinter.ttk import Frame, Label, Entry, Button
+from tkinter import Toplevel, StringVar, WORD, IntVar, END, Entry
+from tkinter.ttk import Frame, Label, Button
 from tkinter.scrolledtext import ScrolledText
 from CustomWidgets import DateEntry
 from CustomWidgets.InfoEntries import InfoEntry
@@ -11,7 +11,6 @@ class ProjectSettingsWindow(Toplevel):
     def __init__(self, master, settings=dict()):
         self.master = master
         Toplevel.__init__(self, self.master)
-        print(self, 'psw')
         self.withdraw()
         if master.winfo_viewable():
             self.transient(master)
@@ -55,14 +54,12 @@ class ProjectSettingsWindow(Toplevel):
         Label(self.frame, text="Start Date:").grid(
             column=0, row=1, pady=2, padx=2)
         self.sd_entry = DateEntry(
-            self.frame, text=self.settings.get('StartDate', ['', '', '']),
-            border=0)
+            self.frame, text=self.settings.get('StartDate', ['', '', '']))
         self.sd_entry.grid(column=1, row=1, pady=2, padx=2)
         Label(self.frame, text="End Date:").grid(
             column=2, row=1, pady=2, padx=2)
         self.ed_entry = DateEntry(
-            self.frame, text=self.settings.get('EndDate', ['', '', '']),
-            border=0)
+            self.frame, text=self.settings.get('EndDate', ['', '', '']))
         self.ed_entry.grid(column=3, row=1, pady=2, padx=2)
         Label(self.frame, text="Project description:").grid(
             column=0, row=2, padx=2, pady=2)
@@ -89,6 +86,21 @@ class ProjectSettingsWindow(Toplevel):
         self.save_btn = Button(self.frame, text="Save",
                                command=self._write_settings)
         self.save_btn.grid(column=4, row=9)
+
+        self.frame.grid_columnconfigure(0, weight=1)
+        self.frame.grid_columnconfigure(1, weight=1)
+        self.frame.grid_columnconfigure(2, weight=1)
+        self.frame.grid_columnconfigure(3, weight=1)
+        self.frame.grid_columnconfigure(4, weight=0)
+        self.frame.grid_rowconfigure(0, weight=0)
+        self.frame.grid_rowconfigure(1, weight=0)
+        self.frame.grid_rowconfigure(2, weight=0)
+        self.frame.grid_rowconfigure(3, weight=1)
+        self.frame.grid_rowconfigure(8, weight=1)
+        self.frame.grid_rowconfigure(9, weight=0)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
 
     def get_settings(self):
         """

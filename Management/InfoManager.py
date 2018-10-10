@@ -32,13 +32,17 @@ class InfoManager(Notebook):
         self.requires_update = True
         self.context = context
 
+        #TODO: just pass parent instead of parent.settings and allow settings
+        # to be retreived one step further down?
+
         # generic info frame
         self.info_tab = GenericInfoFrame(self)
         self.add(self.info_tab, text="Info")
         self._tabs[T_MISC] = 0
 
         # Session info tab (for BIDS-compatible folders)
-        self.session_tab = SessionInfoFrame(self, self.parent.settings)
+        self.session_tab = SessionInfoFrame(self, self.parent.settings,
+                                            self.parent)
         self.add(self.session_tab, text=" Folder Info")
         self._tabs[T_FOLDER] = 1
 
@@ -53,7 +57,8 @@ class InfoManager(Notebook):
         self._tabs[T_CHANNELS] = 3
 
         # fif file tab
-        self.fif_info_tab = FifFileFrame(self, self.parent.settings)
+        self.fif_info_tab = FifFileFrame(self, self.parent.settings,
+                                         self.parent)
         self.add(self.fif_info_tab, text="File Info")
         self._tabs[T_FIF] = 4
 
@@ -83,15 +88,15 @@ class InfoManager(Notebook):
         # If a .fif file is selected then show the fif info tab and event tab
         elif self.context == '.FIF':
             if self.data[0].mainfile_name is None:
-                self.fif_info_tab.file = self._data[0]
-                self.fif_event_tab.file = self._data[0]
+                self.fif_info_tab.file = self.data[0]
+                self.fif_event_tab.file = self.data[0]
                 self.display_tabs(T_FIF, T_EVENTS)
                 if self.context.previous == {'.FIF'} and self.select() != '':
                     self.select(self.select())  # keep current selected
                 else:
                     self.select(self._tabs[T_FIF])
             else:
-                self.info_tab.file = self._data[0]
+                self.info_tab.file = self.data[0]
                 self.display_tabs(T_MISC)
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
@@ -109,7 +114,7 @@ class InfoManager(Notebook):
                 self.display_tabs(T_MISC)
                 self.select(self._tabs[T_MISC])
             else:
-                if self._data[0].display_raw:
+                if self.data[0].display_raw:
                     self.scrolltext_tab.file = self._data[0]
                     self.display_tabs(T_SCROLLTEXT)
                     self.select(self._tabs[T_SCROLLTEXT])
@@ -149,16 +154,16 @@ class InfoManager(Notebook):
             "File part of {0}.fif".format(self.data[0].mainfile_name))
 
     def _determine_misc_data(self):
-        if self._data is None:
+        if self.data is None:
             self._display_nothing()
         else:
-            if len(self._data) == 1:
+            if len(self.data) == 1:
                 if isinstance(self.data[0], Folder):
                     self._display_invalid_folder()
                 elif isinstance(self.data[0], FIFData):
                     self._display_fif_part()
                 elif isinstance(self.data[0], FileInfo):
-                    if (self._data[0].unknown_type is False and
+                    if (self.data[0].unknown_type is False and
                             self.data[0].dtype != '.con'):
                         # in this case we are displaying the info about a
                         # single file

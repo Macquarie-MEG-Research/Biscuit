@@ -1,10 +1,16 @@
-from tkinter import Checkbutton, Variable, DISABLED
+from tkinter import Variable, DISABLED
 from tkinter import Button as tkButton
-from tkinter.ttk import Label, Separator, Button, Frame, Entry, Combobox
+from tkinter import Entry as tkEntry
+from tkinter.ttk import (Label, Separator, Button, Frame, Checkbutton,
+                         Combobox)
 from PIL import Image, ImageTk
 # import copy so we can create static copies of the reference functions in the
 # underlying pattern of a row if any.
 from copy import copy
+
+from platform import system as os_name
+
+from constants import OSCONST
 
 from .ScrollableFrame import ScrollableFrame
 
@@ -57,6 +63,9 @@ class WidgetTable(Frame):
 
         self.master = master
 
+        #s = Style(self.master)
+        #s.configure('proper.TEntry', background='green')
+
         super(WidgetTable, self).__init__(self.master, *args, **kwargs)
 
         self.rows = []
@@ -68,6 +77,14 @@ class WidgetTable(Frame):
         self.adder_script = adder_script
         self.remove_script = remove_script
         self.sort_column = sort_column
+
+        if os_name() == 'Windows':
+            self.entry_config = {}
+        else:
+            # TODO: make this a proper colour
+            # TODO: use the OSCONST object for these
+            self.entry_config = {'highlightbackground': '#E9E9E9',
+                                 'readonlybackground': '#E0E0E0'}
 
         # the index we need to redraw the rows after
         self.first_redraw_row = 0
@@ -105,14 +122,14 @@ class WidgetTable(Frame):
             self.data = []
             self._draw_separators()
 
-        self.bind('<Control-n>', self._add_row_from_key)
+        self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
     def _add_row_from_key(self, *args):
         # only add a new row if we can add anything, not entries from the
         # add_options list.
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self.sf.configure_view()
+            self.sf.configure_view(resize_canvas='x')
 
     def _create_widgets(self):
         if isinstance(self.add_options, list):
@@ -141,7 +158,7 @@ class WidgetTable(Frame):
                 self.add_button = Button(self.sf.frame, text="Add Row",
                                          command=self.add_row_from_button)
                 self.add_button.grid(row=2, column=2 * self.num_columns - 1)
-                self.add_button.bind('<Control-n>', self._add_row_from_key)
+                self.add_button.bind(OSCONST.ADDROW, self._add_row_from_key)
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
@@ -184,21 +201,27 @@ class WidgetTable(Frame):
             # draw each of the new widgets in the last row
             for i, w in enumerate(self.widgets_pattern):
                 w_actual = w(self.sf.frame)
-                w_actual.bind('<Control-n>', self._add_row_from_key)
+                w_actual.bind(OSCONST.ADDROW, self._add_row_from_key)
                 w_actual.grid(row=rows, column=2 * i, sticky='nsew', padx=2,
                               pady=2)
                 row_widgets.append(w_actual)
 
             # add the delete button at the end of the row
-            curr_row = initial_rows + r
-            delete_button = tkButton(
-                self.sf.frame,
-                command=lambda x=curr_row: self.delete_rows_and_update(x),
-                relief='flat', borderwidth=0, highlightthickness=0)
-            delete_button.config(image=self.delete_icon)
-            delete_button.grid(row=rows, column=2 * self.num_columns - 1)
-            row_widgets.append(delete_button)
+            if self.remove_script != DISABLED:
+                curr_row = initial_rows + r
+                delete_button = tkButton(
+                    self.sf.frame,
+                    command=lambda x=curr_row: self.delete_rows_and_update(x),
+                    relief='flat', borderwidth=0, highlightthickness=0,
+                    takefocus=0)
+                delete_button.config(image=self.delete_icon)
+                delete_button.grid(row=rows, column=2 * self.num_columns - 1)
+                row_widgets.append(delete_button)
             self.widgets.append(row_widgets)
+
+            # set the focus on the first of the widgets in the bottom row
+            # TODO: this will probably need a bit more complexity added to it??
+            self.widgets[-1][0].focus_set()
 
         if count != 0:
             # finally, fix up separators and add button if needed
@@ -333,7 +356,7 @@ class WidgetTable(Frame):
             # first, create a lambda which can be re-used for each row
             w = self.widgets_pattern[column]
             try:
-                if issubclass(w, (Entry, Label)):
+                if issubclass(w, Label):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
                         apply = lambda wgt, var: wgt.configure(
@@ -342,6 +365,15 @@ class WidgetTable(Frame):
                     else:
                         apply = lambda wgt, var: wgt.configure(
                             textvariable=var)
+                if issubclass(w, tkEntry):
+                    if isinstance(self.pattern[column], dict):
+                        # apply any provided configs:
+                        apply = lambda wgt, var: wgt.configure(
+                            textvariable=var['var'], **self.entry_config,
+                            **var.get('configs', dict()))
+                    else:
+                        apply = lambda wgt, var: wgt.configure(
+                            textvariable=var, **self.entry_config)
                 if issubclass(w, Checkbutton):
                     # check underlying data type to provide correct function
                     if isinstance(self.pattern[column], dict):
@@ -402,7 +434,7 @@ class WidgetTable(Frame):
         self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
-        self.sf.configure_view()
+        self.sf.configure_view(resize_canvas='')
 
     def _draw_separators(self):
         rows = self.sf.frame.grid_size()[1]
@@ -431,7 +463,7 @@ class WidgetTable(Frame):
                 pass
         else:
             self.add_rows()
-        self.sf.configure_view(move_to_bottom=True)
+        self.sf.configure_view(move_to_bottom=True, resize_canvas='x')
 
     def add_row_from_selection(self, event):
         # this only needs to be different to implement the functionality to
@@ -443,7 +475,7 @@ class WidgetTable(Frame):
                 self.add_rows()
             else:
                 self.add_rows(ret)
-        self.sf.configure_view()
+        self.sf.configure_view(resize_canvas='x')
 
     def get(self, values=True):
         """

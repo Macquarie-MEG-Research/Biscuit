@@ -1,6 +1,7 @@
-from tkinter import *
+from tkinter import HORIZONTAL, RIGHT, Y, VERTICAL, LEFT, BOTTOM, X, W
+from tkinter import Toplevel, Label, TclError
 from tkinter import Entry as tkEntry
-from tkinter.ttk import *
+from tkinter.ttk import Treeview, Scrollbar
 import threading
 import shutil
 
@@ -143,7 +144,7 @@ class EnhancedTreeview(Treeview):
                 self.item(sid, values=[item['values'][0],
                           join(self.item(destination_id)['values'][1],
                                '{0}{1}'.format(item['text'],
-                               item['values'][0]))])
+                                               item['values'][0]))])
         else:
             # move the selected file to the same directory as the one the file
             # is in
@@ -155,7 +156,8 @@ class EnhancedTreeview(Treeview):
                         # this is the root directory
                         destination_path = self.root_path
                     else:
-                        destination_path = self.item(destination_id)['values'][1]
+                        destination_path = self.item(
+                            destination_id)['values'][1]
                     item = self.item(sid)
                     shutil.move(item['values'][1], destination_path)
                     self.move(sid, parent,
@@ -165,7 +167,7 @@ class EnhancedTreeview(Treeview):
                     self.item(sid, values=[item['values'][0],
                               join(destination_path,
                                    '{0}{1}'.format(item['text'],
-                                   item['values'][0]))])
+                                                   item['values'][0]))])
 
     def _add_dnd(self):
         if self.allow_dnd:
@@ -179,12 +181,10 @@ class EnhancedTreeview(Treeview):
                 xsb = Scrollbar(self.master, orient=HORIZONTAL,
                                 command=self.xview)
                 xsb.pack(side=BOTTOM, fill=X)
-                #xsb.grid(row=2,column=10, rowspan=10, sticky="ns", in_=self.master)
                 self.configure(xscroll=xsb.set)
             if orient == 'y':
                 ysb = Scrollbar(self.master, orient=VERTICAL,
                                 command=self.yview)
-                #ysb.grid(row=14,column=0, rowspan=2, sticky="ew", in_=self.master)
                 ysb.pack(side=RIGHT, fill=Y)
                 self.configure(yscroll=ysb.set)
 
@@ -205,7 +205,8 @@ class EnhancedTreeview(Treeview):
         column = self.column(column_num, option='id')
         if column_num == '#0':
             column = column_num
-        # we only want to allow editing if the user has specified the column should be editable
+        # we only want to allow editing if the user has specified the column
+        # should be editable
         if column in self.check_columns or column_num in self.check_columns:
             pass
     """
@@ -217,7 +218,8 @@ class EnhancedTreeview(Treeview):
     @OnRightClick.setter
     def OnRightClick(self, func):
         # set the event to be processed when an entry is right-clicked
-        # we need to determine the operating system here and bind Button-2 is mac, and Button-3 if windows
+        # we need to determine the operating system here and bind Button-2 is
+        # mac, and Button-3 if windows
         if os_name() == 'Windows':
             self.bind("<Button-3>", func, add='+')
         else:
@@ -298,9 +300,10 @@ class EnhancedTreeview(Treeview):
 
     def ordered_insert(self, parent, *args, **kwargs):
         """
-        Allows for objects to be inserted in the correct location alphabetically
-        they will be sorted by their text fields
-        this should be extended so that it is sorted by text > then any values in order
+        Allows for objects to be inserted in the correct location
+        alphabetically. They will be sorted by their text fields.
+        This should be extended so that it is sorted by text > then any values
+        in order.
         This will also only allow for insertion of folders in the correct place
 
         Returns the id of the object that has been inserted
@@ -324,7 +327,8 @@ class EnhancedTreeview(Treeview):
 
     def _get_insertion_index(self, child_sid, parent_sid):
         """
-        Find the index the object should be inserted at so that it remains in alphabetical order in the new location
+        Find the index the object should be inserted at so that it remains in
+        alphabetical order in the new location
         """
         child_fname = basename(self.item(child_sid)['values'][1])
         for index, child in enumerate(self.get_children(parent_sid)):
@@ -338,9 +342,12 @@ class EnhancedTreeview(Treeview):
 class EntryPopup(tkEntry):
 
     def __init__(self, master, text, entry_index, **kw):
-        ''' Simple entry to go over the box in the treeview to allow entries to be edited
+        """
+        Simple entry to go over the box in the treeview to allow entries to
+        be edited
         parent is the treeview parent
-        parent is a tuple of the format (row, column_id) so we can set the new value '''
+        parent is a tuple of the format (row, column_id) so we can set the new
+        value """
         super().__init__(master, **kw)
         self.entry_index = entry_index
 
@@ -360,7 +367,7 @@ class EntryPopup(tkEntry):
         return 'break'
 
     def onExit(self, event):
-        ''' Write the current value in the entry to the value and un-draw it '''
+        """ Write the current value in the entry to the value and un-draw """
         value = self.get()
         if self.entry_index[1] == '#0':
             self.master.item(self.entry_index[0], text=value)
@@ -391,29 +398,37 @@ class DNDManager():
     def _wait_then_run(self, delay, func, event):
         # we need to make sure we have selected an actual row...
         if self.master.identify_row(event.y) != "":
-            self.mouseclick_thread = threading.Timer(interval=delay, function=func, args=[event])
+            self.mouseclick_thread = threading.Timer(interval=delay,
+                                                     function=func,
+                                                     args=[event])
             self.mouseclick_thread.start()
 
     def _add_bindings(self):
-        self.master.bind("<ButtonPress-1>", lambda event: self._wait_then_run(0.15, self.on_start, event), add='+')
+        self.master.bind("<ButtonPress-1>",
+                         lambda event: self._wait_then_run(
+                             0.15, self.on_start, event), add='+')
         self.master.bind("<B1-Motion>", self.on_drag, add='+')
         self.master.bind("<ButtonRelease-1>", self.on_drop, add='+')
         self.master.configure(cursor="hand1")
 
     def on_start(self, event):
         self.activated = True
-        self.start_widget = event.widget.winfo_containing(*event.widget.winfo_pointerxy())
+        self.start_widget = event.widget.winfo_containing(
+            *event.widget.winfo_pointerxy())
         self.initial_selection = self.start_widget.get_dnd_selection()
         self.popup = Toplevel(bd=1, background='lightblue')
         self.popup.wm_attributes('-alpha', 0.9)
         #self.popup.transient()
-        self.popup.overrideredirect(1)      # forces the top level to have no border etc
+        # forces the top level to have no border etc:
+        self.popup.overrideredirect(1)
         self.popup.withdraw()
         xy = event.x_root + 16, event.y_root + 10
         self.popup.geometry("+%d+%d" % xy)
         self.popup.deiconify()
         self.popup.lift()
-        file_label = Label(self.popup, text=self.start_widget.item(self.initial_selection[0])['text'])
+        file_label = Label(
+            self.popup,
+            text=self.start_widget.item(self.initial_selection[0])['text'])
         file_label.config(background='lightblue')
         file_label.pack(side=LEFT)
 
@@ -422,7 +437,8 @@ class DNDManager():
         # represents what you're dragging
         #print("What a drag!")
         try:
-            # this can throw an error if the user very quickly clicks and moves the mouse
+            # this can throw an error if the user very quickly clicks and moves
+            # the mouse
             xy = event.x_root + 16, event.y_root + 10
             self.popup.geometry("+%d+%d" % xy)
         except:
@@ -430,7 +446,8 @@ class DNDManager():
             pass
 
     def on_drop(self, event):
-        # cancel the mouseclick_thread. If it hasn't completed then it won't. But if it has nothing will happen
+        # cancel the mouseclick_thread. If it hasn't completed then it won't.
+        # But if it has nothing will happen
         self.mouseclick_thread.cancel()
         try:
             self.popup.destroy()
@@ -438,11 +455,14 @@ class DNDManager():
             # it probably doesn't exist in this case...
             pass
         # find the widget under the cursor
-        if self.activated == True:
-            self.finish_widget = event.widget.winfo_containing(*event.widget.winfo_pointerxy())
-            # pass the start widget info and event to the widget the cursor was dropped on
+        if self.activated is True:
+            self.finish_widget = event.widget.winfo_containing(
+                *event.widget.winfo_pointerxy())
+            # pass the start widget info and event to the widget the cursor was
+            #  dropped on
             #try:
-            self.finish_widget.get_dnd_drop(self.start_widget, self.initial_selection, event)
+            self.finish_widget.get_dnd_drop(self.start_widget,
+                                            self.initial_selection, event)
             #except:
             #    print("widget you dropped on doesn't support DND!")
 

@@ -1,4 +1,7 @@
-from tkinter import Tk, ALL, Canvas, Frame, Scrollbar
+from tkinter import ALL, Canvas, Scrollbar
+from tkinter.ttk import Frame
+
+from constants import OSCONST
 
 from platform import system as os_name
 
@@ -20,11 +23,12 @@ class ScrollableFrame(Frame):
         self.vsb = Scrollbar(self, orient="vertical")
         self.vsb.grid(row=0, column=1, sticky='ns')
 
-        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set)
+        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                             bg=OSCONST.CANVAS_BG, highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
         # everything will go in this frame
-        self.frame = Frame(self.canvas, bd=0)
+        self.frame = Frame(self.canvas)
         self.frame.grid(row=0, column=0, sticky='nsew')
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
@@ -43,17 +47,24 @@ class ScrollableFrame(Frame):
     def _unbound_to_mousewheel(self, event):
         self.canvas.unbind_all("<MouseWheel>")
 
-    # TODO: fix for potential issues with mac??
     def _on_mousewheel(self, event):
         if self.vsb.get() != (0.0, 1.0):
             if os_name() == 'Windows':
-                self.canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
+                self.canvas.yview_scroll(int(-1 * (event.delta / 120)),
+                                         "units")
             else:
                 self.canvas.yview_scroll(-event.delta, "units")
 
-    def configure_view(self, event=None, move_to_bottom=False):
+    def configure_view(self, event=None, move_to_bottom=False,
+                       resize_canvas='xy'):
         self.update_idletasks()
-        self.canvas.config(scrollregion=self.canvas.bbox(ALL))
+        bbox = self.canvas.bbox(ALL)
+        canvas_config = {'scrollregion': bbox}
+        if 'x' in resize_canvas:
+            canvas_config['width'] = bbox[2]
+        if 'y' in resize_canvas:
+            canvas_config['height'] = bbox[3]
+        self.canvas.config(**canvas_config)
         if move_to_bottom:
             self.canvas.yview_moveto(1.0)
 
@@ -62,7 +73,7 @@ class ScrollableFrame(Frame):
 
 
 if __name__ == "__main__":
-    from tkinter import Label, W, Button
+    from tkinter import Label, W, Button, Tk
 
     class main(Frame):
         def __init__(self, master):

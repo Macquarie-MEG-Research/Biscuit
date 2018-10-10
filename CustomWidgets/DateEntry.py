@@ -1,4 +1,5 @@
 from tkinter import Entry, Frame, FLAT, Label, END, SUNKEN, LEFT
+from datetime import datetime
 
 """
 Code c/o pydesigner from stackoverflow:
@@ -10,15 +11,13 @@ DEFAULTVALUE = ['', '', '']
 
 
 class DateEntry(Frame):
-    def __init__(self, master, text=DEFAULTVALUE, frame_look={}, **look):
-        args = dict(relief=SUNKEN, border=1)
-        args.update(frame_look)
-        Frame.__init__(self, master, **args)
+    """ 3-part entry box for entering dates """
+    def __init__(self, master, text=DEFAULTVALUE):
+        Frame.__init__(self, master, relief=SUNKEN, border=1)
 
         self.validate_cmd = self.register(self._check_new)
 
-        args = {'relief': FLAT}
-        args.update(look)
+        args = {'relief': FLAT, 'border': 0}
 
         # we can give the entries some default values if they are provided
         # if the text input is malformed (ie. not a list or doesn't have
@@ -56,11 +55,6 @@ class DateEntry(Frame):
 
         self.entries = [self.entry_1, self.entry_2, self.entry_3]
 
-        #self.entry_1.bind('<KeyRelease>', lambda e: self._check(0, 2))
-        #self.entry_2.bind('<KeyRelease>', lambda e: self._check(1, 2))
-        #self.entry_3.bind('<KeyRelease>', lambda e: self._check(2, 4))
-        #self.entry_3.bind('<Shift-Tab>', self._move_back)
-
     def _move_back(self, event):
         self.moved_back = True
 
@@ -79,7 +73,7 @@ class DateEntry(Frame):
             if not new_val.isdigit():
                 return False
             else:
-                if len(new_val) == 2:
+                if len(new_val) == max_length:
                     # In this case, move cursor to next widget if we aren't the
                     # last one.
                     if wid != 2:
@@ -89,12 +83,22 @@ class DateEntry(Frame):
     def get(self):
         return [e.get() for e in self.entries]
 
+    @property
+    def valid(self):
+        """ Whether or not the date entered is a valid date """
+        date = self.get()
+        try:
+            datetime(int(date[2]), int(date[1]), int(date[0]))
+            return True
+        except ValueError:
+            return False
+
     def set(self, value):
         """
         Sets the value of the DateEntry
 
         Parameters:
-         - value : tuple
+         - value : tuple of string or int's
             The value to set the date to
         """
         self.entry_1.delete(0, END)
@@ -103,3 +107,15 @@ class DateEntry(Frame):
         self.entry_2.insert(0, str(value[1]))
         self.entry_3.delete(0, END)
         self.entry_3.insert(0, str(value[2]))
+
+    def setvar(self, value):
+        """
+        Sets the value of the DateEntry using Variable's
+
+        Parameters:
+         - value : tuple of StringVar's
+            The value to set the date to
+        """
+        self.entry_1.config(textvariable=value[0])
+        self.entry_2.config(textvariable=value[1])
+        self.entry_3.config(textvariable=value[2])

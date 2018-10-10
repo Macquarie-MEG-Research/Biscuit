@@ -1,16 +1,18 @@
-from tkinter import Frame, DISABLED, StringVar, IntVar
-from tkinter.ttk import Label, Separator, Button
+from tkinter import DISABLED, StringVar
+from tkinter.ttk import Label, Separator, Button, Frame
 from CustomWidgets.InfoEntries import InfoEntry, InfoChoice
+from CustomWidgets import DateEntry
 from Management import OptionsVar, convert, ToolTipManager
 
 # assign the tool tip manager
-tt = ToolTipManager()
+ttm = ToolTipManager()
 
 
 class SessionInfoFrame(Frame):
-    def __init__(self, master, settings, *args, **kwargs):
+    def __init__(self, master, settings, parent=None, *args, **kwargs):
         self.master = master
         self.settings = settings
+        self.parent = parent
         super(SessionInfoFrame, self).__init__(self.master, *args, **kwargs)
 
         self._file = None
@@ -38,6 +40,12 @@ class SessionInfoFrame(Frame):
         self.require_verification.append(self.proj_name_entry)
         self.proj_name_entry.label.grid(column=0, row=2, sticky='ew', pady=2)
         self.proj_name_entry.value.grid(column=1, row=2, sticky='ew', pady=2)
+        self.proj_name_entry.tooltip(
+            "Name of project this collection of file belongs to.\n"
+            "If you enter the name of a project listed in the project "
+            "settings\n"
+            "(Options > 'Set Defaults'), a number of values can be set by "
+            "default.")
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
                                        bad_values=[''],
                                        validate_cmd=None)
@@ -52,9 +60,10 @@ class SessionInfoFrame(Frame):
         self.sub_id_entry.label.grid(column=3, row=2, sticky='ew', pady=2)
         self.sub_id_entry.value.grid(column=4, row=2, sticky='ew', pady=2)
         self.require_verification.append(self.sub_id_entry)
-        self.sub_age_entry = InfoEntry(self, "Subject age", IntVar())
-        self.sub_age_entry.label.grid(column=3, row=3, sticky='ew', pady=2)
-        self.sub_age_entry.value.grid(column=4, row=3, sticky='ew', pady=2)
+        Label(self, text="Subject DOB").grid(column=3, row=3, sticky='ew',
+                                             pady=2)
+        self.sub_age_entry = DateEntry(self, ["", "", ""])
+        self.sub_age_entry.grid(column=4, row=3, sticky='ew', pady=2)
         self.sub_gender_entry = InfoChoice(self, "Subject gender",
                                            OptionsVar())
         self.sub_gender_entry.label.grid(column=3, row=4, sticky='ew', pady=2)
@@ -78,7 +87,8 @@ class SessionInfoFrame(Frame):
                                    command=self.convert_to_bids,
                                    state=DISABLED)
         self.bids_gen_btn.grid(column=3, row=7)
-        tt.register(self.bids_gen_btn, ("Convert session data to BIDS format"))
+        ttm.register(self.bids_gen_btn,
+                     ("Convert session data to BIDS format"))
         self.grid()
 
     def update_widgets(self):
@@ -88,14 +98,13 @@ class SessionInfoFrame(Frame):
         self.sess_id_entry.validate_cmd = self.file.check_valid
         self.sub_id_entry.value = self.file.subject_ID
         self.sub_id_entry.validate_cmd = self.file.check_valid
-        self.sub_age_entry.value = self.file.subject_age
+        self.sub_age_entry.setvar(self.file.subject_age)
         self.sub_gender_entry.value = self.file.subject_gender
         self.sub_group_entry.value = self.file.subject_group
         self.dewar_position_entry.value = self.file.dewar_position
 
     def convert_to_bids(self):
-        print('converting to bids')
-        convert(self.file, self.settings)
+        convert(self.file, self.settings, self.parent)
 
     """
     def _folder_to_bids(self):

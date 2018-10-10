@@ -1,8 +1,11 @@
 from tkinter import ALL
 # import this specifically like this because we can actually set the bg colour
 from tkinter import Entry as tkEntry
-from tkinter.ttk import Label, Checkbutton, Frame, Combobox
+from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
 from utils import clear_widget
+from Management import ToolTipManager
+
+ttm = ToolTipManager()
 
 
 class InfoMaster():
@@ -28,8 +31,13 @@ class InfoMaster():
 
     def _set_value(self, value):
         """ a method to be overwridden by other classes """
-        #self._label.config(text="{0}: ".format(self._data[0]))
         pass
+
+    def tooltip(self, text):
+        """ Register the text specified with the tool tip manager (ttm) for
+        both label and value widgets """
+        ttm.register(self.label, text)
+        ttm.register(self.value, text)
 
     @property
     def label(self):
@@ -46,12 +54,6 @@ class InfoMaster():
     @property
     def master(self):
         return self._master
-
-    """
-    @property
-    def data(self):
-        return self._data
-    """
 
     @value.setter
     def value(self, value):
@@ -121,10 +123,11 @@ class InfoEntry(InfoMaster):
         # draw the label and entry box
         #self._label = Label(self._master, text="{0}: ".format(data[0]))
         if bad_values == []:
-            self._value = tkEntry(self._master, textvariable=value)
+            self._value = Entry(self._master, textvariable=value)
         else:
             self._value = ValidatedEntry(self._master, bad_values=bad_values,
                                          textvariable=value,
+                                         highlightbackground='#E9E9E9',
                                          validate_cmd=validate_cmd)
 
     def check_valid(self):
@@ -228,6 +231,8 @@ class InfoChoice(InfoMaster):
         self._value.set(self.optVar.get())
         self._value.bind("<<ComboboxSelected>>", self.select_value)
 
+        self._value.bind('<KeyPress>', self._select_from_key)
+
     def select_value(self, event):
         self.optVar.set(self._value.get())
 
@@ -240,3 +245,13 @@ class InfoChoice(InfoMaster):
         # allow external overriding of the bind event
         self.select_value(event)
         self._value.bind(event, func)
+
+    def _select_from_key(self, *args):
+        """ select the first entry starting with the entered key """
+        # TODO: make it continue through them?
+        char = args[0].char.upper()
+        for opt in self.optVar.options:
+            if opt.upper().startswith(char):
+                self.optVar.set(opt)
+                self._value.set(self.optVar.get())
+                break
