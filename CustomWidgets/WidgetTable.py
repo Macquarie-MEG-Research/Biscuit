@@ -10,6 +10,8 @@ from copy import copy
 
 from platform import system as os_name
 
+from constants import OSCONST
+
 from .ScrollableFrame import ScrollableFrame
 
 
@@ -120,7 +122,7 @@ class WidgetTable(Frame):
             self.data = []
             self._draw_separators()
 
-        self.bind('<Control-n>', self._add_row_from_key)
+        self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
     def _add_row_from_key(self, *args):
         # only add a new row if we can add anything, not entries from the
@@ -156,7 +158,7 @@ class WidgetTable(Frame):
                 self.add_button = Button(self.sf.frame, text="Add Row",
                                          command=self.add_row_from_button)
                 self.add_button.grid(row=2, column=2 * self.num_columns - 1)
-                self.add_button.bind('<Control-n>', self._add_row_from_key)
+                self.add_button.bind(OSCONST.ADDROW, self._add_row_from_key)
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
@@ -199,7 +201,7 @@ class WidgetTable(Frame):
             # draw each of the new widgets in the last row
             for i, w in enumerate(self.widgets_pattern):
                 w_actual = w(self.sf.frame)
-                w_actual.bind('<Control-n>', self._add_row_from_key)
+                w_actual.bind(OSCONST.ADDROW, self._add_row_from_key)
                 w_actual.grid(row=rows, column=2 * i, sticky='nsew', padx=2,
                               pady=2)
                 row_widgets.append(w_actual)
@@ -216,6 +218,10 @@ class WidgetTable(Frame):
                 delete_button.grid(row=rows, column=2 * self.num_columns - 1)
                 row_widgets.append(delete_button)
             self.widgets.append(row_widgets)
+
+            # set the focus on the first of the widgets in the bottom row
+            # TODO: this will probably need a bit more complexity added to it??
+            self.widgets[-1][0].focus_set()
 
         if count != 0:
             # finally, fix up separators and add button if needed

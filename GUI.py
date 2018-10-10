@@ -590,7 +590,9 @@ class main(Frame):
 
     def check_progress(self, progress):
         if not self.progress_popup:
-            self.progress_popup = ProgressPopup(self, progress)
+            # TODO: this is broken but we might not even want to call it from
+            # here anyway...?
+            self.progress_popup = ProgressPopup(self, progress, None)
 
     def _check_exit(self):
         """
