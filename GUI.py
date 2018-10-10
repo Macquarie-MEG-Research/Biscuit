@@ -50,7 +50,6 @@ class main(Frame):
         # this directory is weird because the cwd is the parent folder, not
         # the Biscuit folder. Maybe because vscode?
         if os_name() == 'Windows':
-            #self.master.iconbitmap('assets/biscuit_icon_windows.ico')
             self.master.iconbitmap('assets/bisc.ico')
             self.treeview_text_size = 10
         elif os_name() == 'Linux':
