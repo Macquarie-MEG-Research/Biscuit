@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>General use - Biscuit</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">Biscuit</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../installation/">Installation</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li class="active">
+    <a href="./">General use</a>
+</li>
+                                    
+<li >
+    <a href="../guide_kit/">KIT data</a>
+</li>
+                                    
+<li >
+    <a href="../guide_elekta/">Elekta data</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../installation/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../guide_kit/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://github.com/Macquarie-MEG-Research/Biscuit/edit/master/docs/guide_general.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#general-usage">General Usage</a></li>
+            <li><a href="#main-window">Main window</a></li>
+            <li><a href="#settings-windows">Settings windows</a></li>
+            <li><a href="#general-navigation">General navigation</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="general-usage">General Usage</h1>
+<p>Biscuit can be run by running the <code>GUI.py</code> file with Python.
+Upon running the script you will be greeting with two pop-ups.
+The first pop-up will ask you to select the location of your MEG data. You need to select the parent folder that contains all of your MEG data, instead of a single folder which contains data from one session.</p>
+<h2 id="main-window">Main window</h2>
+<p>Selecting a folder as shown will bring up the <em>Folder Info</em> tab where you can enter important info about the recording session. In general, if a field is red, it is required for conversion to BIDS format, and the process won't be allowed until a session has no red fields remaining.</p>
+<h2 id="settings-windows">Settings windows</h2>
+<p>To make the BIDS conversion process as quick and easy as possible, Biscuit is able to store the settings for any projects you have to reduce the amount of information needed to be entered.
+Each project has it's own settings, so any file that is given the specified project number will automatically have these settings applied to it.</p>
+<h3 id="project-settings-list">Project settings list</h3>
+<p>To add new settings or edit existing settings select <code>Options &gt; Set Defaults</code> from the menu.
+The first time you run Biscuit you will be greeted with an empty list of project settings.</p>
+<p><img alt="ps_empty" src="../_images/screenshots/proj_settings_empty.PNG" /></p>
+<p>This view displays some condensed information about the project so that you can see quickly what the important current settings are.
+To add settings for a new project select the <code>Add Row</code> button.</p>
+<h3 id="add-new-project-settings">Add new project settings</h3>
+<p><img alt="new_ps_empty" src="../_images/screenshots/add_project_settings_empty.PNG" /></p>
+<p>The new project settings popup allows for a fair bit of information to be entered.
+It is worth spending some time to enter in any project information here as the information is applied to all relevant data.</p>
+<h4 id="entry-field-descriptions">Entry field descriptions</h4>
+<ul>
+<li><strong>Project Title</strong>: A short title for your project. This will be placed in the readme generated.</li>
+<li><strong>Project ID</strong>: This is the ID of your project. Generally this will be an alphanumeric identifier that all experiments within a test will share. It is this value that tells Biscuit what experimental data should be using the project settings.</li>
+<li><strong>Start/End Date</strong>: Starting and finishing dates of the project. These are not required but are good to provide for record keeping. If the end date is unknown it can be left blank.</li>
+<li><strong>Project Description</strong>: A free-form field where you can enter any information about the project. As much information about the project should be included here as possible as this is the only place where you can put whatever you want.</li>
+<li><strong>Trigger Channels</strong>: This is a list where you can add as many trigger channels as you require. For each row you enter the channel number and the description of the event on this channel. This information will automatically be displayed in the channels tab where extra channels can be added if particular runs use more or less trigger channels than the default settings.</li>
+<li><strong>Participant Groups</strong>: A list of all the participant groups within the project. The default values for any project are <code>Participant</code> and <code>Control</code>. If you wish to have groups different to these values you can simply add as many groups as you require and these will appear in the Subject info entry area for the experimental data.</li>
+</ul>
+<p>Once you have entered some information your project settings will look something like</p>
+<p><img alt="new_ps_complete" src="../_images/screenshots/add_project_settings_complete.PNG" /></p>
+<p>To save the settings simply press <em>Save</em> and the new settings will appear in the list of project settings</p>
+<p><img alt="new_ps_empty" src="../_images/screenshots/proj_settings_complete.PNG" /></p>
+<h2 id="general-navigation">General navigation</h2>
+<p>Biscuit is split in two halves.
+The left side consists of a file treeview which is used to navigate the directories containing all the various files. Selecting any file will bring up information if there is info available. Most files that are not used for MEG will simply have the message that the data type is not supported. Some human-readble text files will be displayed however. This includes <em>MATLAB</em> <code>.m</code> files, <em>Python</em> <code>.py</code> scripts and <code>.txt</code> files. Both <code>.py</code> and <code>.m</code> files also support syntax highlighting (requires the <a href="https://pypi.org/project/Pygments/">pygments</a> python library)</p>
+<p>The right side displays all the file information for the selected file. This view is a tabbed which <code>.con</code> and <code>.fif</code> files utilise to gain a <em>Channels</em> and <em>Events</em> tab respectively.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>

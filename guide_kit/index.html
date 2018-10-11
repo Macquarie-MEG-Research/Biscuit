@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        
+        
+        <link rel="shortcut icon" href="../img/favicon.ico">
+        <title>KIT data - Biscuit</title>
+        <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
+        <link href="../css/font-awesome.min.css" rel="stylesheet">
+        <link href="../css/base.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <script src="../js/jquery-1.10.2.min.js" defer></script>
+        <script src="../js/bootstrap-3.0.3.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+        <script>hljs.initHighlightingOnLoad();</script> 
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+
+                <!-- Collapsed navigation -->
+                <div class="navbar-header">
+                    <!-- Expander button -->
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand" href="..">Biscuit</a>
+                </div>
+
+                <!-- Expanded navigation -->
+                <div class="navbar-collapse collapse">
+                        <!-- Main navigation -->
+                        <ul class="nav navbar-nav">
+                            <li >
+                                <a href="..">Home</a>
+                            </li>
+                            <li >
+                                <a href="../installation/">Installation</a>
+                            </li>
+                            <li class="dropdown active">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
+                                <ul class="dropdown-menu">
+                                    
+<li >
+    <a href="../guide_general/">General use</a>
+</li>
+                                    
+<li class="active">
+    <a href="./">KIT data</a>
+</li>
+                                    
+<li >
+    <a href="../guide_elekta/">Elekta data</a>
+</li>
+                                </ul>
+                            </li>
+                        </ul>
+
+                    <ul class="nav navbar-nav navbar-right">
+                        <li>
+                            <a href="#" data-toggle="modal" data-target="#mkdocs_search_modal">
+                                <i class="fa fa-search"></i> Search
+                            </a>
+                        </li>
+                            <li >
+                                <a rel="next" href="../guide_general/">
+                                    <i class="fa fa-arrow-left"></i> Previous
+                                </a>
+                            </li>
+                            <li >
+                                <a rel="prev" href="../guide_elekta/">
+                                    Next <i class="fa fa-arrow-right"></i>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="https://github.com/Macquarie-MEG-Research/Biscuit/edit/master/docs/guide_kit.md"><i class="fa fa-github"></i> Edit on GitHub</a>
+                            </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+                <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+        <li class="main active"><a href="#converting-kit-data">Converting KIT data</a></li>
+            <li><a href="#kit-data-folder">KIT data folder</a></li>
+            <li><a href="#con-file-window">.CON file window</a></li>
+            <li><a href="#associating-a-mrk-file">Associating a .mrk file</a></li>
+            <li><a href="#exporting-the-data">Exporting the data</a></li>
+    </ul>
+</div></div>
+                <div class="col-md-9" role="main">
+
+<h1 id="converting-kit-data">Converting KIT data</h1>
+<p>To convert KIT we need to do a few steps.
+Because KIT data consists of multiple files unlike Elekta data which consists of a single <code>.fif</code> file, the main object is the parent folder containing the <code>.con</code>, <code>.mrk</code>, <code>.elp</code>, and <code>.hsp</code> files.</p>
+<h2 id="kit-data-folder">KIT data folder</h2>
+<p>When you first click on a folder containing all the required files the info panel will be populated with a number of info boxes and entires:
+<img alt="kit_initial" src="../_images/screenshots/KIT_container_initial.PNG" /></p>
+<p>If you however select a folder which doesn't contain all the required files, the information panel will inform you of this
+<img alt="kit_invalid" src="../_images/screenshots/KIT_container_invalid.PNG" /></p>
+<p>Once you have entered all the required information into the text boxes, the <code>Generate BIDS</code> button will become click-able:
+<img alt="kit_complete" src="../_images/screenshots/KIT_container_complete.PNG" /></p>
+<p>For this to occur you must have also entered all the required information for any <code>.con</code> files within the folder as BIDS conversion can only proceed once all required files have the necessary information.</p>
+<h2 id="con-file-window">.CON file window</h2>
+<p><img alt="con_initial" src="../_images/screenshots/KIT_con_initial.PNG" /></p>
+<p>The <code>.con</code> file is the primary building block of KIT data and as such eash one requires a reasonable amount of information for BIDS conversion to happen.</p>
+<h3 id="experimental-information">Experimental information</h3>
+<h4 id="required-information">Required Information</h4>
+<ul>
+<li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
+<li><strong>Acquisition</strong>: Synonymous with <code>run</code>. An identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
+<li><strong>Associated .mrk's</strong>: A list of any <code>.mrk</code> files that are associated with this <code>.con</code> file. Details on how to do this <a href="./#associating-a-mrk-file">here</a></li>
+</ul>
+<h4 id="optional-information">Optional Information</h4>
+<ul>
+<li><strong>Is junk</strong>: This indicates that the <code>.con</code> file isn't needed as part of the data set. The file will not be copied to the BIDS folder.</li>
+<li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
+<li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
+</ul>
+<h3 id="channel-information">Channel Information</h3>
+<p>It is often important to specify if a certain channel is bad, or if a channel has any trigger information on it so that <em>MNE</em> can process this information properly and <em>MNE-BIDS</em> can produce the correct event information on export.
+If you have set up any default channels when <a href="../guide_general/#settings-windows">setting up your project defaults</a>, then you will automatically see any channels specified as trigger channels in the channel tab, along with their default trigger description.
+You can however add any other channel detected in the <code>.con</code> file to add to the list if you need to add extra trigger channels for the particular recording.</p>
+<h2 id="associating-a-mrk-file">Associating a <code>.mrk</code> file</h2>
+<p>It is crucial for each <code>.con</code> file to know what <code>.mrk</code> file was used during the recording.
+We can associate a <code>.con</code> file with an <code>.mrk</code> file in one of 3 different ways, all achieved by <em>right-clicking</em> on the <code>.mrk</code> or <code>.con</code> file in question.</p>
+<ol>
+<li><em>Right-click</em> on a <strong><code>.con</code></strong> file and select <code>associate</code>. This will prompt you to select an <strong><code>.mrk</code></strong> file to associate with the <code>.con</code> file. You can do this by <em>right-clicking</em> the <code>.mrk</code> file you wish to associate and then selecting <code>associate</code>.</li>
+<li><em>Right-click</em> on an <strong><code>.mrk</code></strong> file and select <code>associate</code>. Same as above but you select the <code>.con</code> file the <code>.mrk</code> is to be associated with.</li>
+<li><em>Right-click</em> on an <strong><code>.mrk</code></strong> file and select <code>associate with all</code>. This will associate the selected <code>.mrk</code> file with <em>every</em> <code>.con</code> file in the same directory.</li>
+</ol>
+<p>Once an <code>.mrk</code> has been associated with a <code>.con</code> file, selecting a <code>.con</code> file will highlight any associated <code>.mrk</code> files in blue in the file treeview on the left hand side. You can use this to confirm that you have associated the correct <code>.mrk</code> file with the correct <code>.con</code> file.</p>
+<p><img alt="con_complete" src="../_images/screenshots/KIT_con_complete.PNG" /></p>
+<h2 id="exporting-the-data">Exporting the data</h2>
+<p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.
+To export you simply press this button once and a popup will appear which gives the current progress of the export process.
+Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder that will be in the file view.</p></div>
+        </div>
+
+        <footer class="col-md-12">
+            <hr>
+            <p>Documentation built with <a href="https://www.mkdocs.org/">MkDocs</a>.</p>
+        </footer>
+        <script>
+            var base_url = "..",
+                shortcuts = {"help": 191, "next": 78, "previous": 80, "search": 83};
+        </script>
+        <script src="../js/base.js" defer></script>
+        <script src="../search/main.js" defer></script>
+
+        <div class="modal" id="mkdocs_search_modal" tabindex="-1" role="dialog" aria-labelledby="Search Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Search</h4>
+            </div>
+            <div class="modal-body">
+                <p>
+                    From here you can search these documents. Enter
+                    your search terms below.
+                </p>
+                <form role="form">
+                    <div class="form-group">
+                        <input type="text" class="form-control" placeholder="Search..." id="mkdocs-search-query" title="Type search term here">
+                    </div>
+                </form>
+                <div id="mkdocs-search-results"></div>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div><div class="modal" id="mkdocs_keyboard_modal" tabindex="-1" role="dialog" aria-labelledby="Keyboard Shortcuts Modal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="exampleModalLabel">Keyboard Shortcuts</h4>
+            </div>
+            <div class="modal-body">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th style="width: 20%;">Keys</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="help shortcut"><kbd>?</kbd></td>
+                    <td>Open this help</td>
+                  </tr>
+                  <tr>
+                    <td class="next shortcut"><kbd>n</kbd></td>
+                    <td>Next page</td>
+                  </tr>
+                  <tr>
+                    <td class="prev shortcut"><kbd>p</kbd></td>
+                    <td>Previous page</td>
+                  </tr>
+                  <tr>
+                    <td class="search shortcut"><kbd>s</kbd></td>
+                    <td>Search</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+    </body>
+</html>
