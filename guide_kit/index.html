@@ -112,14 +112,14 @@
 Because KIT data consists of multiple files unlike Elekta data which consists of a single <code>.fif</code> file, the main object is the parent folder containing the <code>.con</code>, <code>.mrk</code>, <code>.elp</code>, and <code>.hsp</code> files.</p>
 <h2 id="kit-data-folder">KIT data folder</h2>
 <p>When you first click on a folder containing all the required files the info panel will be populated with a number of info boxes and entires:
-<img alt="kit_initial" src="../_images/screenshots/KIT_container_initial.PNG" /></p>
+<img alt="kit_initial" src="../images/screenshots/KIT_container_initial.PNG" /></p>
 <p>If you however select a folder which doesn't contain all the required files, the information panel will inform you of this
-<img alt="kit_invalid" src="../_images/screenshots/KIT_container_invalid.PNG" /></p>
+<img alt="kit_invalid" src="../images/screenshots/KIT_container_invalid.PNG" /></p>
 <p>Once you have entered all the required information into the text boxes, the <code>Generate BIDS</code> button will become click-able:
-<img alt="kit_complete" src="../_images/screenshots/KIT_container_complete.PNG" /></p>
+<img alt="kit_complete" src="../images/screenshots/KIT_container_complete.PNG" /></p>
 <p>For this to occur you must have also entered all the required information for any <code>.con</code> files within the folder as BIDS conversion can only proceed once all required files have the necessary information.</p>
 <h2 id="con-file-window">.CON file window</h2>
-<p><img alt="con_initial" src="../_images/screenshots/KIT_con_initial.PNG" /></p>
+<p><img alt="con_initial" src="../images/screenshots/KIT_con_initial.PNG" /></p>
 <p>The <code>.con</code> file is the primary building block of KIT data and as such eash one requires a reasonable amount of information for BIDS conversion to happen.</p>
 <h3 id="experimental-information">Experimental information</h3>
 <h4 id="required-information">Required Information</h4>
@@ -147,7 +147,7 @@ We can associate a <code>.con</code> file with an <code>.mrk</code> file in one 
 <li><em>Right-click</em> on an <strong><code>.mrk</code></strong> file and select <code>associate with all</code>. This will associate the selected <code>.mrk</code> file with <em>every</em> <code>.con</code> file in the same directory.</li>
 </ol>
 <p>Once an <code>.mrk</code> has been associated with a <code>.con</code> file, selecting a <code>.con</code> file will highlight any associated <code>.mrk</code> files in blue in the file treeview on the left hand side. You can use this to confirm that you have associated the correct <code>.mrk</code> file with the correct <code>.con</code> file.</p>
-<p><img alt="con_complete" src="../_images/screenshots/KIT_con_complete.PNG" /></p>
+<p><img alt="con_complete" src="../images/screenshots/KIT_con_complete.PNG" /></p>
 <h2 id="exporting-the-data">Exporting the data</h2>
 <p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.
 To export you simply press this button once and a popup will appear which gives the current progress of the export process.
