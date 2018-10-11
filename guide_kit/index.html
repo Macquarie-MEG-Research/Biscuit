@@ -112,26 +112,41 @@ Because KIT data consists of multiple files unlike Elekta data which consists of
 <img alt="kit_initial" src="../images/screenshots/KIT_container_initial.PNG" /></p>
 <p>If you however select a folder which doesn't contain all the required files, the information panel will inform you of this
 <img alt="kit_invalid" src="../images/screenshots/KIT_container_invalid.PNG" /></p>
-<p>Once you have entered all the required information into the text boxes, the <code>Generate BIDS</code> button will become click-able:
-<img alt="kit_complete" src="../images/screenshots/KIT_container_complete.PNG" /></p>
-<p>For this to occur you must have also entered all the required information for any <code>.con</code> files within the folder as BIDS conversion can only proceed once all required files have the necessary information.</p>
+<p>We require some information to be filled out on this screen:</p>
+<h4 id="required-information">Required information</h4>
+<ul>
+<li><strong>Project Name</strong>: ID of the project. This should match the project ID specified in the project settings so that any default values can be applied automatically.</li>
+<li><strong>Session ID</strong>: Session number with the particular participant.</li>
+</ul>
+<h4 id="subject-information">Subject information</h4>
+<ul>
+<li><strong>Subject ID</strong>: The ID used to identify the participant in a confidential manner.</li>
+<li><strong>Subject DOB</strong>: The date of birth of the participant. This is entered in <em>dd/mm/yyy</em> format (sorry America!).</li>
+<li><strong>Subject Gender</strong>: One of M (Male), F (Female), U (Unknown).</li>
+<li><strong>Subject Group</strong>: The group within the study the participant belongs to. THe default values are <code>Participant</code> and <code>Control</code>, however these can be set in the <a href="../guide_general/#settings_window">project default settings</a>.</li>
+</ul>
+<h4 id="other-information">Other information</h4>
+<ul>
+<li><strong>Dewar Position</strong>: How the Dewar is positioned. You have a choice of <em>supine</em> or <em>upright</em>.</li>
+</ul>
+<p>Before the <code>Generate BIDS</code> can become active all child <code>.con</code> files must appear green in the file treeview to indicate they have been all the required information (or are junk in some cases). See the following section on how to prepare each <code>.con</code> file.</p>
 <h2 id="con-file-window">.CON file window</h2>
 <p><img alt="con_initial" src="../images/screenshots/KIT_con_initial.PNG" /></p>
 <p>The <code>.con</code> file is the primary building block of KIT data and as such eash one requires a reasonable amount of information for BIDS conversion to happen.</p>
 <h3 id="experimental-information">Experimental information</h3>
-<h4 id="required-information">Required Information</h4>
+<h4 id="required-information_1">Required information</h4>
 <ul>
 <li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
 <li><strong>Acquisition</strong>: Synonymous with <code>run</code>. An identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
 <li><strong>Associated .mrk's</strong>: A list of any <code>.mrk</code> files that are associated with this <code>.con</code> file. Details on how to do this <a href="./#associating-a-mrk-file">here</a></li>
 </ul>
-<h4 id="optional-information">Optional Information</h4>
+<h4 id="optional-information">Optional information</h4>
 <ul>
 <li><strong>Is junk</strong>: This indicates that the <code>.con</code> file isn't needed as part of the data set. The file will not be copied to the BIDS folder.</li>
 <li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
 <li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
 </ul>
-<h3 id="channel-information">Channel Information</h3>
+<h3 id="channel-information">Channel information</h3>
 <p>It is often important to specify if a certain channel is bad, or if a channel has any trigger information on it so that <em>MNE</em> can process this information properly and <em>MNE-BIDS</em> can produce the correct event information on export.
 If you have set up any default channels when <a href="../guide_general/#settings-windows">setting up your project defaults</a>, then you will automatically see any channels specified as trigger channels in the channel tab, along with their default trigger description.
 You can however add any other channel detected in the <code>.con</code> file to add to the list if you need to add extra trigger channels for the particular recording.</p>
@@ -146,8 +161,9 @@ We can associate a <code>.con</code> file with an <code>.mrk</code> file in one 
 <p>Once an <code>.mrk</code> has been associated with a <code>.con</code> file, selecting a <code>.con</code> file will highlight any associated <code>.mrk</code> files in blue in the file treeview on the left hand side. You can use this to confirm that you have associated the correct <code>.mrk</code> file with the correct <code>.con</code> file.</p>
 <p><img alt="con_complete" src="../images/screenshots/KIT_con_complete.PNG" /></p>
 <h2 id="exporting-the-data">Exporting the data</h2>
-<p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.
-To export you simply press this button once and a popup will appear which gives the current progress of the export process.
+<p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.</p>
+<p><img alt="kit_complete" src="../images/screenshots/KIT_container_complete.PNG" /></p>
+<p>To export you simply press this button once and a popup will appear which gives the current progress of the export process.
 Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder that will be in the file view.</p></div>
         </div>
 
