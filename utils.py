@@ -87,47 +87,21 @@ def generate_readme(data):
         data.get('ProjectTitle', 'None'))
     out_str += "Project ID:\t\t{0}\n\n".format(data.get('ProjectID', 'None'))
     out_str += "Expected experimentation period:\n"
-    out_str += "Start date:\t\t{0}/{1}/{2}\n".format(
-        *data.get('StartDate', ['01', '01', '1970']))
-    out_str += "End date:\t\t{0}/{1}/{2}\n\n".format(
-        *data.get('EndDate', ['31', '12', '2020']))
+    s_date = data.get('StartDate', None)
+    if s_date is not None:
+        start_date = '/'.join(s_date)
+    else:
+        start_date = 'Unknown'
+    out_str += "Start date:\t\t{0}\n".format(start_date)
+    e_date = data.get('EndDate', None)
+    if e_date is not None:
+        end_date = '/'.join(e_date)
+    else:
+        end_date = 'Unknown'
+    out_str += "End date:\t\t{0}\n\n".format(end_date)
     out_str += "Project Description:\n"
     out_str += data.get("Description", "None")
     return out_str
-
-
-class StreamedVar(StringVar):
-    def __init__(self, patterns=[], *args, **kwargs):
-        """
-        pattern is a regex pattern which can be matched
-        to only allow the value to be updated if there is a match.
-        This allows filtering of output
-        """
-        super(StreamedVar, self).__init__(*args, **kwargs)
-        self._curr_value = StringVar()
-        #if pattern is not None:
-        #    self.pattern = re.compile(pattern)
-        self.pattern = patterns
-
-    def write(self, value):
-        if value != '\n':
-            self.set(self.get() + value)
-        else:
-            #if re.match(self.pattern, self.get()):
-            for pattern in self.pattern:
-                if pattern in self.get():
-                    self.curr_value.set(self.get())
-                    self.set('')
-                    break
-            else:
-                self.set('')
-
-    def get_curr(self):
-        return self.curr_value.get()
-
-    @property
-    def curr_value(self):
-        return self._curr_value
 
 
 if __name__ == "__main__":

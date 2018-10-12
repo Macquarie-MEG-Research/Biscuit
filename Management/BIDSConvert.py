@@ -3,7 +3,7 @@ import os.path as path
 from os import makedirs
 from tkinter import StringVar
 from mne_bids import raw_to_bids
-from utils import StreamedVar
+from Management import StreamedVar
 from Windows import ProgressPopup
 from contextlib import redirect_stdout
 from time import sleep
@@ -31,7 +31,8 @@ def convert(container, settings, parent=None):
                 bids_folder_sid = sid
                 break
 
-    progress = StreamedVar(['Writing', 'Conversion done'])
+    progress = StreamedVar(['Writing', 'Conversion done'],
+                           {'Writing': _shorten_path})
     job_name = StringVar()
 
     p = ProgressPopup(parent, progress, job_name)
@@ -109,10 +110,7 @@ def convert(container, settings, parent=None):
     # This is essentially useless but it suppresses pylint:E1111
     return True
 
-    """
-    # fill the tree all at once??
-    self.parent._fill_file_tree(bids_folder_sid, bids_folder_path)
-    # set the message to done, but also close the window if it hasn't
-    # already been closed
-    self.bids_conversion_progress.set("Done")
-    """
+
+def _shorten_path(path):
+    # dummy for now
+    return path.split('\\')[-1][:-6]

@@ -44,7 +44,7 @@ class FifFileFrame(Frame):
         self.activeshield_info.value.grid(column=1, row=4)
 
         Separator(self, orient='vertical').grid(column=2, row=0,
-                                                rowspan=7, sticky='ns')
+                                                rowspan=16, sticky='ns')
 
         # subject info
         Label(self, text="Subject Information:").grid(column=3, row=0,
@@ -52,26 +52,27 @@ class FifFileFrame(Frame):
         self.sub_id_entry = InfoEntry(self, "Subject ID", StringVar(),
                                       bad_values=[''],
                                       validate_cmd=None)
-        self.sub_id_entry.label.grid(column=3, row=2, sticky='ew', pady=2)
-        self.sub_id_entry.value.grid(column=4, row=2, sticky='ew', pady=2)
+        self.sub_id_entry.label.grid(column=3, row=2, sticky='ew', pady=2,
+                                     padx=2)
+        self.sub_id_entry.value.grid(column=4, row=2, sticky='ew', pady=2,
+                                     padx=2)
         self.require_verification.append(self.sub_id_entry)
         Label(self, text="Subject DOB").grid(column=3, row=3, sticky='ew',
-                                             pady=2)
+                                             pady=2, padx=2)
         self.sub_age_entry = DateEntry(self, ["", "", ""])
-        self.sub_age_entry.grid(column=4, row=3, sticky='ew', pady=2)
-        """
-        self.sub_age_entry = InfoEntry(self, "Subject DOB", StringVar())
-        self.sub_age_entry.label.grid(column=3, row=3, sticky='ew', pady=2)
-        self.sub_age_entry.value.grid(column=4, row=3, sticky='ew', pady=2)
-        """
+        self.sub_age_entry.grid(column=4, row=3, sticky='ew', pady=2, padx=2)
         self.sub_gender_entry = InfoChoice(self, "Subject gender",
                                            OptionsVar())
-        self.sub_gender_entry.label.grid(column=3, row=4, sticky='ew', pady=2)
-        self.sub_gender_entry.value.grid(column=4, row=4, sticky='ew', pady=2)
+        self.sub_gender_entry.label.grid(column=3, row=4, sticky='ew', pady=2,
+                                         padx=2)
+        self.sub_gender_entry.value.grid(column=4, row=4, sticky='ew', pady=2,
+                                         padx=2)
         self.sub_group_entry = InfoChoice(self, "Subject group",
                                           OptionsVar())
-        self.sub_group_entry.label.grid(column=3, row=5, sticky='ew', pady=2)
-        self.sub_group_entry.value.grid(column=4, row=5, sticky='ew', pady=2)
+        self.sub_group_entry.label.grid(column=3, row=5, sticky='ew', pady=2,
+                                        padx=2)
+        self.sub_group_entry.value.grid(column=4, row=5, sticky='ew', pady=2,
+                                        padx=2)
 
         Separator(self, orient='horizontal').grid(column=0, row=6,
                                                   columnspan=5, sticky='ew')
@@ -83,8 +84,10 @@ class FifFileFrame(Frame):
                                          bad_values=[''],
                                          validate_cmd=None)
         self.require_verification.append(self.proj_name_entry)
-        self.proj_name_entry.label.grid(column=0, row=8, sticky='ew', pady=2)
-        self.proj_name_entry.value.grid(column=1, row=8, sticky='ew', pady=2)
+        self.proj_name_entry.label.grid(column=0, row=8, sticky='ew', pady=2,
+                                        padx=2)
+        self.proj_name_entry.value.grid(column=1, row=8, sticky='ew', pady=2,
+                                        padx=2)
         self.proj_name_entry.tooltip(
             "Name of project this file belongs to.\n"
             "If you enter the name of a project listed in the project "
@@ -94,20 +97,24 @@ class FifFileFrame(Frame):
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
                                        bad_values=[''],
                                        validate_cmd=None)
-        self.sess_id_entry.label.grid(column=0, row=9, sticky='ew', pady=2)
-        self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2)
+        self.sess_id_entry.label.grid(column=0, row=9, sticky='ew', pady=2,
+                                      padx=2)
+        self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2,
+                                      padx=2)
         self.task_info = InfoEntry(self, 'Task', StringVar(),
                                    bad_values=[''],
                                    validate_cmd=None)
         self.require_verification.append(self.task_info)
-        self.task_info.label.grid(column=0, row=10, sticky='ew', pady=2)
-        self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2)
+        self.task_info.label.grid(column=0, row=10, sticky='ew', pady=2,
+                                  padx=2)
+        self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,
+                                  padx=2)
         self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
                                   bad_values=[''],
                                   validate_cmd=None)
         self.require_verification.append(self.acq_info)
-        self.acq_info.label.grid(column=0, row=11, sticky='ew', pady=2)
-        self.acq_info.value.grid(column=1, row=11, sticky='ew', pady=2)
+        self.acq_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
+        self.acq_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)
 
         Separator(self, orient='horizontal').grid(column=0, row=12,
                                                   columnspan=2, sticky='ew')
@@ -126,6 +133,8 @@ class FifFileFrame(Frame):
         self.has_emptyroom_info.value.grid(column=1, row=15)
 
         # channels area (just to rename/set BIO channels)
+        Label(self, text="Channel Data:").grid(column=3, row=7,
+                                               columnspan=2)
         self.channel_table = WidgetTable(
             self,
             headings=["Channel name", "Type"],
@@ -133,8 +142,8 @@ class FifFileFrame(Frame):
             widgets_pattern=[Entry, Combobox],
             adder_script=DISABLED,
             remove_script=DISABLED)
-        self.channel_table.grid(sticky='nsew', column=3, row=7,
-                                columnspan=2, rowspan=9)
+        self.channel_table.grid(sticky='nsew', column=3, row=8,
+                                columnspan=2, rowspan=8)
 
         # bottom matter (BIDS conversion button)
         self.bids_gen_btn = Button(self, text="Generate BIDS",

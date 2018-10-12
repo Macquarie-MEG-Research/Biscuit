@@ -25,7 +25,7 @@ class CreditsPopup(Toplevel):
         self._create_widgets()
 
     def _open_link(self):
-        webbrowser.open_hyperlink(self.git_link)
+        open_hyperlink(self.git_link)
 
     def _create_widgets(self):
         main_frame = Frame(self)

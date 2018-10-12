@@ -100,6 +100,51 @@ class OptionsVar(Variable):
             self._tk.globalsetvar(self._name, '')
 
 
+class StreamedVar(StringVar):
+    def __init__(self, patterns=[], process=dict(), *args, **kwargs):
+        """
+        - pattern: str | list of str
+            A list of strings that are check to see if they are in the current
+            value. The value is only set if the pattern is in the current
+            value.
+        - process: function | dictionary: {str: function}
+            A function which can be called to process the current value.
+            This can be a dictionary to allow for processing of differently
+            matched patterns.
+        """
+        super(StreamedVar, self).__init__(*args, **kwargs)
+        self._curr_value = StringVar()
+        #if pattern is not None:
+        #    self.pattern = re.compile(pattern)
+        self.pattern = patterns
+        self.processing = process
+
+    def write(self, value):
+        if value != '\n':
+            self.set(self.get() + value)
+        else:
+            #if re.match(self.pattern, self.get()):
+            for pattern in self.pattern:
+                if pattern in self.get():
+                    func = self.processing.get(pattern, None)
+                    if func is not None:
+                        self.curr_value.set(func(self.get()))
+                        self.set('')
+                    else:
+                        self.curr_value.set(self.get())
+                        self.set('')
+                    break
+            else:
+                self.set('')
+
+    def get_curr(self):
+        return self.curr_value.get()
+
+    @property
+    def curr_value(self):
+        return self._curr_value
+
+
 if __name__ == "__main__":
     from tkinter import Tk
     Tk()

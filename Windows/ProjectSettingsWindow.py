@@ -63,10 +63,12 @@ class ProjectSettingsWindow(Toplevel):
         self.ed_entry.grid(column=3, row=1, pady=2, padx=2)
         Label(self.frame, text="Project description:").grid(
             column=0, row=2, padx=2, pady=2)
-        self.desc_entry = ScrolledText(self.frame, wrap=WORD)
+        self.desc_entry = ScrolledText(self.frame, wrap=WORD, height=14)
         self.desc_entry.grid(column=0, columnspan=4, row=3, rowspan=5,
                              sticky='nsew')
         self.desc_entry.insert(END, self.settings.get('Description', ''))
+        Label(self.frame, text="Default Triggers:").grid(column=0, row=8,
+                                                         columnspan=2)
         self.channels_table = WidgetTable(
             self.frame, headings=["Trigger Channel", "Event Description"],
             pattern=[IntVar, StringVar],
@@ -74,18 +76,20 @@ class ProjectSettingsWindow(Toplevel):
             add_options=None,
             data_array=self.settings.get('DefaultTriggers', []),
             sort_column=0)
-        self.channels_table.grid(column=0, columnspan=2, row=8, sticky='nsew')
+        self.channels_table.grid(column=0, columnspan=2, row=9, sticky='nsew')
+        Label(self.frame, text="Default Groups:").grid(column=2, row=8,
+                                                       columnspan=2)
         self.groups_table = WidgetTable(
             self.frame, headings=["Group"],
             pattern=[StringVar],
             widgets_pattern=[Entry],
             add_options=None,
             data_array=self.settings.get('Groups', []))
-        self.groups_table.grid(column=2, columnspan=2, row=8, sticky='nsew')
+        self.groups_table.grid(column=2, columnspan=2, row=9, sticky='nsew')
 
         self.save_btn = Button(self.frame, text="Save",
                                command=self._write_settings)
-        self.save_btn.grid(column=4, row=9)
+        self.save_btn.grid(column=4, row=10)
 
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)
@@ -96,8 +100,9 @@ class ProjectSettingsWindow(Toplevel):
         self.frame.grid_rowconfigure(1, weight=0)
         self.frame.grid_rowconfigure(2, weight=0)
         self.frame.grid_rowconfigure(3, weight=1)
-        self.frame.grid_rowconfigure(8, weight=1)
-        self.frame.grid_rowconfigure(9, weight=0)
+        self.frame.grid_rowconfigure(8, weight=0)
+        self.frame.grid_rowconfigure(9, weight=1)
+        self.frame.grid_rowconfigure(10, weight=0)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)

@@ -93,9 +93,12 @@ class con_file(BIDSFile):
 
             # check to see if any of the channels are designated as triggers
             # by default
-            if self.container.valid:
-                def_trigger_info = self.container.settings.get(
-                    'DefaultTriggers', None)
+            if self.container is not None:
+                if self.container.valid:
+                    def_trigger_info = self.container.settings.get(
+                        'DefaultTriggers', None)
+                else:
+                    def_trigger_info = None
             else:
                 def_trigger_info = None
             if def_trigger_info is not None:

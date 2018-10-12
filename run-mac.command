@@ -13,4 +13,4 @@ echo $DIR
 
 cd $DIR
 echo "starting Biscuit"
-python3 GUI.py
+python3 Biscuit.py
