@@ -137,8 +137,11 @@ class FIFData(BIDSContainer, BIDSFile):
                     ch_type = ch_data['ch_type'].get()
                     ch_type_map[ch_data['ch_name'].get()] = ch_type.lower()
                     break
-        self.raw.rename_channels(ch_name_map)
-        self.raw.set_channel_types(ch_type_map)
+        # only do some processing if the data has changed
+        if ch_name_map != dict():
+            self.raw.rename_channels(ch_name_map)
+        if ch_type_map != dict():
+            self.raw.set_channel_types(ch_type_map)
 
         # assign the subject data
         try:

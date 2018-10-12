@@ -106,6 +106,9 @@ def convert(container, settings, parent=None):
 
     parent._fill_file_tree(bids_folder_sid, bids_folder_path)
 
+    # This is essentially useless but it suppresses pylint:E1111
+    return True
+
     """
     # fill the tree all at once??
     self.parent._fill_file_tree(bids_folder_sid, bids_folder_path)

@@ -1,4 +1,5 @@
-from tkinter import StringVar, BooleanVar, DISABLED, NORMAL, Entry
+from tkinter import (StringVar, BooleanVar, DISABLED, NORMAL, Entry,
+                     messagebox)
 from tkinter.ttk import Frame, Label, Separator, Button, Combobox
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
@@ -22,6 +23,8 @@ class FifFileFrame(Frame):
         self.require_verification = []
 
         self._create_widgets()
+
+        self.current_job_thread = None
 
     def _create_widgets(self):
         # recording information
@@ -154,7 +157,20 @@ class FifFileFrame(Frame):
             self.bids_gen_btn.config(state=DISABLED)
 
     def convert_to_bids(self):
-        convert(self.file, self.settings, self.parent)
+        if self.current_job_thread is None:
+            self.current_job_thread = convert(self.file, self.settings,
+                                              self.parent)
+        else:
+            if self.current_job_thread.is_alive():      # pylint: disable=E1101
+                messagebox.showerror("Job Already Running",
+                                     "You already have one job running.\n"
+                                     "Please wait until it has finished before"
+                                     " starting a new one.")
+            else:
+                # in this case the job has ended so we nullify the current
+                # job thread then re-run this function
+                self.current_job_thread = None
+                self.convert_to_bids()
 
     def update_widgets(self):
         # update info

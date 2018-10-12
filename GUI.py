@@ -31,9 +31,6 @@ DEFAULTSETTINGS = {"DATA_PATH": "",
 
 root = Tk()
 
-# TODO: add some kind of .withdraw to make the drawing look better
-
-
 style = Style()
 
 
@@ -248,9 +245,9 @@ class main(Frame):
 
         # credits menu
         self.info_menu.add_command(label="Credits",
-                                  command=self._display_credits_popup)
+                                   command=self._display_credits_popup)
         self.info_menu.add_command(label="Help",
-                                  command=self._load_help_link)
+                                   command=self._load_help_link)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -586,8 +583,7 @@ class main(Frame):
         CreditsPopup(self)
 
     def _load_help_link(self):
-        # TODO: actually set this up
-        open_hyperlink("https://github.com/Macquarie-MEG-Research/Biscuit/wiki")  # noqa
+        open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
 
     def get_selection_info(self):
         data = []
