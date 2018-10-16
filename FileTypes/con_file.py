@@ -85,6 +85,11 @@ class con_file(BIDSFile):
             self.info['Measurement date'] = datetime.fromtimestamp(
                 create_time).strftime('%d/%m/%Y')
 
+            # determine whether the data has continuous head movement data
+            file.seek(0x1D0)
+            reTHM_offset, = unpack('i', file.read(0x4))
+            self.extra_data['chm'] = (reTHM_offset != 0)
+
             # Get all the channel information here separately from mne.
             # This way the data is intrinsically linked to the con file
             # and we can generate the channels tab from the start

@@ -390,7 +390,7 @@ def _channel_json(raw, task, manufacturer, fname, kind, verbose, overwrite,
         ('TriggerChannelCount', n_stimchan)]
     ch_info_misc = [
         ('RecordingDuration', rectime),
-        ('ContinuousHeadLocalization', False)]
+        ('ContinuousHeadLocalization', extra_data.get('chm', False))]
 
     # maybe don't worry about this for now...
     if extra_data.get('emptyroom', None) is not None:
@@ -485,7 +485,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         json files.
         Currently supported keys are:
         'InstitutionName', 'ManufacturersModelName','DewarPosition',
-        'Name' (Name of the project), 'DeviceSerialNumber'
+        'Name' (Name of the project), 'DeviceSerialNumber', 'chm' (continuous
+        head movement) (bool)
     subject_group : string
         the group within the study the participant belongs to.
     readme_text : string

@@ -15,6 +15,7 @@ class ConFileFrame(Frame):
         self._create_widgets()
 
     def _create_widgets(self):
+        # Recording info
         Label(self, text="Recording Information:").grid(column=0, row=0,
                                                         columnspan=2)
         Separator(self, orient='horizontal').grid(column=0, row=1,
@@ -34,44 +35,51 @@ class ConFileFrame(Frame):
         self.gains_info = InfoLabel(self, 'Gains', "None")
         self.gains_info.label.grid(column=0, row=6)
         self.gains_info.value.grid(column=1, row=6)
-
-        Separator(self, orient='horizontal').grid(column=0, row=7,
+        self.reTHM_info = InfoLabel(self, 'Has continuous head tracking', 'No')
+        self.reTHM_info.label.grid(column=0, row=7)
+        self.reTHM_info.value.grid(column=1, row=7)
+        Separator(self, orient='horizontal').grid(column=0, row=8,
                                                   columnspan=2, sticky='ew')
-        Label(self, text="Required Information:").grid(column=0, row=8,
+
+        # Required info
+
+        Label(self, text="Required Information:").grid(column=0, row=9,
                                                        columnspan=2)
 
         self.task_info = InfoEntry(self, 'Task', StringVar(),
                                    bad_values=[''],
                                    validate_cmd=None)
-        self.task_info.label.grid(column=0, row=9)
-        self.task_info.value.grid(column=1, row=9)
+        self.task_info.label.grid(column=0, row=10)
+        self.task_info.value.grid(column=1, row=10)
         self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
                                   bad_values=[''],
                                   validate_cmd=None)
-        self.acq_info.label.grid(column=0, row=10)
-        self.acq_info.value.grid(column=1, row=10)
+        self.acq_info.label.grid(column=0, row=11)
+        self.acq_info.value.grid(column=1, row=11)
         self.mrks_info = InfoList(self, "Associated .mrk's", [],
                                   validate_cmd=None)
-        self.mrks_info.label.grid(column=0, row=11)
-        self.mrks_info.value.grid(column=1, row=11)
-
-        Separator(self, orient='horizontal').grid(column=0, row=12,
+        self.mrks_info.label.grid(column=0, row=12)
+        self.mrks_info.value.grid(column=1, row=12)
+        Separator(self, orient='horizontal').grid(column=0, row=13,
                                                   columnspan=2, sticky='ew')
-        Label(self, text="Optional Information:").grid(column=0, row=13,
+
+        # Optional info
+
+        Label(self, text="Optional Information:").grid(column=0, row=14,
                                                        columnspan=2)
         self.is_junk_info = InfoCheck(self, 'Is junk', BooleanVar(),
                                       validate_cmd=None)
-        self.is_junk_info.label.grid(column=0, row=14)
-        self.is_junk_info.value.grid(column=1, row=14)
+        self.is_junk_info.label.grid(column=0, row=15)
+        self.is_junk_info.value.grid(column=1, row=15)
         self.is_emptyroom_info = InfoCheck(self, 'Is empty room',
                                            BooleanVar(),
                                            validate_cmd=None)
-        self.is_emptyroom_info.label.grid(column=0, row=15)
-        self.is_emptyroom_info.value.grid(column=1, row=15)
+        self.is_emptyroom_info.label.grid(column=0, row=16)
+        self.is_emptyroom_info.value.grid(column=1, row=16)
         self.has_emptyroom_info = InfoCheck(self, 'Has empty room',
                                             BooleanVar())
-        self.has_emptyroom_info.label.grid(column=0, row=16)
-        self.has_emptyroom_info.value.grid(column=1, row=16)
+        self.has_emptyroom_info.label.grid(column=0, row=17)
+        self.has_emptyroom_info.value.grid(column=1, row=17)
         self.grid()
 
     def update_widgets(self):
@@ -80,6 +88,7 @@ class ConFileFrame(Frame):
         self.channel_info.value = self.file.info['Channels']
         self.meas_date_info.value = self.file.info['Measurement date']
         self.gains_info.value = self.file.info['gains']
+        self.reTHM_info.value = str(self.file.extra_data['chm'])
 
         self.task_info.value = self.file.task
         self.task_info.validate_cmd = self.file.validate
