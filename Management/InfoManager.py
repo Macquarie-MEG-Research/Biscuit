@@ -137,7 +137,8 @@ class InfoManager(Notebook):
 
     def _display_invalid_folder(self):
         self.info_tab.set_text(
-            "Selected folder is not a BIDS compatible folder")
+            "Selected folder does not contain all the required files for "
+            "exporting KIT data to a BIDS compatible data set.")
 
     def _display_multiple_types(self):
         self.info_tab.set_text(

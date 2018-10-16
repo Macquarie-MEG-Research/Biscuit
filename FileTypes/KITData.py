@@ -27,59 +27,51 @@ class KITData(BIDSContainer):
 
     def load_data(self):
         # this will automatically preload the data of any contained files
-        files = {'.con': [],
-                 '.mrk': [],
-                 '.elp': [],
-                 '.hsp': [],
-                 '.mri': []}
 
-        # go through the direct children of the folder via the treeview
-        for sid in self.parent.file_treeview.get_children(self._id):
-            item = self.parent.file_treeview.item(sid)
-            # check the extension of the file. If it is in the files dict, add
-            # the file to the list
-            ext = item['values'][0]
+        files = dict()
 
-            # Check to see if the file has already been preloaded.
-            # If so, simply associate it and continue.
-            if sid in self.parent.preloaded_data:
-                if ext in files:
-                    files[ext].append(self.parent.preloaded_data[sid])
-                    if isinstance(self.parent.preloaded_data[sid], BIDSFile):
-                        # container will have already been set
-                        self.jobs.append(self.parent.preloaded_data[sid])
-            else:
-                # generate the FileInfo subclass object
-                cls_ = get_object_class(ext)
-                if not isinstance(cls_, str):
-                    # and only call it if it can be. str types are ignored
-                    # (only other return type)
-                    if issubclass(cls_, BIDSFile):
-                        obj = cls_(sid, item['values'][1],
-                                   settings=self.parent.proj_settings,
-                                   parent=self.parent)
-                    elif issubclass(cls_, FileInfo):
-                        obj = cls_(sid, item['values'][1],
-                                   parent=self.parent)
-                    if isinstance(obj, generic_file):
-                        obj.dtype = ext
-                    if isinstance(obj, BIDSFile):
-                        obj.container = self
-                        self.jobs.append(obj)
-                    # add the data to the preload data
-                    self.parent.preloaded_data[sid] = obj
+        file_ids = self.generate_file_list(self._id,
+                                           self.parent.file_treeview)
+
+        # go over the found ids and preload their data.
+        for ext, sids in file_ids.items():
+            files[ext] = list()
+            if len(sids) == 0:
+                # In this case the folder doesn't contain all the required
+                # files so it also doesn't require being saved.
+                self.requires_save = self.contains_required_files = False
+            for sid in sids:
+                # Check to see if the file has already been preloaded.
+                # If so, simply associate it and continue.
+                if sid in self.parent.preloaded_data:
                     if ext in files:
+                        files[ext].append(self.parent.preloaded_data[sid])
+                        if isinstance(self.parent.preloaded_data[sid],
+                                      BIDSFile):
+                            # container will have already been set
+                            self.jobs.append(self.parent.preloaded_data[sid])
+                else:
+                    item = self.parent.file_treeview.item(sid)
+                    # generate the FileInfo subclass object
+                    cls_ = get_object_class(ext)
+                    if not isinstance(cls_, str):
+                        # and only call it if it can be. str types are ignored
+                        # (only other return type)
+                        if issubclass(cls_, BIDSFile):
+                            obj = cls_(sid, item['values'][1],
+                                       settings=self.parent.proj_settings,
+                                       parent=self.parent)
+                        elif issubclass(cls_, FileInfo):
+                            obj = cls_(sid, item['values'][1],
+                                       parent=self.parent)
+                        if isinstance(obj, generic_file):
+                            obj.dtype = ext
+                        if isinstance(obj, BIDSFile):
+                            obj.container = self
+                            self.jobs.append(obj)
+                        # add the data to the preload data
+                        self.parent.preloaded_data[sid] = obj
                         files[ext].append(obj)
-
-        # validate the folder:
-        for dtype, data in files.items():
-            if dtype != '.mri':
-                if len(data) == 0:
-                    self.contains_required_files = False
-                    break
-        # whether or not this object needs to be saved is dependent on whether
-        # the folder contains all the required files
-        self.requires_save = self.contains_required_files
 
         # we'll only check whether the folder is ready to be exported to bids
         # format if it is valid
@@ -196,6 +188,46 @@ class KITData(BIDSContainer):
             self.jobs.append(con_file)
 
         return True
+
+    @staticmethod
+    def generate_file_list(folder_id, treeview, validate=False):
+        """ Generate a list of all KIT related files within the folder 
+        
+        Parameters
+        ----------
+        folder_id : int
+            The id of the folder in the treeview
+        treeview : instance of EnhancedTreeview
+            The treeview object in the main GUI object
+        validate : bool
+            Whether to validate the produced list. If True, whether the folder
+            is valid or not is returned. Defaults to False.
+        
+        Returns:
+        dict() if validate == False,
+        bool otherwise.
+        """
+        files = {'.con': [],
+                 '.mrk': [],
+                 '.elp': [],
+                 '.hsp': []}
+
+        # go through the direct children of the folder via the treeview
+        for sid in treeview.get_children(folder_id):
+            item = treeview.item(sid)
+            # check the extension of the file. If it is in the files dict, add
+            # the file to the list
+            ext = item['values'][0]
+            if ext in files:
+                files[ext].append(sid)
+
+        if not validate:
+            return files
+        else:
+            for lst in files.values():
+                if len(lst) == 0:
+                    return False
+            return True
 
     def __getstate__(self):
         data = super(KITData, self).__getstate__()

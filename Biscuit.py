@@ -488,12 +488,8 @@ class main(Frame):
                 ext, path_ = self.file_treeview.item(id_)['values']
                 if path.isdir(path_):
                     # create a Folderlike object (Folder or KITData)
-                    is_KIT = False
-                    for child in self.file_treeview.get_children(id_):
-                        if '.con' == self.file_treeview.item(
-                                child)['values'][0]:
-                            is_KIT = True
-                            break
+                    is_KIT = KITData.generate_file_list(
+                        id_, self.file_treeview, validate=True)
                     if is_KIT:
                         folder = KITData(id_, path_, self.proj_settings, self)
                     else:
