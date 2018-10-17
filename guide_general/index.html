@@ -106,7 +106,24 @@
 <h1 id="general-usage">General Usage</h1>
 <p>Biscuit can be run by running the <code>GUI.py</code> file with Python.
 Upon running the script you will be greeting with two pop-ups.
-The first pop-up will ask you to select the location of your MEG data. You need to select the parent folder that contains all of your MEG data, instead of a single folder which contains data from one session.</p>
+The first pop-up will ask you to select the location of your MEG data. You need to select the parent folder that contains all of your MEG data, instead of a single folder which contains data from one session.
+For example, if you have a folder set up like</p>
+<pre><code>Main folder
+└ Elekta Data
+    └ Proj1
+        - file1.fif
+        - file2.fif
+    └ Proj2
+        - file1.fif
+└ KIT Data
+    └ Proj1
+        - file.con
+        - file.mrk
+        ...
+</code></pre>
+
+<p>then you want to select the <code>Main folder</code> as all the sub folders will be able to be navigated to within Biscuit.
+You shouldn't ever need to or want to change this directory as this can render any of Biscuit's save data incompatible.</p>
 <h2 id="main-window">Main window</h2>
 <p>Selecting a folder as shown will bring up the <em>Folder Info</em> tab where you can enter important info about the recording session. In general, if a field is red, it is required for conversion to BIDS format, and the process won't be allowed until a session has no red fields remaining.</p>
 <h2 id="settings-windows">Settings windows</h2>
