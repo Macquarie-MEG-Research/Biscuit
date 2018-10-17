@@ -19,6 +19,7 @@ from mne.io.pick import channel_type
 from mne.io import BaseRaw
 from mne.channels.channels import _unit2human
 from mne.externals.six import string_types
+from mne.utils import check_version
 
 from datetime import datetime
 from warnings import warn
@@ -646,15 +647,24 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     # are placed in the right location
     raw_file_bids = os.path.join(data_path, raw_file_bids)
 
-    # for FIF, we need to re-save the file to fix the file pointer
-    # for files with multiple parts
-    if ext in ['.fif', '.gz']:
-        """
-        make_bids_folders(subject=subject_id, session=session_id, kind=kind,
-                          root=os.path.join('derivatives', output_path),
-                          verbose=verbose)
-        """
-        raw.save(raw_file_bids, overwrite=overwrite)
+    if ext in ['.fif']:
+        n_rawfiles = len(raw.filenames)
+        if n_rawfiles > 1:
+            # TODO Update MNE requirement to version 0.17 when it's released
+            if check_version('mne', '0.17.dev'):
+                split_naming = 'bids'
+                raw.save(raw_file_bids, split_naming=split_naming,
+                         overwrite=overwrite)
+            else:
+                raise NotImplementedError(
+                    'Renaming split fif files is not supported on your '
+                    'version of MNE. Please upgrade to at least "0.17.dev". '
+                    'Please contact MNE developers if you have '
+                    'any questions.')
+        else:
+            # TODO insert arg `split_naming=split_naming`
+            #      when MNE releases 0.17
+            raw.save(raw_file_bids, overwrite=overwrite)
     else:
         if os.path.exists(raw_file_bids):
             if overwrite:
