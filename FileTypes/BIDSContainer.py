@@ -41,6 +41,7 @@ class BIDSContainer(FileInfo):
         self.subject_group.trace("w", self._update_groups)
 
         self.contains_required_files = True
+        self.requires_save = True
 
         self.extra_data = dict()
 
