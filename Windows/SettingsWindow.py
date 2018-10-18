@@ -3,6 +3,9 @@ from tkinter.ttk import Frame, Label, Button
 from CustomWidgets.WidgetTable import WidgetTable
 from Windows import ProjectSettingsWindow
 
+from constants import OSCONST
+
+import os.path as path
 import pickle
 
 
@@ -20,6 +23,9 @@ class SettingsWindow(Toplevel):
             self.transient(master)
 
         self.title('Project Settings')
+
+        self.proj_settings_file = path.join(OSCONST.USRDIR,
+                                            'proj_settings.pkl')
 
         self.protocol("WM_DELETE_WINDOW", self.exit)
 
@@ -120,6 +126,6 @@ class SettingsWindow(Toplevel):
         self.destroy()
 
     def _write_settings(self):
-        with open('proj_settings.pkl', 'wb') as settings:
+        with open(self.proj_settings_file, 'wb') as settings:
             print('writing settings')
             pickle.dump(self.proj_settings, settings)

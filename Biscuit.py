@@ -10,7 +10,6 @@ import pickle
 import os.path as path
 from os import listdir
 
-from platform import system as os_name
 from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, Folder, KITData, BIDSFile
@@ -23,6 +22,8 @@ from Management.SaveManager import SaveManager
 from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 
 from utils import threaded, get_object_class
+
+from constants import OSCONST
 
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}
@@ -42,26 +43,16 @@ class main(Frame):
 
         self.master.protocol("WM_DELETE_WINDOW", self._check_exit)
         self.master.title("Biscuit")
-        # this directory is weird because the cwd is the parent folder, not
-        # the Biscuit folder. Maybe because vscode?
-        if os_name() == 'Windows':
-            self.master.iconbitmap('assets/bisc.ico')
-            self.treeview_text_size = 10
-        elif os_name() == 'Linux':
-            img = PhotoImage(file='assets/bisc.png')
-            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.treeview_text_size = 12
-        else:
-            # this doesn't work :'(
-            img = PhotoImage(file='assets/bisc.png')
-            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.treeview_text_size = 13
-            #self.master.wm_iconphoto(True, img)
-            #self.master.wm_iconbitmap(img)
+        img = PhotoImage(file=OSCONST.ICON)
+        self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+        self.treeview_text_size = OSCONST.TREEVIEW_TEXT_SIZE
         Frame.__init__(self, self.master)
 
-        # sort out some styling
+        self.proj_settings_file = path.join(OSCONST.USRDIR,
+                                            'proj_settings.pkl')
+        self.settings_file = path.join(OSCONST.USRDIR, 'settings.pkl')
 
+        # sort out some styling
         style.configure("Treeview", font=("TkTextFont",
                                           self.treeview_text_size))
 
@@ -189,7 +180,7 @@ class main(Frame):
 
         # first, attempt to load the settings file:
         try:
-            with open('settings.pkl', 'rb') as settings:
+            with open(self.settings_file, 'rb') as settings:
                 self.settings = pickle.load(settings)
             # we can compare the read settings and default ones to allow for
             # the settings file to automatically update itself if required.
@@ -205,7 +196,7 @@ class main(Frame):
         # also load the project settings which are the default settings to be
         # applied to various projects. These are identified by the project ID.
         try:
-            with open('proj_settings.pkl', 'rb') as proj_settings:
+            with open(self.proj_settings_file, 'rb') as proj_settings:
                 self.proj_settings = pickle.load(proj_settings)
         except FileNotFoundError:
             self.proj_settings = []
@@ -222,7 +213,7 @@ class main(Frame):
         #    self._get_matlab_location()
 
     def _write_settings(self):
-        with open('settings.pkl', 'wb') as settings:
+        with open(self.settings_file, 'wb') as settings:
             pickle.dump(self.settings, settings)
 
     def _create_menus(self):
