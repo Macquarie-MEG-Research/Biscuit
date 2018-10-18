@@ -25,8 +25,6 @@ from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 from utils import threaded, get_object_class
 
 DEFAULTSETTINGS = {"DATA_PATH": "",
-                   "MATLAB_PATH": "",
-                   "SAVEFILE_PATH": "savedata.save",
                    "SHOW_ASSOC_MESSAGE": True}
 
 root = Tk()
@@ -75,7 +73,7 @@ class main(Frame):
 
         self._load_settings()
 
-        self.save_handler = SaveManager(self, self.settings['SAVEFILE_PATH'])
+        self.save_handler = SaveManager(self)
 
         self.context = ClickContext()
 
@@ -143,6 +141,12 @@ class main(Frame):
             dir_ = self.settings["DATA_PATH"]
         else:
             dir_ = directory
+
+        # If not directory is specified exit this function. Elsewhere we will
+        # set the panel on the right hand side to have a message that no folder
+        # has been selected as the base one and give details on how to set it.
+        if dir_ == "":
+            return
 
         # create a mapping of full paths to id's
         curr_children = self.file_treeview.get_children(parent)

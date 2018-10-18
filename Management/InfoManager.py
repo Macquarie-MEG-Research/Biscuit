@@ -123,38 +123,55 @@ class InfoManager(Notebook):
                     self.select(self._tabs[T_MISC])
             self.channel_tab.is_loaded = False
 
+    """
+    A set of static panels to populate the info tab with
+    """
+
+    def _display_no_folder_set(self):
+        """ Display no project folder chosen message """
+        self.info_tab.set_text(
+            "No directory has been specified that contains your MEG data.\n"
+            "Please specify a directory by selecting 'Options > Set data "
+            "directory.' to load a folder.")
+
     def _display_loading(self):
-        # Shows a temporary screen indicating that the requested data is being
-        # loaded...
+        """ Display loading message """
         self.info_tab.set_text(
             "Loading information for selected file, please wait")
 
     def _display_nothing(self):
-        # This will be shown when there is no actual info to be shown
+        """ Display nothing selected message """
         self.info_tab.set_text(
             "Nothing to show. Please select something in the file "
             "viewer to see info")
 
     def _display_invalid_folder(self):
+        """ Display invalid folder message """
         self.info_tab.set_text(
             "Selected folder does not contain all the required files for "
             "exporting KIT data to a BIDS compatible data set.")
 
     def _display_multiple_types(self):
+        """ Display multiple types selected message """
         self.info_tab.set_text(
             "Multiple files selected. To see information select just "
             "one file")
 
     def _display_unknown_file(self):
+        """ Display unknown type selected message """
         self.info_tab.set_text(
             "I don't know how to deal with "
             "{0} files yet!!".format(self.data[0].dtype))
 
     def _display_fif_part(self):
+        """ Display fif file part message """
         self.info_tab.set_text(
             "File part of {0}.fif".format(self.data[0].mainfile_name))
 
     def _determine_misc_data(self):
+        if self.parent.settings["DATA_PATH"] == "":
+            self._display_no_folder_set()
+            return
         if self.data is None:
             self._display_nothing()
         else:

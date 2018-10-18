@@ -1,6 +1,7 @@
 """ some OS dependent constants """
 
 from platform import system as os_name
+import os
 
 OSNAMEMAP = {'Windows': 'WIN',
              'Linux': 'LNX',
@@ -35,3 +36,7 @@ OSCONST.TEXT_BG_LNX = '#D9D9D9'
 OSCONST.ADDROW_WIN = '<Control-n>'
 OSCONST.ADDROW_MAC = '<Command-n>'
 OSCONST.ADDROW_LNX = '<Control-n>'
+
+OSCONST.USRDIR_WIN = os.path.join(os.getenv('APPDATA'), 'Biscuit')
+OSCONST.USRDIR_MAC = os.path.join('~/Library/', 'Biscuit')
+OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
