@@ -32,9 +32,6 @@ class InfoManager(Notebook):
         self.requires_update = True
         self.context = context
 
-        #TODO: just pass parent instead of parent.settings and allow settings
-        # to be retreived one step further down?
-
         # generic info frame
         self.info_tab = GenericInfoFrame(self)
         self.add(self.info_tab, text="Info")
@@ -214,11 +211,21 @@ class InfoManager(Notebook):
 
     @data.setter
     def data(self, new_data):
-        if new_data != self._data:
-            self._data = new_data
-            self.requires_update = True
-        else:
-            self.requires_update = False
+        """ Set replace the old data with the new data
+        To get around the race condition indtroduced by the _preload_data
+        function being threaded which in turn causes this to be called in a
+        separate thread, we will check that the id of the suggested new data
+        matches the id of the currently selected object in the file tree.
+        This doesn't completely fix it but it should help a little.
+        Other race condition occurs when performing syntax highlighting of
+        text data drawn in the ScrolledTextInfoFrame
+        """
+        if self.parent.file_treeview.selection()[0] == new_data[0].ID:
+            if new_data != self._data:
+                self._data = new_data
+                self.requires_update = True
+            else:
+                self.requires_update = False
 
     def check_context(self):
         # see whether or not the context has changed

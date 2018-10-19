@@ -1,6 +1,7 @@
 from tkinter import WORD, END, StringVar
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button, Label
+from utils import threaded
 try:
     from pygments import lex
     from pygments.lexers.python import Python3Lexer
@@ -31,18 +32,11 @@ class ScrolledTextInfoFrame(Frame):
         # the associated file
         self._file = None
 
-    # This doesn't really work...
-    def insert_tab(self, *event):
-        # insert 4 spaces
-        self.textentry.insert('insert', " " * 4)
-        return "break"
-
     # TODO: rename the textentry
     def _create_widgets(self):
         # create a Text widget and read in the file
         self.textentry = ScrolledText(self, wrap=WORD)
         self.textentry.grid(column=0, row=0, columnspan=2, sticky='nsew')
-        #self.textentry.bind("<Tab>", self.insert_tab)
         for key, value in self.highlighter.style:
             self.textentry.tag_configure(key, foreground=value)
         self.save_label = Label(self, textvar=self.saved_time)
@@ -71,6 +65,7 @@ class ScrolledTextInfoFrame(Frame):
     def _update_savetime(self):
         self.saved_time.set("Last saved:\t{0}\t".format(self.file.saved_time))
 
+    @threaded
     def syn(self, event=None):
         """
         Allow for syntax highlighting.
@@ -78,6 +73,9 @@ class ScrolledTextInfoFrame(Frame):
         This will highlight the entire document once. Dynamic highlighting not
         yet supported.
         #TODO: (maybe?): https://stackoverflow.com/questions/32058760/improve-pygments-syntax-highlighting-speed-for-tkinter-text/32064481  # noqa
+
+        This is threaded to hopefully stop it blocking the view from displaying
+        and causing a race condition.
         """
         self.textentry.mark_set("range_start", "1.0")
         data = self.textentry.get("1.0", "end-1c")

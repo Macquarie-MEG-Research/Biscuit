@@ -1,5 +1,4 @@
 from functools import wraps
-from tkinter import StringVar
 import os.path as path
 from os import makedirs
 

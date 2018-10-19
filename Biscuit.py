@@ -330,7 +330,7 @@ class main(Frame):
         I *think* this can be removed by using the data property of the
         InfoManager
         """
-        self.info_notebook.check_context()
+        #self.info_notebook.check_context()
         self.info_notebook.data = [
             self.preloaded_data.get(id_, None) for id_ in
             sids if self.preloaded_data.get(id_, None) is not None]
