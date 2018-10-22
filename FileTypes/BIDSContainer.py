@@ -162,11 +162,11 @@ class BIDSContainer(FileInfo):
 
     def __setstate__(self, state):
         super(BIDSContainer, self).__setstate__(state)
-        self.proj_name.set(state['prj'])
-        self.session_ID.set(state['sid'])
-        self.subject_ID.set(state['sji'])
-        self.subject_age[0].set(state['sja'][0])
-        self.subject_age[1].set(state['sja'][1])
-        self.subject_age[2].set(state['sja'][2])
-        self.subject_gender.set(state['sjs'])
-        self.subject_group.set(state['sjg'])
+        self.proj_name.set(state.get('prj', ''))
+        self.session_ID.set(state.get('sid', ''))
+        self.subject_ID.set(state.get('sji', ''))
+        self.subject_age[0].set(state.get('sja', ['', '', ''])[0])
+        self.subject_age[1].set(state.get('sja', ['', '', ''])[1])
+        self.subject_age[2].set(state.get('sja', ['', '', ''])[2])
+        self.subject_gender.set(state.get('sjs', 'M'))
+        self.subject_group.set(state.get('sjg', ''))        # TODO: make None?

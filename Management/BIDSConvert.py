@@ -39,11 +39,9 @@ def convert(container, settings, parent=None):
 
     with redirect_stdout(progress):
         for job in container.jobs:
-            job_name.set("Acquisition: {0}, Task: {1}".format(
-                job.acquisition.get(), job.task.get()))
+            job_name.set("Run: {0}, Task: {1}".format(
+                job.run.get(), job.task.get()))
             if not job.is_junk.get():
-                #progress = "Working on acquisition: {0}, task: {1}".format(
-                #    job.acquisition.get(), job.task.get())
                 target_folder = path.join(bids_folder_path,
                                           container.proj_name.get())
 
@@ -92,7 +90,7 @@ def convert(container, settings, parent=None):
                 raw_to_bids(subject_id=subject_id, task=job.task.get(),
                             raw_file=job.raw, output_path=target_folder,
                             session_id=sess_id, kind='meg', event_id=event_ids,
-                            hpi=mrks, acquisition=job.acquisition.get(),
+                            hpi=mrks, run=job.run.get(),
                             emptyroom=emptyroom, extra_data=extra_data,
                             subject_group=subject_group,
                             readme_text=container.readme, verbose=True,

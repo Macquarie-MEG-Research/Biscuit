@@ -15,7 +15,7 @@ class BIDSFile(FileInfo):
 
     def _create_vars(self):
         FileInfo._create_vars(self)
-        self.acquisition = StringVar()
+        self.run = StringVar()
         self.task = StringVar()
         self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
@@ -52,7 +52,7 @@ class BIDSFile(FileInfo):
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
         is_valid &= self.task.get() != ''
-        is_valid &= self.acquisition.get() != ''
+        is_valid &= self.run.get() != ''
         is_valid &= (self.hpi != [])
         return is_valid
 
@@ -66,7 +66,7 @@ class BIDSFile(FileInfo):
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()
 
-        data['acq'] = self.acquisition.get()        # acquisition
+        data['run'] = self.run.get()        # run
         data['tsk'] = self.task.get()               # task
         data['hpi'] = []
         for hpi in self.hpi:
@@ -78,10 +78,10 @@ class BIDSFile(FileInfo):
 
     def __setstate__(self, state):
         super(BIDSFile, self).__setstate__(state)
-        self.acquisition.set(state['acq'])
-        self.task.set(state['tsk'])
+        self.run.set(state.get('run', 0))
+        self.task.set(state.get('tsk', ''))
         # these will be just the file paths for now
-        for hpi in state['hpi']:
+        for hpi in state.get('hpi', []):
             self.hpi.append(hpi)
-        self.is_empty_room.set(state['ier'])
-        self.has_empty_room.set(state['her'])
+        self.is_empty_room.set(state.get('ier', False))
+        self.has_empty_room.set(state.get('her', False))

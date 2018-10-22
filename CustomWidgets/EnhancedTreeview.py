@@ -274,9 +274,10 @@ class EnhancedTreeview(Treeview):
 
         for fid in sort_folders:
             if col != '#0':
-                lst = [(self.set(k, col), k) for k in self.get_children(fid)]
+                lst = [(self.set(k, col).lower(), k) for k in
+                       self.get_children(fid)]
             else:
-                lst = [(self.item(sid, option='text'), sid) for
+                lst = [(self.item(sid, option='text').lower(), sid) for
                        sid in self.get_children(fid)]
             lst.sort(reverse=reverse)
 

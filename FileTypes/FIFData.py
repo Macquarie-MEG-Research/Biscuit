@@ -110,7 +110,7 @@ class FIFData(BIDSContainer, BIDSFile):
         is_valid &= self.proj_name.get() != ''
         is_valid &= self.subject_ID.get() != ''
         is_valid &= self.task.get() != ''
-        is_valid &= self.acquisition.get() != ''
+        is_valid &= self.run.get() != ''
         return is_valid
 
     def check_bids_ready(self):
@@ -187,7 +187,7 @@ class FIFData(BIDSContainer, BIDSFile):
         BIDSContainer.__setstate__(self, state)
         # Why do we not need this one too???
         #BIDSFile.__setstate__(self, state)
-        for key in state['chs']:
+        for key in state.get('chs', []):
             self.channel_info[key] = {
                 'ch_name': StringVar(value=state['chs'][key][0]),
                 'ch_type': OptionsVar(value=state['chs'][key][1],

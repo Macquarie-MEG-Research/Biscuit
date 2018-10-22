@@ -152,7 +152,7 @@ class FileInfo():
 
     def __setstate__(self, state):
         self.__init__(file=state['file'])
-        self.is_junk.set(state['jnk'])
+        self.is_junk.set(state.get('jnk', False))
 
     def __repr__(self):
         # represent the object by its path.

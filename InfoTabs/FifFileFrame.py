@@ -1,5 +1,5 @@
 from tkinter import (StringVar, BooleanVar, DISABLED, NORMAL, Entry,
-                     messagebox)
+                     messagebox, IntVar)
 from tkinter.ttk import Frame, Label, Separator, Button, Combobox
 from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                        InfoChoice)
@@ -109,12 +109,12 @@ class FifFileFrame(Frame):
                                   padx=2)
         self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,
                                   padx=2)
-        self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
-                                  bad_values=[''],
+        self.run_info = InfoEntry(self, 'Run number', IntVar(),
+                                  bad_values=[0],
                                   validate_cmd=None)
-        self.require_verification.append(self.acq_info)
-        self.acq_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
-        self.acq_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)
+        self.require_verification.append(self.run_info)
+        self.run_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
+        self.run_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)
 
         Separator(self, orient='horizontal').grid(column=0, row=12,
                                                   columnspan=2, sticky='ew')
@@ -198,8 +198,8 @@ class FifFileFrame(Frame):
         self.sess_id_entry.value = self.file.session_ID
         self.task_info.value = self.file.task
         self.task_info.validate_cmd = self.file.validate
-        self.acq_info.value = self.file.acquisition
-        self.acq_info.validate_cmd = self.file.validate
+        self.run_info.value = self.file.run
+        self.run_info.validate_cmd = self.file.validate
         self.is_emptyroom_info.value = self.file.is_empty_room
         self.is_emptyroom_info.validate_cmd = self.file.validate
         self.has_emptyroom_info.value = self.file.has_empty_room

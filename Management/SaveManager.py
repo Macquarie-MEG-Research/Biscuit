@@ -10,7 +10,7 @@ from constants import OSCONST
     file:   file name
     jnk:    is junk
     # BIDSFile:
-    acq:    acquisition
+    run:    run
     tsk:    task
     hpi:    marker coils
     ier:    is empty room
@@ -28,6 +28,8 @@ from constants import OSCONST
     cin:    channel info        # TODO: merge with FIFData format (somehow???)
     # FIFData:
     chs:    channel info        # TODO: move to BIDSContainer
+    # mrk_file
+    acq:    acquisition ('pre' or 'post', file isn't saved if 'n/a')
 """
 
 
@@ -94,6 +96,10 @@ class SaveManager():
                         # get the file to load it's data
                         file.load_data()
                         # then add the file to the preloaded data
+                        _data[file.ID] = file
+                    elif isinstance(file, mrk_file):
+                        sid = self.get_file_id(file.file)
+                        file.ID = sid
                         _data[file.ID] = file
                 except FileNotFoundError:
                     pass

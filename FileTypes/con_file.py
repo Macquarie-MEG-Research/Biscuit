@@ -210,11 +210,8 @@ class con_file(BIDSFile):
     def __setstate__(self, state):
         super(con_file, self).__setstate__(state)
 
-        # first intialise all the required variables
-        #self._create_vars()
-
         # then populate them
-        for key in state['cin']:
+        for key in state.get('cin', []):
             self.tab_info[key] = [StringVar(value=state['cin'][key][0]),
                                   BooleanVar(value=state['cin'][key][1]),
                                   BooleanVar(value=state['cin'][key][2]),

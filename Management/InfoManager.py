@@ -4,11 +4,12 @@ from tkinter.ttk import Notebook
 from FileTypes import FileInfo, Folder, FIFData
 from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
                       EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame,
-                      ChannelInfoFrame)
+                      ChannelInfoFrame, MrkFileFrame)
 #from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 # some global names:
 T_CON = 'con_tab'
+T_MRK = 'mrk_tab'
 T_FIF = 'fif_tab'
 T_EVENTS = 'events_tab'
 T_MISC = 'general_tab'
@@ -69,6 +70,11 @@ class InfoManager(Notebook):
         self.add(self.scrolltext_tab, text="File contents")
         self._tabs[T_SCROLLTEXT] = 6
 
+        # mrk file tab
+        self.mrk_info_tab = MrkFileFrame(self)
+        self.add(self.mrk_info_tab, text="File Info")
+        self._tabs[T_MRK] = 7
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
@@ -95,6 +101,12 @@ class InfoManager(Notebook):
             else:
                 self.info_tab.file = self.data[0]
                 self.display_tabs(T_MISC)
+                self.select(self._tabs[T_MISC])
+        # If a .mrk file is selected then show the mrk tab
+        elif self.context == '.MRK':
+            self.mrk_info_tab.file = self.data[0]
+            self.display_tabs(T_MRK)
+            self.select(self._tabs[T_MRK])
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
             if self.data[0].contains_required_files:
@@ -204,6 +216,8 @@ class InfoManager(Notebook):
                     self._determine_misc_data()
             else:
                 self.tab(self._tabs[t], state=HIDDEN)
+        # TODO: make it so that if there is only one tab required to be
+        # displayed, select it automatically?
 
     @property
     def data(self):

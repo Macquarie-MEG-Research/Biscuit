@@ -1,4 +1,3 @@
-#from tkinter import Frame
 from tkinter.ttk import Label, Frame
 
 

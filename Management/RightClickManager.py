@@ -16,6 +16,7 @@ function to make it less messy.
 This can probably be added to the enhanced treeview widget as a method.
 """
 
+
 class RightClick():
     def __init__(self, parent, context):
         self.parent = parent
@@ -75,10 +76,12 @@ class RightClick():
         self.popup_menu.delete(0, self.popup_menu.index("end"))
         # now, draw the manu elements required depending on context
         if self.parent.treeview_select_mode == "NORMAL":
+            """
             if ("FOLDER" not in self.context and
                     self.context != set()):
                 self.popup_menu.add_command(label="Create Folder",
                                             command=self._create_folder)
+            """
             if ('.CON' in self.context or '.MRK' in self.context):
                 self.popup_menu.add_command(label="Associate",
                                             command=self._associate_mrk)
@@ -168,12 +171,20 @@ class RightClick():
             if self.parent.treeview_select_mode == "NORMAL":
                 # initialise the association process
                 if '.MRK' in self.context and not self.context.is_mixed:
-                    messagebox.showinfo(
-                        "Select", ("Please select the .con file(s) associated "
-                                   "with this file.\nOnce you have selected "
-                                   "all required files, right click and press "
-                                   "'associate' again"))
-                    self.parent.set_treeview_mode("ASSOCIATE-CON")
+                    if self.context.group_size > 2:
+                        messagebox.showerror(
+                            "Error", ("Too many .mrk files selected. You may "
+                                      "only select up to two .mrk files to be "
+                                      "associated with any .con file"))
+                        return
+                    else:
+                        messagebox.showinfo(
+                            "Select", ("Please select the .con file(s) "
+                                       "associated with this file.\nOnce you "
+                                       "have selected all required files, "
+                                       "right click and press 'associate' "
+                                       "again"))
+                        self.parent.set_treeview_mode("ASSOCIATE-CON")
                 elif '.CON' in self.context and not self.context.is_mixed:
                     messagebox.showinfo(
                         "Select", ("Please select the .mrk file(s) associated "
@@ -223,6 +234,14 @@ class RightClick():
                     if ".MRK" in self.context and not self.context.is_mixed:
                         # make sure that the .con and .mrk files are in the
                         # same folder
+                        if self.context.group_size > 2:
+                            # make sure no more than 2 mrk files selected
+                            messagebox.showerror(
+                                "Error", ("Too many .mrk files selected. You "
+                                          "may only select up to two .mrk "
+                                          "files to be associated with any "
+                                          ".con file"))
+                            return
                         pid = self.parent.file_treeview.parent(
                             self.curr_selection[0])
                         for id_ in self.prev_selection + self.curr_selection:

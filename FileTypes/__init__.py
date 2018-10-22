@@ -11,4 +11,3 @@ from .KITData import KITData  # noqa
 from .Folder import Folder  # noqa
 from .BIDSFile import BIDSFile  # noqa
 from .BIDSContainer import BIDSContainer  # noqa
-from .InfoContainer import InfoContainer as InfoContainer  # noqa

@@ -1,10 +1,10 @@
 __author__ = "Matt Sanderson"
 
-from tkinter import Tk, PhotoImage, Menu
+from tkinter import Tk, PhotoImage, Menu, StringVar
 from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, messagebox
-from tkinter.ttk import Frame, Style, Button
+from tkinter.ttk import Frame, Style, Button, Label
 
 import pickle
 import os.path as path
@@ -58,13 +58,15 @@ class main(Frame):
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
-        # placed in this dictionary so that we can then avoid reloading it 
+        # placed in this dictionary so that we can then avoid reloading it
         # later as each load of data takes ~0.5s
         self.preloaded_data = dict()
 
         self._load_settings()
 
         self.save_handler = SaveManager(self)
+        self.saved_time = StringVar()
+        self.saved_time.set("Last saved:\tNever")
 
         self.context = ClickContext()
 
@@ -295,12 +297,14 @@ class main(Frame):
         buttonFrame = Frame(main_frame)
         buttonFrame.grid(column=0, row=1, columnspan=2)
 
+        self.save_label = Label(buttonFrame, textvar=self.saved_time)
+        self.save_label.grid(column=0, row=0, padx=5)
         self.saveButton = Button(buttonFrame, text="Save",
                                  command=lambda: self.save_handler.save())
-        self.saveButton.grid(column=0, row=0, padx=5)
+        self.saveButton.grid(column=1, row=0, padx=5)
         self.exitButton = Button(buttonFrame, text="Exit",
                                  command=self._check_exit)
-        self.exitButton.grid(column=1, row=0, padx=5)
+        self.exitButton.grid(column=2, row=0, padx=5)
 
         # add resizing stuff:
         self.master.columnconfigure(0, weight=1)
@@ -309,19 +313,12 @@ class main(Frame):
         main_frame.columnconfigure(0, weight=1)
 
     """
-    # not gonna worry about this for now...
-    def column_check(self, event):
-        print(self.file_treeview.identify_region(event.x, event.y), 'reg')
-        if self.file_treeview.identify_region(event.x, event.y) == 'separator':
-            self._drag_mode = 'separator'
-            left_col = self.file_treeview.identify_column(event.x)
-            #right_col = '#{}'.format(int(left_col.lstrip('#')) + 1)
-    """
+    def _update_savetime(self):
+        savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.file.saved_time = savetime
 
-    # this either...
-    def column_drag(self, event):
-        if self._drag_mode == 'separator':
-            print('hi')
+        self.saved_time.set("Last saved:\t{0}\t".format(self.file.saved_time))
+    """
 
     def _populate_info_panel(self, sids):
         """
@@ -373,7 +370,7 @@ class main(Frame):
             self.file_treeview.selection_add(sid)
         self._select_treeview_entry(event)
 
-    def _select_treeview_entry(self, event):
+    def _select_treeview_entry(self, *event):
         # Currently needs to have the folder name and prefix the same
         # (need to change!!!)                                   ###############
         # We also need to put some of this stuff in a separate thread as the
@@ -390,7 +387,7 @@ class main(Frame):
         if self.context == '.CON':
             self._highlight_associated_mrks(event)
 
-    def _clear_tags(self, event):
+    def _clear_tags(self, *event):
         tag_list = ['ASSOC_FILES']
         for tag in tag_list:
             for sid in self.file_treeview.tag_has(tag):
@@ -412,6 +409,7 @@ class main(Frame):
         # we will have None if the preloading of the data isn't complete
         # if this is so, return, and this function will be called again on
         # completion of the preloading
+        self._clear_tags()
         if con_file is not None:
             # get the associated mrk files if any
             for mrk_file in con_file.hpi:

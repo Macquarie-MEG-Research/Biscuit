@@ -110,6 +110,7 @@ class KITData(BIDSContainer):
             self.validate()
 
         self.contained_files = files
+        self.loaded = True
 
     def prepare(self):
         super(KITData, self).prepare()
@@ -129,12 +130,19 @@ class KITData(BIDSContainer):
                 con_file.load_data()
 
             if con_file.is_junk.get() is False:
+                # TODO: empty room stuff will be updated
                 if con_file.is_empty_room.get():
-                    con_file.acquisition.set('emptyroom')
+                    con_file.run.set('emptyroom')
                     con_file.task.set('noise')
                 trigger_channels, descriptions = con_file.get_event_data()
                 con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))
+                # change the channel type of any channels that are triggers
+                for ch in trigger_channels:
+                    i = int(ch) - 1
+                    raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
+                # if none are specified we will get MNE to determine them
+                # itself
                 if trigger_channels == []:
                     trigger_channels = '>'
                     stim_code = 'binary'
@@ -171,10 +179,6 @@ class KITData(BIDSContainer):
                 raw.info['subject_info']['birthday'] = bday
                 raw.info['subject_info']['sex'] = sex
 
-                # change the channel type of any channels that are triggers
-                for ch in trigger_channels:
-                    i = int(ch) - 1
-                    raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
                 # assign the raw to the con_file
                 con_file.raw = raw
 
@@ -238,4 +242,4 @@ class KITData(BIDSContainer):
     def __setstate__(self, state):
         super(KITData, self).__setstate__(state)
 
-        self.dewar_position.set(state['dwr'])
+        self.dewar_position.set(state.get('dwr', 'supine'))
