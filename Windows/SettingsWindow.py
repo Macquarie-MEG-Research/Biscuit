@@ -105,7 +105,6 @@ class SettingsWindow(Toplevel):
             raise ValueError
 
     def _edit_project_row(self, idx):
-        print(idx, 'edited index')
         curr_row = idx
         proj_settings = self.proj_settings[curr_row]
         ProjectSettingsWindow(self, proj_settings)

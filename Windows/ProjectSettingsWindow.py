@@ -87,9 +87,15 @@ class ProjectSettingsWindow(Toplevel):
             data_array=self.settings.get('Groups', []))
         self.groups_table.grid(column=2, columnspan=2, row=9, sticky='nsew')
 
-        self.save_btn = Button(self.frame, text="Save",
+        self.button_frame = Frame(self.frame)
+        self.button_frame.grid(row=10, column=0, columnspan=4)
+
+        self.save_btn = Button(self.button_frame, text="Save and Exit",
                                command=self._write_settings)
-        self.save_btn.grid(column=4, row=10)
+        self.save_btn.grid(column=0, row=0, sticky='e', padx=5)
+        self.exit_btn = Button(self.button_frame, text="Cancel",
+                               command=self.cancel)
+        self.exit_btn.grid(column=1, row=0, sticky='e', padx=5)
 
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)

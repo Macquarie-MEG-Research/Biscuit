@@ -235,7 +235,7 @@ class EnhancedTreeview(Treeview):
         self.bind("<<TreeviewSelect>>", self.leftclick_func, add='+')
 
     def doubleclick_func(self, event):
-        ''' Executed, when a row is double-clicked. Opens 
+        ''' Executed, when a row is double-clicked. Opens
         read-only EntryPopup above the item's column, so it is possible
         to select text '''
         print('double clicked')
@@ -395,7 +395,7 @@ class DNDManager():
         self.initial_selection = None
         self.finish_widget = None
         self.final_selection = None
-    
+
     def _wait_then_run(self, delay, func, event):
         # we need to make sure we have selected an actual row...
         if self.master.identify_row(event.y) != "":
