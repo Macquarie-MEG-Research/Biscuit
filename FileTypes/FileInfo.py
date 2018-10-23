@@ -65,10 +65,6 @@ class FileInfo():
         """
         self.valid = self.check_valid()
 
-    def post_validate(self):
-        """ Code to be run after the validation check has completed """
-        pass
-
     def update_treeview(self):
         """
         Change the colour of the tag in the treeview to reflect the current
@@ -106,7 +102,6 @@ class FileInfo():
         #print(self, other)
         self.is_valid = other
         self.update_treeview()
-        self.post_validate()
 
     @property
     def file(self):

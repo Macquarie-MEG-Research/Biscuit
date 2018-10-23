@@ -93,11 +93,11 @@ class SessionInfoFrame(Frame):
 
     def update_widgets(self):
         self.proj_name_entry.value = self.file.proj_name
-        self.proj_name_entry.validate_cmd = self.file.check_valid
+        self.proj_name_entry.validate_cmd = self.file.validate
         self.sess_id_entry.value = self.file.session_ID
-        self.sess_id_entry.validate_cmd = self.file.check_valid
+        self.sess_id_entry.validate_cmd = self.file.validate
         self.sub_id_entry.value = self.file.subject_ID
-        self.sub_id_entry.validate_cmd = self.file.check_valid
+        self.sub_id_entry.validate_cmd = self.file.validate
         self.sub_age_entry.setvar(self.file.subject_age)
         self.sub_gender_entry.value = self.file.subject_gender
         self.sub_group_entry.value = self.file.subject_group

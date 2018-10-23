@@ -26,6 +26,7 @@ class FIFData(BIDSContainer, BIDSFile):
         self.container = self
         self.jobs = [self]
         self.info['Has Active Shielding'] = "False"
+        self.hpi = None
 
         # name of main file part
         self.mainfile_name = None
@@ -112,9 +113,6 @@ class FIFData(BIDSContainer, BIDSFile):
         is_valid &= self.task.get() != ''
         is_valid &= self.run.get() != ''
         return is_valid
-
-    def check_bids_ready(self):
-        BIDSContainer.check_bids_ready(self)
 
     # TODO: maybe not have this return two lists??
     def get_event_data(self):

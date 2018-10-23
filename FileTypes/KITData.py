@@ -79,8 +79,6 @@ class KITData(BIDSContainer):
             # first run the verification on each of the jobs to ensure they
             # have been checked
             for job in self.jobs:
-                # this is slightly inefficient, but because _check_bids_ready
-                # for BIDSContainers is very efficient it won't matter
                 job.validate()
 
             # apply some values
@@ -137,10 +135,6 @@ class KITData(BIDSContainer):
                 trigger_channels, descriptions = con_file.get_event_data()
                 con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))
-                # change the channel type of any channels that are triggers
-                for ch in trigger_channels:
-                    i = int(ch) - 1
-                    raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
                 # if none are specified we will get MNE to determine them
                 # itself
                 if trigger_channels == []:
@@ -163,6 +157,12 @@ class KITData(BIDSContainer):
                 bads = con_file.bad_channels()
                 # set the bads
                 raw.info['bads'] = bads
+
+                # change the channel type of any channels that are triggers
+                if isinstance(trigger_channels, list):
+                    for ch in trigger_channels:
+                        i = int(ch) - 1
+                        raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
 
                 # assign the subject data
                 try:
@@ -195,8 +195,8 @@ class KITData(BIDSContainer):
 
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):
-        """ Generate a list of all KIT related files within the folder 
-        
+        """ Generate a list of all KIT related files within the folder
+
         Parameters
         ----------
         folder_id : int
@@ -206,7 +206,7 @@ class KITData(BIDSContainer):
         validate : bool
             Whether to validate the produced list. If True, whether the folder
             is valid or not is returned. Defaults to False.
-        
+
         Returns:
         dict() if validate == False,
         bool otherwise.

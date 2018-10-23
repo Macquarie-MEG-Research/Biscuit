@@ -85,7 +85,28 @@ def convert(container, settings, parent=None):
                     else:
                         emptyroom = False
 
-                mrks = [mrk.file for mrk in job.hpi]
+                # process the list of mrks:
+                if job.hpi is not None:
+                    if isinstance(job.hpi, list):
+                        if len(job.hpi) == 1:
+                            # only have one marker coil
+                            mrks = job.hpi[0].file
+                        elif len(job.hpi) == 2:
+                            # initiate an empty list
+                            mrks = [None, None]
+                            for mrk in job.hpi:
+                                if mrk.acquisition.get() == 'pre':
+                                    mrks[0] = mrk.file
+                                elif mrk.acquisition.get() == 'post':
+                                    mrks[1] = mrk.file
+                                else:
+                                    # in this case it isn't specified. Best we
+                                    # can do it just add it. Maybe raise a
+                                    # message?
+                                    mrks.append(mrk.file)
+                            # drop any None values just in case:
+                            for _ in range(mrks.count(None)):
+                                mrks.remove(None)
 
                 raw_to_bids(subject_id=subject_id, task=job.task.get(),
                             raw_file=job.raw, output_path=target_folder,

@@ -46,6 +46,7 @@ class RightClick():
 
     def _determine_entries(self):
         """
+        # TODO: remove?
         if "FOLDER" in self.context:
             entry = self.parent.preloaded_data[self.curr_selection[0]]
             if isinstance(entry, InfoContainer):

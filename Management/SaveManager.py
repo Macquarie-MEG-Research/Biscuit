@@ -3,6 +3,9 @@ from FileTypes import FIFData, con_file, mrk_file, KITData
 import os.path as path
 from os import makedirs
 
+from tkinter import StringVar
+from datetime import datetime
+
 from constants import OSCONST
 
 """ Save format specification/taken names:
@@ -53,6 +56,9 @@ class SaveManager():
         savefile_name = 'savedata.save'
         self.save_file = path.join(self.save_path, savefile_name)
 
+        self.saved_time = StringVar()
+        self.saved_time.set("Last saved:\tNever")
+
         self.treeview_ids = []
 
     # TODO: clean this up a bit? Not sure what can be re-factored, but it
@@ -71,6 +77,9 @@ class SaveManager():
 
         # first retrieve all the data from the save file
         if path.exists(self.save_file):
+            load_time = datetime.fromtimestamp(path.getmtime(self.save_file))
+            self.saved_time.set("Last saved:\t{0}".format(
+                load_time.strftime("%Y-%m-%d %H:%M:%S")))
             for file in self._load_gen():
                 try:
                     if isinstance(file, con_file):
@@ -178,8 +187,9 @@ class SaveManager():
             for file in self.parent.preloaded_data.values():
                 if file.requires_save:
                     try:
-                        print('dumping {0}'.format(file.file))
                         pickle.dump(file, f)
                     except TypeError:
                         print('error saving file: {0}'.format(file))
                         raise
+            savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.saved_time.set("Last saved:\t{0}".format(savetime))

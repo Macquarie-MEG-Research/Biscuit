@@ -1,6 +1,6 @@
 __author__ = "Matt Sanderson"
 
-from tkinter import Tk, PhotoImage, Menu, StringVar
+from tkinter import Tk, PhotoImage, Menu
 from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, messagebox
@@ -65,8 +65,6 @@ class main(Frame):
         self._load_settings()
 
         self.save_handler = SaveManager(self)
-        self.saved_time = StringVar()
-        self.saved_time.set("Last saved:\tNever")
 
         self.context = ClickContext()
 
@@ -297,7 +295,8 @@ class main(Frame):
         buttonFrame = Frame(main_frame)
         buttonFrame.grid(column=0, row=1, columnspan=2)
 
-        self.save_label = Label(buttonFrame, textvar=self.saved_time)
+        self.save_label = Label(buttonFrame,
+                                textvar=self.save_handler.saved_time)
         self.save_label.grid(column=0, row=0, padx=5)
         self.saveButton = Button(buttonFrame, text="Save",
                                  command=lambda: self.save_handler.save())

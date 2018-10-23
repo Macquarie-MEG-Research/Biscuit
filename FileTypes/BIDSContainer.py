@@ -70,6 +70,10 @@ class BIDSContainer(FileInfo):
         self.validate()
         self.validation_initialised = True
 
+    def validate(self):
+        self.valid = self.check_valid()
+        self._set_bids_button_state()
+
     def check_valid(self):
         is_valid = super(BIDSContainer, self).check_valid()
         is_valid &= self.proj_name.get() != ''
@@ -77,14 +81,6 @@ class BIDSContainer(FileInfo):
         for job in self.jobs:
             is_valid &= job.valid
         return is_valid
-
-    def check_bids_ready(self):
-        """
-        Go over all the required settings and determine whether the file is
-        ready to be exported to the bids format
-        """
-        if self.valid:
-            self._set_bids_button_state()
 
     def check_projname_change(self, *args):
         """
