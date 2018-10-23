@@ -98,7 +98,7 @@
         <li class="main active"><a href="#converting-kit-data">Converting KIT data</a></li>
             <li><a href="#kit-data-folder">KIT data folder</a></li>
             <li><a href="#con-file-window">.CON file window</a></li>
-            <li><a href="#associating-a-mrk-file">Associating a .mrk file</a></li>
+            <li><a href="#associating-an-mrk-file">Associating an .mrk file</a></li>
             <li><a href="#exporting-the-data">Exporting the data</a></li>
     </ul>
 </div></div>
@@ -150,7 +150,7 @@ Because KIT data consists of multiple files unlike Elekta data which consists of
 <p>It is often important to specify if a certain channel is bad, or if a channel has any trigger information on it so that <em>MNE</em> can process this information properly and <em>MNE-BIDS</em> can produce the correct event information on export.
 If you have set up any default channels when <a href="../guide_general/#settings-windows">setting up your project defaults</a>, then you will automatically see any channels specified as trigger channels in the channel tab, along with their default trigger description.
 You can however add any other channel detected in the <code>.con</code> file to add to the list if you need to add extra trigger channels for the particular recording.</p>
-<h2 id="associating-a-mrk-file">Associating a <code>.mrk</code> file</h2>
+<h2 id="associating-an-mrk-file">Associating an <code>.mrk</code> file</h2>
 <p>It is crucial for each <code>.con</code> file to know what <code>.mrk</code> file was used during the recording.
 We can associate a <code>.con</code> file with an <code>.mrk</code> file in one of 3 different ways, all achieved by <em>right-clicking</em> on the <code>.mrk</code> or <code>.con</code> file in question.</p>
 <ol>
@@ -159,6 +159,7 @@ We can associate a <code>.con</code> file with an <code>.mrk</code> file in one 
 <li><em>Right-click</em> on an <strong><code>.mrk</code></strong> file and select <code>associate with all</code>. This will associate the selected <code>.mrk</code> file with <em>every</em> <code>.con</code> file in the same directory.</li>
 </ol>
 <p>Once an <code>.mrk</code> has been associated with a <code>.con</code> file, selecting a <code>.con</code> file will highlight any associated <code>.mrk</code> files in blue in the file treeview on the left hand side. You can use this to confirm that you have associated the correct <code>.mrk</code> file with the correct <code>.con</code> file.</p>
+<p>Note that you cannot associate more than 2 <code>.mrk</code> files with any given <code>.con</code> file. If 2 <code>.mrk</code> files are associated with the one <code>.con</code> file you will need to select the <code>.mrk</code> in the file tree and select the acquisition time, which is one of <code>"n/a"</code> (used when you have only one <code>.mrk</code> associated with a <code>.con</code> file), <code>'pre'</code> (indicates the <code>.mrk</code> file was recorded <em>before</em> the raw data was collected), and <code>'post'</code> (indicating the <code>.mrk</code> file was recorded <em>after</em> the raw data was collected).</p>
 <p><img alt="con_complete" src="../images/screenshots/KIT_con_complete.PNG" /></p>
 <h2 id="exporting-the-data">Exporting the data</h2>
 <p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.</p>
