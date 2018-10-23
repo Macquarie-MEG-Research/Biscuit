@@ -1,4 +1,4 @@
-from tkinter import StringVar, BooleanVar
+from tkinter import StringVar, BooleanVar, IntVar
 from tkinter.ttk import Frame, Label, Separator
 from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
 
@@ -51,11 +51,11 @@ class ConFileFrame(Frame):
                                    validate_cmd=None)
         self.task_info.label.grid(column=0, row=10)
         self.task_info.value.grid(column=1, row=10)
-        self.acq_info = InfoEntry(self, 'Acquisition', StringVar(),
-                                  bad_values=[''],
+        self.run_info = InfoEntry(self, 'Run number', IntVar(),
+                                  bad_values=[0],
                                   validate_cmd=None)
-        self.acq_info.label.grid(column=0, row=11)
-        self.acq_info.value.grid(column=1, row=11)
+        self.run_info.label.grid(column=0, row=11)
+        self.run_info.value.grid(column=1, row=11)
         self.mrks_info = InfoList(self, "Associated .mrk's", [],
                                   validate_cmd=None)
         self.mrks_info.label.grid(column=0, row=12)
@@ -92,8 +92,8 @@ class ConFileFrame(Frame):
 
         self.task_info.value = self.file.task
         self.task_info.validate_cmd = self.file.validate
-        self.acq_info.value = self.file.acquisition
-        self.acq_info.validate_cmd = self.file.validate
+        self.run_info.value = self.file.run
+        self.run_info.validate_cmd = self.file.validate
         self.mrks_info.value = self.file.hpi
         self.mrks_info.validate_cmd = self.file.validate
         self.is_junk_info.value = self.file.is_junk
@@ -112,5 +112,5 @@ class ConFileFrame(Frame):
         self._file = value
         self.update_widgets()
         if not self._file.is_good:
-            self.acq_info.check_valid()
+            self.run_info.check_valid()
             self.task_info.check_valid()

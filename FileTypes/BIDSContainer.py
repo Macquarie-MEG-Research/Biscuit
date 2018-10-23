@@ -41,6 +41,7 @@ class BIDSContainer(FileInfo):
         self.subject_group.trace("w", self._update_groups)
 
         self.contains_required_files = True
+        self.requires_save = True
 
         self.extra_data = dict()
 
@@ -69,6 +70,10 @@ class BIDSContainer(FileInfo):
         self.validate()
         self.validation_initialised = True
 
+    def validate(self):
+        self.valid = self.check_valid()
+        self._set_bids_button_state()
+
     def check_valid(self):
         is_valid = super(BIDSContainer, self).check_valid()
         is_valid &= self.proj_name.get() != ''
@@ -76,14 +81,6 @@ class BIDSContainer(FileInfo):
         for job in self.jobs:
             is_valid &= job.valid
         return is_valid
-
-    def check_bids_ready(self):
-        """
-        Go over all the required settings and determine whether the file is
-        ready to be exported to the bids format
-        """
-        if self.valid:
-            self._set_bids_button_state()
 
     def check_projname_change(self, *args):
         """
@@ -161,11 +158,11 @@ class BIDSContainer(FileInfo):
 
     def __setstate__(self, state):
         super(BIDSContainer, self).__setstate__(state)
-        self.proj_name.set(state['prj'])
-        self.session_ID.set(state['sid'])
-        self.subject_ID.set(state['sji'])
-        self.subject_age[0].set(state['sja'][0])
-        self.subject_age[1].set(state['sja'][1])
-        self.subject_age[2].set(state['sja'][2])
-        self.subject_gender.set(state['sjs'])
-        self.subject_group.set(state['sjg'])
+        self.proj_name.set(state.get('prj', ''))
+        self.session_ID.set(state.get('sid', ''))
+        self.subject_ID.set(state.get('sji', ''))
+        self.subject_age[0].set(state.get('sja', ['', '', ''])[0])
+        self.subject_age[1].set(state.get('sja', ['', '', ''])[1])
+        self.subject_age[2].set(state.get('sja', ['', '', ''])[2])
+        self.subject_gender.set(state.get('sjs', 'M'))
+        self.subject_group.set(state.get('sjg', ''))        # TODO: make None?

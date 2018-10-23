@@ -4,13 +4,12 @@ from tkinter import Tk, PhotoImage, Menu
 from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, messagebox
-from tkinter.ttk import Frame, Style, Button
+from tkinter.ttk import Frame, Style, Button, Label
 
 import pickle
 import os.path as path
 from os import listdir
 
-from platform import system as os_name
 from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, Folder, KITData, BIDSFile
@@ -24,9 +23,9 @@ from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 
 from utils import threaded, get_object_class
 
+from constants import OSCONST
+
 DEFAULTSETTINGS = {"DATA_PATH": "",
-                   "MATLAB_PATH": "",
-                   "SAVEFILE_PATH": "savedata.save",
                    "SHOW_ASSOC_MESSAGE": True}
 
 root = Tk()
@@ -44,38 +43,28 @@ class main(Frame):
 
         self.master.protocol("WM_DELETE_WINDOW", self._check_exit)
         self.master.title("Biscuit")
-        # this directory is weird because the cwd is the parent folder, not
-        # the Biscuit folder. Maybe because vscode?
-        if os_name() == 'Windows':
-            self.master.iconbitmap('assets/bisc.ico')
-            self.treeview_text_size = 10
-        elif os_name() == 'Linux':
-            img = PhotoImage(file='assets/bisc.png')
-            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.treeview_text_size = 12
-        else:
-            # this doesn't work :'(
-            img = PhotoImage(file='assets/bisc.png')
-            self.master.tk.call('wm', 'iconphoto', self.master._w, img)
-            self.treeview_text_size = 13
-            #self.master.wm_iconphoto(True, img)
-            #self.master.wm_iconbitmap(img)
+        img = PhotoImage(file=OSCONST.ICON)
+        self.master.tk.call('wm', 'iconphoto', self.master._w, img)
+        self.treeview_text_size = OSCONST.TREEVIEW_TEXT_SIZE
         Frame.__init__(self, self.master)
 
-        # sort out some styling
+        self.proj_settings_file = path.join(OSCONST.USRDIR,
+                                            'proj_settings.pkl')
+        self.settings_file = path.join(OSCONST.USRDIR, 'settings.pkl')
 
+        # sort out some styling
         style.configure("Treeview", font=("TkTextFont",
                                           self.treeview_text_size))
 
         # this will be a dictionary containing any preloaded data from MNE
         # when we click on a folder to load its information, the object will be
-        # placed in this dictionary so that we can then avoid reloading it 
+        # placed in this dictionary so that we can then avoid reloading it
         # later as each load of data takes ~0.5s
         self.preloaded_data = dict()
 
         self._load_settings()
 
-        self.save_handler = SaveManager(self, self.settings['SAVEFILE_PATH'])
+        self.save_handler = SaveManager(self)
 
         self.context = ClickContext()
 
@@ -144,6 +133,12 @@ class main(Frame):
         else:
             dir_ = directory
 
+        # If not directory is specified exit this function. Elsewhere we will
+        # set the panel on the right hand side to have a message that no folder
+        # has been selected as the base one and give details on how to set it.
+        if dir_ == "":
+            return
+
         # create a mapping of full paths to id's
         curr_children = self.file_treeview.get_children(parent)
         file_list = dict(
@@ -185,7 +180,7 @@ class main(Frame):
 
         # first, attempt to load the settings file:
         try:
-            with open('settings.pkl', 'rb') as settings:
+            with open(self.settings_file, 'rb') as settings:
                 self.settings = pickle.load(settings)
             # we can compare the read settings and default ones to allow for
             # the settings file to automatically update itself if required.
@@ -201,7 +196,7 @@ class main(Frame):
         # also load the project settings which are the default settings to be
         # applied to various projects. These are identified by the project ID.
         try:
-            with open('proj_settings.pkl', 'rb') as proj_settings:
+            with open(self.proj_settings_file, 'rb') as proj_settings:
                 self.proj_settings = pickle.load(proj_settings)
         except FileNotFoundError:
             self.proj_settings = []
@@ -218,7 +213,7 @@ class main(Frame):
         #    self._get_matlab_location()
 
     def _write_settings(self):
-        with open('settings.pkl', 'wb') as settings:
+        with open(self.settings_file, 'wb') as settings:
             pickle.dump(self.settings, settings)
 
     def _create_menus(self):
@@ -300,12 +295,15 @@ class main(Frame):
         buttonFrame = Frame(main_frame)
         buttonFrame.grid(column=0, row=1, columnspan=2)
 
+        self.save_label = Label(buttonFrame,
+                                textvar=self.save_handler.saved_time)
+        self.save_label.grid(column=0, row=0, padx=5)
         self.saveButton = Button(buttonFrame, text="Save",
                                  command=lambda: self.save_handler.save())
-        self.saveButton.grid(column=0, row=0, padx=5)
+        self.saveButton.grid(column=1, row=0, padx=5)
         self.exitButton = Button(buttonFrame, text="Exit",
                                  command=self._check_exit)
-        self.exitButton.grid(column=1, row=0, padx=5)
+        self.exitButton.grid(column=2, row=0, padx=5)
 
         # add resizing stuff:
         self.master.columnconfigure(0, weight=1)
@@ -314,19 +312,12 @@ class main(Frame):
         main_frame.columnconfigure(0, weight=1)
 
     """
-    # not gonna worry about this for now...
-    def column_check(self, event):
-        print(self.file_treeview.identify_region(event.x, event.y), 'reg')
-        if self.file_treeview.identify_region(event.x, event.y) == 'separator':
-            self._drag_mode = 'separator'
-            left_col = self.file_treeview.identify_column(event.x)
-            #right_col = '#{}'.format(int(left_col.lstrip('#')) + 1)
-    """
+    def _update_savetime(self):
+        savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.file.saved_time = savetime
 
-    # this either...
-    def column_drag(self, event):
-        if self._drag_mode == 'separator':
-            print('hi')
+        self.saved_time.set("Last saved:\t{0}\t".format(self.file.saved_time))
+    """
 
     def _populate_info_panel(self, sids):
         """
@@ -335,7 +326,7 @@ class main(Frame):
         I *think* this can be removed by using the data property of the
         InfoManager
         """
-        self.info_notebook.check_context()
+        #self.info_notebook.check_context()
         self.info_notebook.data = [
             self.preloaded_data.get(id_, None) for id_ in
             sids if self.preloaded_data.get(id_, None) is not None]
@@ -378,7 +369,7 @@ class main(Frame):
             self.file_treeview.selection_add(sid)
         self._select_treeview_entry(event)
 
-    def _select_treeview_entry(self, event):
+    def _select_treeview_entry(self, *event):
         # Currently needs to have the folder name and prefix the same
         # (need to change!!!)                                   ###############
         # We also need to put some of this stuff in a separate thread as the
@@ -395,7 +386,7 @@ class main(Frame):
         if self.context == '.CON':
             self._highlight_associated_mrks(event)
 
-    def _clear_tags(self, event):
+    def _clear_tags(self, *event):
         tag_list = ['ASSOC_FILES']
         for tag in tag_list:
             for sid in self.file_treeview.tag_has(tag):
@@ -417,6 +408,7 @@ class main(Frame):
         # we will have None if the preloading of the data isn't complete
         # if this is so, return, and this function will be called again on
         # completion of the preloading
+        self._clear_tags()
         if con_file is not None:
             # get the associated mrk files if any
             for mrk_file in con_file.hpi:

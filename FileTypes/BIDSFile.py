@@ -15,7 +15,7 @@ class BIDSFile(FileInfo):
 
     def _create_vars(self):
         FileInfo._create_vars(self)
-        self.acquisition = StringVar()
+        self.run = StringVar()
         self.task = StringVar()
         self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
@@ -42,6 +42,15 @@ class BIDSFile(FileInfo):
     def load_data(self):
         pass
 
+    def validate(self, *args):
+        """
+        Check whether the file is valid (ie. contains all the required info for
+        BIDS exporting)
+        """
+        self.valid = self.check_valid()
+        if self.container is not None:
+            self.container.validate()
+
     def check_valid(self):
         """
         Go over all the required settings and determine whether the file is
@@ -52,25 +61,22 @@ class BIDSFile(FileInfo):
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
         is_valid &= self.task.get() != ''
-        is_valid &= self.acquisition.get() != ''
+        is_valid &= self.run.get() != ''
         is_valid &= (self.hpi != [])
         return is_valid
 
     def get_event_data(self):
         return ['', '']
 
-    def post_validate(self):
-        if self.container is not None:
-            self.container.check_bids_ready()
-
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()
 
-        data['acq'] = self.acquisition.get()        # acquisition
-        data['tsk'] = self.task.get()               # task
-        data['hpi'] = []
-        for hpi in self.hpi:
-            data['hpi'].append(hpi.file)                 # marker coils
+        data['run'] = self.run.get()        # run
+        data['tsk'] = self.task.get()       # task
+        if self.hpi is not None:
+            data['hpi'] = [hpi.file for hpi in self.hpi]        # marker coils
+        else:
+            data['hpi'] = None
         data['ier'] = self.is_empty_room.get()      # is empty room data?
         data['her'] = self.has_empty_room.get()     # has empty room data?
 
@@ -78,10 +84,9 @@ class BIDSFile(FileInfo):
 
     def __setstate__(self, state):
         super(BIDSFile, self).__setstate__(state)
-        self.acquisition.set(state['acq'])
-        self.task.set(state['tsk'])
+        self.run.set(state.get('run', 0))
+        self.task.set(state.get('tsk', ''))
         # these will be just the file paths for now
-        for hpi in state['hpi']:
-            self.hpi.append(hpi)
-        self.is_empty_room.set(state['ier'])
-        self.has_empty_room.set(state['her'])
+        self.hpi = state.get('hpi', None)
+        self.is_empty_room.set(state.get('ier', False))
+        self.has_empty_room.set(state.get('her', False))

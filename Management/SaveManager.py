@@ -1,13 +1,19 @@
 import pickle
 from FileTypes import FIFData, con_file, mrk_file, KITData
 import os.path as path
+from os import makedirs
+
+from tkinter import StringVar
+from datetime import datetime
+
+from constants import OSCONST
 
 """ Save format specification/taken names:
     # FileInfo:
     file:   file name
     jnk:    is junk
     # BIDSFile:
-    acq:    acquisition
+    run:    run
     tsk:    task
     hpi:    marker coils
     ier:    is empty room
@@ -25,6 +31,8 @@ import os.path as path
     cin:    channel info        # TODO: merge with FIFData format (somehow???)
     # FIFData:
     chs:    channel info        # TODO: move to BIDSContainer
+    # mrk_file
+    acq:    acquisition ('pre' or 'post', file isn't saved if 'n/a')
 """
 
 
@@ -36,7 +44,7 @@ class SaveManager():
     to the HDD so that the next time a user runs the program they can be
     retreived and applied to avoid data having to be entered multiple times.
     """
-    def __init__(self, parent=None, save_path=""):
+    def __init__(self, parent=None):
         """
         parent is the main GUI object
         savepath is the location of the save data
@@ -44,7 +52,12 @@ class SaveManager():
         read any data we need when we are saving
         """
         self.parent = parent
-        self.save_path = save_path
+        self.save_path = OSCONST.USRDIR
+        savefile_name = 'savedata.save'
+        self.save_file = path.join(self.save_path, savefile_name)
+
+        self.saved_time = StringVar()
+        self.saved_time.set("Last saved:\tNever")
 
         self.treeview_ids = []
 
@@ -63,64 +76,79 @@ class SaveManager():
         containers_to_load = []
 
         # first retrieve all the data from the save file
-        if path.exists(self.save_path):
+        if path.exists(self.save_file):
+            load_time = datetime.fromtimestamp(path.getmtime(self.save_file))
+            self.saved_time.set("Last saved:\t{0}".format(
+                load_time.strftime("%Y-%m-%d %H:%M:%S")))
             for file in self._load_gen():
-                if isinstance(file, con_file):
-                    #print('loaded file: {0}'.format(file.file))
-                    # set the file's id from the treeview
-                    sid = self.get_file_id(file.file)
-                    file.ID = sid
-                    # also give it the right settings
-                    file.settings = self.parent.proj_settings
-                    # then add the file to the preloaded data
-                    _data[file.ID] = file
-                elif isinstance(file, KITData):
-                    containers_to_load.append(file)
-                elif isinstance(file, FIFData):
-                    sid = self.get_file_id(file.file)
-                    file.ID = sid
-                    file.parent = self.parent
-                    file.loaded_from_save = True
-                    # also give it the right settings
-                    file.settings = self.parent.proj_settings
-                    # the file is it's own container too
-                    file.container = file
-                    # get the file to load it's data
-                    file.load_data()
-                    # then add the file to the preloaded data
-                    _data[file.ID] = file
+                try:
+                    if isinstance(file, con_file):
+                        #print('loaded file: {0}'.format(file.file))
+                        # set the file's id from the treeview
+                        sid = self.get_file_id(file.file)
+                        file.ID = sid
+                        # also give it the right settings
+                        file.settings = self.parent.proj_settings
+                        # then add the file to the preloaded data
+                        _data[file.ID] = file
+                    elif isinstance(file, KITData):
+                        containers_to_load.append(file)
+                    elif isinstance(file, FIFData):
+                        sid = self.get_file_id(file.file)
+                        file.ID = sid
+                        file.parent = self.parent
+                        file.loaded_from_save = True
+                        # also give it the right settings
+                        file.settings = self.parent.proj_settings
+                        # the file is it's own container too
+                        file.container = file
+                        # get the file to load it's data
+                        file.load_data()
+                        # then add the file to the preloaded data
+                        _data[file.ID] = file
+                    elif isinstance(file, mrk_file):
+                        sid = self.get_file_id(file.file)
+                        file.ID = sid
+                        _data[file.ID] = file
+                except FileNotFoundError:
+                    pass
             # load containers after files to ensure the files are referenced in
             # the container correctly.
             for file in containers_to_load:
-                #print('loaded folder: {0}'.format(file.file_path))
-                sid = self.get_file_id(file.file)
-                file.ID = sid
-                file.parent = self.parent
-                file.settings = self.parent.proj_settings
-                file.load_data()
-                _data[file.ID] = file
+                try:
+                    sid = self.get_file_id(file.file)
+                    file.ID = sid
+                    file.parent = self.parent
+                    file.settings = self.parent.proj_settings
+                    file.load_data()
+                    _data[file.ID] = file
 
-                # find any children of the IC and give them this object as
-                # the parent
-                for child_id in self.parent.file_treeview.get_children(sid):
-                    if child_id in _data:
-                        _data[child_id].container = file
-                        _data[child_id].parent = self.parent
+                    # find any children of the IC and give them this object as
+                    # the parent
+                    for child_id in self.parent.file_treeview.get_children(sid):  # noqa
+                        if child_id in _data:
+                            _data[child_id].container = file
+                            _data[child_id].parent = self.parent
+                except FileNotFoundError:
+                    pass
 
             # now fix up any associated_mrk's that need to be actual
             # mrk_file objects
             for _, obj in self.parent.preloaded_data.items():
-                if isinstance(obj, con_file):
-                    mrk_paths = obj.hpi
-                    for i, mrk_path in enumerate(mrk_paths):
-                        sid = self.get_file_id(mrk_path)
-                        try:
-                            mrk_paths[i] = self.parent.preloaded_data[sid]
-                        except KeyError:
-                            mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
-                    # also validate the con file:
-                    #obj.load_data()
-                    obj.validate()
+                try:
+                    if isinstance(obj, con_file):
+                        mrk_paths = obj.hpi
+                        for i, mrk_path in enumerate(mrk_paths):
+                            sid = self.get_file_id(mrk_path)
+                            try:
+                                mrk_paths[i] = self.parent.preloaded_data[sid]
+                            except KeyError:
+                                mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
+                        # also validate the con file:
+                        #obj.load_data()
+                        obj.validate()
+                except FileNotFoundError:
+                    pass
 
     def get_file_id(self, path_):
         """
@@ -131,7 +159,6 @@ class SaveManager():
             if self.parent.file_treeview.item(sid)['values'][1] == path_:
                 return sid
         else:
-            print(path_)
             raise FileNotFoundError
 
     def _load_gen(self):
@@ -142,7 +169,7 @@ class SaveManager():
         script c/o Lutz Prechelt
         (cf. https://stackoverflow.com/questions/20716812/saving-and-loading-multiple-objects-in-pickle-file)  # noqa
         """
-        with open(self.save_path, "rb") as f:
+        with open(self.save_file, "rb") as f:
             while True:
                 try:
                     yield pickle.load(f)
@@ -153,12 +180,16 @@ class SaveManager():
         """
         Saves all the entered user data.
         """
-        with open(self.save_path, 'wb') as f:
+        # first make sure the directory exists:
+        if not path.exists(self.save_path):
+            makedirs(self.save_path)
+        with open(self.save_file, 'wb') as f:
             for file in self.parent.preloaded_data.values():
                 if file.requires_save:
                     try:
-                        print('dumping {0}'.format(file.file))
                         pickle.dump(file, f)
                     except TypeError:
                         print('error saving file: {0}'.format(file))
                         raise
+            savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.saved_time.set("Last saved:\t{0}".format(savetime))

@@ -79,8 +79,6 @@ class KITData(BIDSContainer):
             # first run the verification on each of the jobs to ensure they
             # have been checked
             for job in self.jobs:
-                # this is slightly inefficient, but because _check_bids_ready
-                # for BIDSContainers is very efficient it won't matter
                 job.validate()
 
             # apply some values
@@ -110,6 +108,7 @@ class KITData(BIDSContainer):
             self.validate()
 
         self.contained_files = files
+        self.loaded = True
 
     def prepare(self):
         super(KITData, self).prepare()
@@ -129,12 +128,15 @@ class KITData(BIDSContainer):
                 con_file.load_data()
 
             if con_file.is_junk.get() is False:
+                # TODO: empty room stuff will be updated
                 if con_file.is_empty_room.get():
-                    con_file.acquisition.set('emptyroom')
+                    con_file.run.set('emptyroom')
                     con_file.task.set('noise')
                 trigger_channels, descriptions = con_file.get_event_data()
                 con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))
+                # if none are specified we will get MNE to determine them
+                # itself
                 if trigger_channels == []:
                     trigger_channels = '>'
                     stim_code = 'binary'
@@ -156,6 +158,12 @@ class KITData(BIDSContainer):
                 # set the bads
                 raw.info['bads'] = bads
 
+                # change the channel type of any channels that are triggers
+                if isinstance(trigger_channels, list):
+                    for ch in trigger_channels:
+                        i = int(ch) - 1
+                        raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
+
                 # assign the subject data
                 try:
                     bday = (int(self.subject_age[2].get()),
@@ -171,10 +179,6 @@ class KITData(BIDSContainer):
                 raw.info['subject_info']['birthday'] = bday
                 raw.info['subject_info']['sex'] = sex
 
-                # change the channel type of any channels that are triggers
-                for ch in trigger_channels:
-                    i = int(ch) - 1
-                    raw.info['chs'][i]['kind'] = FIFF.FIFFV_STIM_CH
                 # assign the raw to the con_file
                 con_file.raw = raw
 
@@ -191,8 +195,8 @@ class KITData(BIDSContainer):
 
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):
-        """ Generate a list of all KIT related files within the folder 
-        
+        """ Generate a list of all KIT related files within the folder
+
         Parameters
         ----------
         folder_id : int
@@ -202,7 +206,7 @@ class KITData(BIDSContainer):
         validate : bool
             Whether to validate the produced list. If True, whether the folder
             is valid or not is returned. Defaults to False.
-        
+
         Returns:
         dict() if validate == False,
         bool otherwise.
@@ -238,4 +242,4 @@ class KITData(BIDSContainer):
     def __setstate__(self, state):
         super(KITData, self).__setstate__(state)
 
-        self.dewar_position.set(state['dwr'])
+        self.dewar_position.set(state.get('dwr', 'supine'))

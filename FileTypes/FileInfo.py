@@ -1,4 +1,3 @@
-from collections import OrderedDict
 from tkinter import BooleanVar
 
 from os.path import normpath
@@ -20,7 +19,7 @@ class FileInfo():
         # self.info is data obtained directly from the raw file
         # This data will not be saved as it can always just be retreived on
         # instantiation
-        self.info = OrderedDict()       # FIXME: does this need to be ordered?
+        self.info = dict()
 
         # A dictionary for each file to contain a list of values that the
         # optional_info
@@ -65,10 +64,6 @@ class FileInfo():
         """
         self.valid = self.check_valid()
 
-    def post_validate(self):
-        """ Code to be run after the validation check has completed """
-        pass
-
     def update_treeview(self):
         """
         Change the colour of the tag in the treeview to reflect the current
@@ -87,7 +82,6 @@ class FileInfo():
             else:
                 self.parent.file_treeview.add_tags(self.ID, tags=['BAD_FILE'])
                 self.parent.file_treeview.remove_tags(self.ID, ['GOOD_FILE'])
-        # if there is no parent, then do nothing...
 
     @property
     def ID(self):
@@ -106,7 +100,6 @@ class FileInfo():
         #print(self, other)
         self.is_valid = other
         self.update_treeview()
-        self.post_validate()
 
     @property
     def file(self):
@@ -152,7 +145,7 @@ class FileInfo():
 
     def __setstate__(self, state):
         self.__init__(file=state['file'])
-        self.is_junk.set(state['jnk'])
+        self.is_junk.set(state.get('jnk', False))
 
     def __repr__(self):
         # represent the object by its path.

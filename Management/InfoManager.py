@@ -4,11 +4,12 @@ from tkinter.ttk import Notebook
 from FileTypes import FileInfo, Folder, FIFData
 from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
                       EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame,
-                      ChannelInfoFrame)
+                      ChannelInfoFrame, MrkFileFrame)
 #from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 # some global names:
 T_CON = 'con_tab'
+T_MRK = 'mrk_tab'
 T_FIF = 'fif_tab'
 T_EVENTS = 'events_tab'
 T_MISC = 'general_tab'
@@ -31,9 +32,6 @@ class InfoManager(Notebook):
         self._data = None
         self.requires_update = True
         self.context = context
-
-        #TODO: just pass parent instead of parent.settings and allow settings
-        # to be retreived one step further down?
 
         # generic info frame
         self.info_tab = GenericInfoFrame(self)
@@ -72,6 +70,11 @@ class InfoManager(Notebook):
         self.add(self.scrolltext_tab, text="File contents")
         self._tabs[T_SCROLLTEXT] = 6
 
+        # mrk file tab
+        self.mrk_info_tab = MrkFileFrame(self)
+        self.add(self.mrk_info_tab, text="File Info")
+        self._tabs[T_MRK] = 7
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
@@ -98,6 +101,12 @@ class InfoManager(Notebook):
             else:
                 self.info_tab.file = self.data[0]
                 self.display_tabs(T_MISC)
+                self.select(self._tabs[T_MISC])
+        # If a .mrk file is selected then show the mrk tab
+        elif self.context == '.MRK':
+            self.mrk_info_tab.file = self.data[0]
+            self.display_tabs(T_MRK)
+            self.select(self._tabs[T_MRK])
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
             if self.data[0].contains_required_files:
@@ -123,38 +132,55 @@ class InfoManager(Notebook):
                     self.select(self._tabs[T_MISC])
             self.channel_tab.is_loaded = False
 
+    """
+    A set of static panels to populate the info tab with
+    """
+
+    def _display_no_folder_set(self):
+        """ Display no project folder chosen message """
+        self.info_tab.set_text(
+            "No directory has been specified that contains your MEG data.\n"
+            "Please specify a directory by selecting 'Options > Set data "
+            "directory.' to load a folder.")
+
     def _display_loading(self):
-        # Shows a temporary screen indicating that the requested data is being
-        # loaded...
+        """ Display loading message """
         self.info_tab.set_text(
             "Loading information for selected file, please wait")
 
     def _display_nothing(self):
-        # This will be shown when there is no actual info to be shown
+        """ Display nothing selected message """
         self.info_tab.set_text(
             "Nothing to show. Please select something in the file "
             "viewer to see info")
 
     def _display_invalid_folder(self):
+        """ Display invalid folder message """
         self.info_tab.set_text(
             "Selected folder does not contain all the required files for "
             "exporting KIT data to a BIDS compatible data set.")
 
     def _display_multiple_types(self):
+        """ Display multiple types selected message """
         self.info_tab.set_text(
             "Multiple files selected. To see information select just "
             "one file")
 
     def _display_unknown_file(self):
+        """ Display unknown type selected message """
         self.info_tab.set_text(
             "I don't know how to deal with "
             "{0} files yet!!".format(self.data[0].dtype))
 
     def _display_fif_part(self):
+        """ Display fif file part message """
         self.info_tab.set_text(
             "File part of {0}.fif".format(self.data[0].mainfile_name))
 
     def _determine_misc_data(self):
+        if self.parent.settings["DATA_PATH"] == "":
+            self._display_no_folder_set()
+            return
         if self.data is None:
             self._display_nothing()
         else:
@@ -190,6 +216,8 @@ class InfoManager(Notebook):
                     self._determine_misc_data()
             else:
                 self.tab(self._tabs[t], state=HIDDEN)
+        # TODO: make it so that if there is only one tab required to be
+        # displayed, select it automatically?
 
     @property
     def data(self):
@@ -197,11 +225,21 @@ class InfoManager(Notebook):
 
     @data.setter
     def data(self, new_data):
-        if new_data != self._data:
-            self._data = new_data
-            self.requires_update = True
-        else:
-            self.requires_update = False
+        """ Set replace the old data with the new data
+        To get around the race condition indtroduced by the _preload_data
+        function being threaded which in turn causes this to be called in a
+        separate thread, we will check that the id of the suggested new data
+        matches the id of the currently selected object in the file tree.
+        This doesn't completely fix it but it should help a little.
+        Other race condition occurs when performing syntax highlighting of
+        text data drawn in the ScrolledTextInfoFrame
+        """
+        if self.parent.file_treeview.selection()[0] == new_data[0].ID:
+            if new_data != self._data:
+                self._data = new_data
+                self.requires_update = True
+            else:
+                self.requires_update = False
 
     def check_context(self):
         # see whether or not the context has changed

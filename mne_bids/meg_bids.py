@@ -475,9 +475,10 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         A path to the configuration file to use if the data is from a BTi
         system.
     overwrite : True | bool | string
-        Whether or not to overwrite the produced json, tsv files and any copied raw data.
-        To avoid overwriting existing folders setting this to True will only overwrite
-        the files.
+        Whether or not to overwrite the produced json, tsv files and any copied
+        raw data.
+        To avoid overwriting existing folders setting this to True will only
+        overwrite the files.
     verbose : bool
         If verbose is True, this will print a snippet of the sidecar files. If
         False, no content will be printed.
@@ -512,10 +513,6 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     else:
         raise ValueError('raw_file must be an instance of str or BaseRaw, '
                          'got %s' % type(raw_file))
-
-    if isinstance(hpi, string_types):
-        # convert to a list for brevity later
-        hpi = [hpi]
 
     if isinstance(emptyroom, string_types):
         extra_data['emptyroom'] = emptyroom
@@ -688,15 +685,40 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
     if emptyroom is not True:
         # copy the marker data
         if hpi is not None:
-            # hpi is guaranteed to be a list
-            for marker_path in hpi:
-                _, marker_ext = _parse_ext(marker_path, verbose=verbose)
+            if isinstance(hpi, list):
+                if len(hpi) > 2:
+                    raise ValueError('HPI list can only consist of up to two '
+                                     'values')
+                # Remove a previously existing marker coil file with the same
+                # name (without the acquisition parameters) if it exists.
+                _, marker_ext = _parse_ext(hpi[0])
                 marker_fname = make_bids_filename(
                     subject=subject_id, session=session_id, task=task, run=run,
-                    acquisition=acquisition,
-                    suffix='%s%s' % ('markers', marker_ext),
+                    suffix='markers%s' % marker_ext,
                     prefix=os.path.join(data_path, raw_folder))
-                sh.copyfile(marker_path, marker_fname)
+                if os.path.exists(marker_fname):
+                    if not overwrite:
+                        raise OSError(EEXIST, '"%s" already exists.'
+                                      'Please set overwrite to True.'
+                                      % marker_fname)
+                    os.remove(marker_fname)
+                # Write the marker files with the appropriate acq parameters
+                acq_names = {0: 'pre', 1: 'post'}
+                for i, hpi_fname in enumerate(hpi):
+                    _, marker_ext = _parse_ext(hpi_fname)
+                    marker_fname = make_bids_filename(
+                        subject=subject_id, session=session_id, task=task,
+                        run=run, acquisition=acq_names[i],
+                        suffix='markers%s' % marker_ext,
+                        prefix=os.path.join(data_path, raw_folder))
+                    sh.copyfile(hpi_fname, marker_fname)
+            else:
+                _, marker_ext = _parse_ext(hpi)
+                marker_fname = make_bids_filename(
+                    subject=subject_id, session=session_id, task=task, run=run,
+                    suffix='markers%s' % marker_ext,
+                    prefix=os.path.join(data_path, raw_folder))
+                sh.copyfile(hpi, marker_fname)
 
         _channels_tsv(raw, channels_fname, verbose, manufacturer, overwrite)
 
