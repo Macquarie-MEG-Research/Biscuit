@@ -3,6 +3,7 @@ from struct import unpack
 from .BIDSFile import BIDSFile
 from mne.io.kit.constants import KIT
 from datetime import datetime
+from FileTypes.KITData import KITData
 
 GAINS = [1, 2, 5, 10, 20, 50, 100, 200]
 
@@ -98,8 +99,8 @@ class con_file(BIDSFile):
 
             # check to see if any of the channels are designated as triggers
             # by default
-            if self.container is not None:
-                if self.container.valid:
+            if isinstance(self.container, KITData):
+                if self.container.contains_required_files:
                     def_trigger_info = self.container.settings.get(
                         'DefaultTriggers', None)
                 else:

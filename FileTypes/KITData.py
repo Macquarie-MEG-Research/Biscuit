@@ -20,6 +20,7 @@ class KITData(BIDSContainer):
                                          options=["supine", "upright"])
         self.con_map = dict()
         self.is_valid = False
+        self.contains_required_files = False
 
     # !REMOVE?
     def initial_processing(self):
@@ -109,6 +110,9 @@ class KITData(BIDSContainer):
 
         self.contained_files = files
         self.loaded = True
+
+        self.contains_required_files = self.generate_file_list(
+            self.ID, self.parent.file_treeview, True)
 
     def prepare(self):
         super(KITData, self).prepare()
