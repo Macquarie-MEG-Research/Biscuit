@@ -99,14 +99,11 @@ class con_file(BIDSFile):
 
             # check to see if any of the channels are designated as triggers
             # by default
+            def_trigger_info = None
             if isinstance(self.container, KITData):
                 if self.container.contains_required_files:
                     def_trigger_info = self.container.settings.get(
                         'DefaultTriggers', None)
-                else:
-                    def_trigger_info = None
-            else:
-                def_trigger_info = None
             if def_trigger_info is not None:
                 default_triggers = [int(row[0]) for row in
                                     def_trigger_info]
@@ -114,6 +111,9 @@ class con_file(BIDSFile):
             else:
                 default_triggers = []
                 default_descriptions = []
+
+            channels_from_load = list(self.interesting_channels)
+            print(channels_from_load)
 
             """ optimise to only load interesting channels """
             for i in range(nchans):
@@ -123,46 +123,36 @@ class con_file(BIDSFile):
                     name = "MEG {0:03d}".format(i)
                 elif (channel_type in KIT.CHANNELS_MISC or
                         channel_type == KIT.CHANNEL_NULL):
-                    #channel_no, = unpack('i', file.read(KIT.INT))
-                    #name, = unpack('64s', file.read(64))
                     ch_type_label = KIT.CH_LABEL[channel_type]
                     name = "{0} {1:03d}".format(ch_type_label, i)
                 self.channel_names.append(name)
 
-                if i in default_triggers:
-                    is_trigger = True
-                    self.interesting_channels.add(i)
-                else:
-                    is_trigger = False
-
-                """
-                curr_channel_data = list(self.tab_info.keys())
-                curr_channel_data.sort()
-                for ch_id in curr_channel_data:
-                    if ch_id not in self.interesting_channels:
-                        self.interesting_channels.append(ch_id)
-                """
-
-                """
-                Might need to standardise the format of this for (un)pickling
-                """
-                if (i in self.interesting_channels and
-                        i not in self.tab_info.keys()):
-                    name_var = StringVar()
-                    name_var.set(name)
-                    bad_var = BooleanVar()
-                    bad_var.set(False)
-                    trigger_var = BooleanVar()
-                    trigger_var.set(is_trigger)
-                    if is_trigger:
-                        idx = default_triggers.index(i)
-                        description = default_descriptions[idx]
+                # only add the default channels if the list of channels loaded
+                # is empty. Otherwise default channels removed before save will
+                # be re-added
+                if channels_from_load == []:
+                    if i in default_triggers:
+                        is_trigger = True
+                        self.interesting_channels.add(i)
                     else:
-                        description = ''
-                    desc_var = StringVar()
-                    desc_var.set(description)
-                    self.tab_info[i] = [name_var, bad_var, trigger_var,
-                                        desc_var]
+                        is_trigger = False
+                    if (i in self.interesting_channels and
+                            i not in self.tab_info.keys()):
+                        name_var = StringVar()
+                        name_var.set(name)
+                        bad_var = BooleanVar()
+                        bad_var.set(False)
+                        trigger_var = BooleanVar()
+                        trigger_var.set(is_trigger)
+                        if is_trigger:
+                            idx = default_triggers.index(i)
+                            description = default_descriptions[idx]
+                        else:
+                            description = ''
+                        desc_var = StringVar()
+                        desc_var.set(description)
+                        self.tab_info[i] = [name_var, bad_var, trigger_var,
+                                            desc_var]
 
         self.loaded = True
 
