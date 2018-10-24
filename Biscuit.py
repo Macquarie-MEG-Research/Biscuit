@@ -8,7 +8,7 @@ from tkinter.ttk import Frame, Style, Button, Label
 
 import pickle
 import os.path as path
-from os import listdir
+from os import listdir, makedirs
 
 from webbrowser import open_new as open_hyperlink
 
@@ -213,6 +213,9 @@ class main(Frame):
         #    self._get_matlab_location()
 
     def _write_settings(self):
+        print(path.dirname(self.settings_file))
+        if not path.exists(path.dirname(self.settings_file)):
+            makedirs(path.dirname(self.settings_file))
         with open(self.settings_file, 'wb') as settings:
             pickle.dump(self.settings, settings)
 

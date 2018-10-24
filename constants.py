@@ -40,8 +40,12 @@ OSCONST.ADDROW_MAC = '<Command-n>'
 OSCONST.ADDROW_LNX = '<Control-n>'
 
 # user directory
-OSCONST.USRDIR_WIN = os.path.join(os.getenv('APPDATA'), 'Biscuit')
-OSCONST.USRDIR_MAC = os.path.join('~/Library/', 'Biscuit')
+try:
+    OSCONST.USRDIR_WIN = os.path.join(os.getenv('APPDATA'), 'Biscuit')
+except TypeError:
+    pass
+OSCONST.USRDIR_MAC = os.path.join(os.path.expanduser('~'), 'Library',
+                                  'Biscuit')
 OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
 
 # biscuit icon file

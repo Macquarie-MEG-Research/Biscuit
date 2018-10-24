@@ -102,8 +102,9 @@ class con_file(BIDSFile):
             def_trigger_info = None
             if isinstance(self.container, KITData):
                 if self.container.contains_required_files:
-                    def_trigger_info = self.container.settings.get(
-                        'DefaultTriggers', None)
+                    if isinstance(self.container.settings, dict):
+                        def_trigger_info = self.container.settings.get(
+                            'DefaultTriggers', None)
             if def_trigger_info is not None:
                 default_triggers = [int(row[0]) for row in
                                     def_trigger_info]
