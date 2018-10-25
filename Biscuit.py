@@ -1,6 +1,6 @@
 __author__ = "Matt Sanderson"
 
-from tkinter import Tk, PhotoImage, Menu
+from tkinter import Tk, PhotoImage, Menu, TclError
 from tkinter import HORIZONTAL, RIDGE, LEFT, BOTH
 from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, messagebox
@@ -43,7 +43,10 @@ class main(Frame):
 
         self.master.protocol("WM_DELETE_WINDOW", self._check_exit)
         self.master.title("Biscuit")
-        img = PhotoImage(file=OSCONST.ICON)
+        try:
+            img = PhotoImage(file=OSCONST.ICON)
+        except TclError:
+            img = PhotoImage(file=OSCONST.ICON_GIF)
         self.master.tk.call('wm', 'iconphoto', self.master._w, img)
         self.treeview_text_size = OSCONST.TREEVIEW_TEXT_SIZE
         Frame.__init__(self, self.master)

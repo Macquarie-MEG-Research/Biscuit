@@ -105,7 +105,6 @@ class WidgetTable(Frame):
             self.separators.append(sep)
 
         self.delete_icon = Image.open("assets/remove.png")
-        #self.delete_icon = Image.open("assets/remove_row_trans.png")
         self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
         self.delete_icon = ImageTk.PhotoImage(self.delete_icon)
 
