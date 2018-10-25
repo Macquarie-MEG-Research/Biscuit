@@ -9,6 +9,7 @@ OSNAMEMAP = {'Windows': 'WIN',
 
 
 class OSConstMap():
+    """ Class which provides values of constants in an OS-dependent manner """
     def __init__(self):
         self.os = OSNAMEMAP.get(os_name(), 'MAC')
 
@@ -16,8 +17,19 @@ class OSConstMap():
         self.__dict__[name] = value
 
     def __getattr__(self, name):
-        # names will be suffixed by '_<OS>', so we want to just get the os
-        # dependent version
+        """ Retreive the required value
+
+        Names will be suffixed by '_<OS>', so we want to just get the os
+        dependent version
+        If the variable is assigned in a non-OS-dependent manner (ie. no
+        suffix then this will not be called and the value will be retreived
+        directly)
+
+        Parameters
+        ----------
+        name : str
+            Name of the variable without an OS identifier
+        """
         os_dep_name = name + '_' + self.os
         return self.__dict__[os_dep_name]
 

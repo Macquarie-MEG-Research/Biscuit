@@ -12,13 +12,13 @@ from utils import flatten, generate_readme
 
 
 class BIDSContainer(FileInfo):
+    """
+    The base object which contains BIDSFiles.
+    For KIT data this is the folder that contains the .con, .mrk etc files.
+    For Elekta data this is the .fif file itself, so the file is a
+    BIDSContainer and a BIDSFile simultanously.
+    """
     def __init__(self, id_=None, file=None, settings=None, parent=None):
-        """
-        Parameters:
-        id_ - The id of the entry in the treeview
-        file - filepath of the folder/file
-        settings - settings dictionary from the main gui (to set defaults etc)
-        """
         super(BIDSContainer, self).__init__(id_, file, parent)
 
         self._settings = settings

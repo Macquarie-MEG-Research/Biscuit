@@ -2,28 +2,25 @@ from tkinter import Variable, StringVar
 
 
 class OptionsVar(Variable):
+    """Construct a string options variable.
 
+    Parameters
+    ----------
+    master : widget
+        The parent widget
+    value : str
+        The value from options to set as the currently selected value
+        If this is not specified, the currently selected value defaults to
+        the first element of options
+    name : str
+        An optional Tcl name (defaults to PY_VARnum).
+    options : list
+        A list of the options that the OptionsVar can have.
+        If this changes and the currently selected value is no longer in
+        the list of options then the value set will be the first element
+        of options
+    """
     def __init__(self, master=None, value=None, options=[], name=None):
-        """Construct a string options variable.
-
-        Parameters
-        ----------
-        master : widget
-            The parent widget
-        value : str
-            The value from options to set as the currently selected value
-            If this is not specified, the currently selected value defaults to
-            the first element of options
-        name : str
-            An optional Tcl name (defaults to PY_VARnum).
-        options : list
-            A list of the options that the OptionsVar can have.
-            If this changes and the currently selected value is no longer in
-            the list of options then the value set will be the first element
-            of options
-        """
-
-        """ Value holder for lists of variables """
         self._options = []
 
         Variable.__init__(self, master, value, name)
@@ -101,17 +98,19 @@ class OptionsVar(Variable):
 
 
 class StreamedVar(StringVar):
+    """
+    Parameters
+    ----------
+    pattern : str | list of str
+        A list of strings that are check to see if they are in the current
+        value. The value is only set if the pattern is in the current
+        value.
+    process : function | dictionary: {str: function}
+        A function which can be called to process the current value.
+        This can be a dictionary to allow for processing of differently
+        matched patterns.
+    """
     def __init__(self, patterns=[], process=dict(), *args, **kwargs):
-        """
-        - pattern: str | list of str
-            A list of strings that are check to see if they are in the current
-            value. The value is only set if the pattern is in the current
-            value.
-        - process: function | dictionary: {str: function}
-            A function which can be called to process the current value.
-            This can be a dictionary to allow for processing of differently
-            matched patterns.
-        """
         super(StreamedVar, self).__init__(*args, **kwargs)
         self._curr_value = StringVar()
         #if pattern is not None:

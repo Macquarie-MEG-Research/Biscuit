@@ -5,7 +5,6 @@ from FileTypes import FileInfo, Folder, FIFData
 from InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
                       EventInfoFrame, GenericInfoFrame, ScrolledTextInfoFrame,
                       ChannelInfoFrame, MrkFileFrame)
-#from InfoTabs.ChannelInfoFrame_new import ChannelInfoFrame as CIF
 
 # some global names:
 T_CON = 'con_tab'

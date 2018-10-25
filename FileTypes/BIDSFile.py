@@ -3,6 +3,12 @@ from tkinter import StringVar, BooleanVar
 
 
 class BIDSFile(FileInfo):
+    """
+    BIDSFiles are the main files which will contain the data that is to be
+    converted to BIDS format.
+    For KIT data this is the .con file.
+    For Elekta data this is the .fif file.
+    """
     def __init__(self, id_=None, file=None, settings=dict(), parent=None):
         super(BIDSFile, self).__init__(id_, file, parent)
 

@@ -5,20 +5,28 @@ from os.path import normpath
 
 class FileInfo():
     """
-    A base class to be subclassed from for various file types
+    A base container class for the various data types to inherit
     """
     def __init__(self, id_=None, file=None, parent=None):
+        """
+        Parameters
+        ----------
+        id_ : str
+            Id of the corresponding entry in the file treeview in the main GUI
+            window.
+        file : str
+            Absolute path to the file
+        parent : instance of main
+            Instance of the main GUI window (`main` class in Biscuit.py)
+        """
         self._id = id_
         self._file = file
-        # parent is the main GUI object
         self.parent = parent
         self.loaded = False
         self._create_vars()
 
     def _create_vars(self):
-        # self.info is data obtained directly from the raw file
-        # This data will not be saved as it can always just be retreived on
-        # instantiation
+        """ Create all the required data for the file """
         self.info = dict()
 
         # A dictionary for each file to contain a list of values that the
@@ -97,7 +105,6 @@ class FileInfo():
 
     @valid.setter
     def valid(self, other):
-        #print(self, other)
         self.is_valid = other
         self.update_treeview()
 
@@ -148,9 +155,11 @@ class FileInfo():
         self.is_junk.set(state.get('jnk', False))
 
     def __repr__(self):
-        # represent the object by its path.
-        # we will normalise the path to make sure the '/'s and '\'s are the
-        # same
+        """
+        Represent the object by its path.
+        We will normalise the path to make sure the '/'s and '\'s are the
+        same
+        """
         return ("<<Id: " + str(self._id) + "\t" + "Path: " +
                 str(normpath(self._file)) + "\t" + "Type: " +
                 str(self.__class__) + ">>")

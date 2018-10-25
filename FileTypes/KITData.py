@@ -22,12 +22,14 @@ class KITData(BIDSContainer):
         self.is_valid = False
         self.contains_required_files = False
 
-    # !REMOVE?
     def initial_processing(self):
         self.load_data()
 
     def load_data(self):
-        # this will automatically preload the data of any contained files
+        """
+        Load all the required data.
+        This will find all the child files (eg. .con, .mrk etc) and load them.
+        """
 
         files = dict()
 
@@ -123,7 +125,6 @@ class KITData(BIDSContainer):
 
     # TODO: fix up 'jobs' stuff
     def _create_raws(self):
-        print('creating raws')
         # refresh to avoid adding the con files each time
         self.jobs = []
         for con_file in self.contained_files['.con']:
@@ -148,7 +149,6 @@ class KITData(BIDSContainer):
                 else:
                     stim_code = 'channel'
                     slope = '+'
-                print('trigger channels:', trigger_channels)
                 raw = read_raw_kit(
                     con_file.file,
                     # construct a list of the file paths

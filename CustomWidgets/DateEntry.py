@@ -4,7 +4,7 @@ from datetime import datetime
 """
 Code c/o pydesigner from stackoverflow:
 https://stackoverflow.com/a/13243973
-(with a fair few personal modifications)
+(with a heavy personal modifications)
 """
 
 DEFAULTVALUE = ['', '', '']
@@ -13,6 +13,15 @@ DEFAULTVALUE = ['', '', '']
 class DateEntry(Frame):
     """ 3-part entry box for entering dates """
     def __init__(self, master, text=DEFAULTVALUE):
+        """
+        Parameters
+        ----------
+        master : instance of Widget
+            master widget this one is a child of
+        text : list of strings, length 3
+            The values to initialise the DateEntry with
+
+        """
         Frame.__init__(self, master, relief=SUNKEN, border=1)
 
         self.validate_cmd = self.register(self._check_new)
@@ -27,8 +36,6 @@ class DateEntry(Frame):
         else:
             if len(text) != 3:
                 text = DEFAULTVALUE
-        # otherwise text is fine as it is (well, not really,
-        # but good enough for now...)
         self.entry_1 = Entry(self, width=5, justify='center', **args)
         self.entry_1.insert(0, text[0])
         self.entry_1.configure(
@@ -55,15 +62,20 @@ class DateEntry(Frame):
 
         self.entries = [self.entry_1, self.entry_2, self.entry_3]
 
-    def _move_back(self, event):
-        self.moved_back = True
-
-    def _backspace(self, entry):
-        cont = entry.get()
-        entry.delete(0, END)
-        entry.insert(0, cont[:-1])
-
     def _check_new(self, wid, max_length, new_val, old_val):
+        """ Determine whether the value entered is valid
+
+        Parameters
+        ----------
+        wid : str
+            Widget ID
+        max_length : int
+            maximum number of characters in the sub-entries
+        new_val : str
+            Intended new value to check
+        old_val : str
+            Current value in the entry
+        """
         wid, max_length = int(wid), int(max_length)
         if len(new_val) > max_length:
             return False
@@ -81,6 +93,7 @@ class DateEntry(Frame):
                 return True
 
     def get(self):
+        """ Returns a list of strings corresponding to the value of the date"""
         return [e.get() for e in self.entries]
 
     @property
@@ -98,7 +111,8 @@ class DateEntry(Frame):
         Sets the value of the DateEntry
 
         Parameters:
-         - value : tuple of string or int's
+        -----------
+        value : tuple of string or int's
             The value to set the date to
         """
         self.entry_1.delete(0, END)
@@ -113,7 +127,8 @@ class DateEntry(Frame):
         Sets the value of the DateEntry using Variable's
 
         Parameters:
-         - value : tuple of StringVar's
+        -----------
+        value : tuple of StringVar's
             The value to set the date to
         """
         self.entry_1.config(textvariable=value[0])
