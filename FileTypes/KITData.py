@@ -78,6 +78,9 @@ class KITData(BIDSContainer):
 
         # we'll only check whether the folder is ready to be exported to bids
         # format if it is valid
+        self.contains_required_files = self.generate_file_list(
+            self.ID, self.parent.file_treeview, True)
+
         if self.contains_required_files:
             # first run the verification on each of the jobs to ensure they
             # have been checked
@@ -112,9 +115,6 @@ class KITData(BIDSContainer):
 
         self.contained_files = files
         self.loaded = True
-
-        self.contains_required_files = self.generate_file_list(
-            self.ID, self.parent.file_treeview, True)
 
     def prepare(self):
         super(KITData, self).prepare()

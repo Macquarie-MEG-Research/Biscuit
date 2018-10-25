@@ -87,7 +87,7 @@ class ConFileFrame(Frame):
         self.channel_info.value = self.file.info['Channels']
         self.meas_date_info.value = self.file.info['Measurement date']
         self.gains_info.value = self.file.info['gains']
-        self.reTHM_info.value = str(self.file.extra_data['chm'])
+        self.reTHM_info.value = str(self.file.extra_data.get('chm', False))
 
         self.task_info.value = self.file.task
         self.task_info.validate_cmd = self.file.validate
