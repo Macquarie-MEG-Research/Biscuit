@@ -26,9 +26,12 @@ class WidgetTable(Frame):
                  add_options=None, data_array=[], adder_script=None,
                  remove_script=None, sort_column=None, *args, **kwargs):
         """
-        Arguments:
-        - headings - A list of strings for the headings
-        - pattern - A list of Variables to be associated with the widget.
+        Parameters
+        ----------
+        headings : list(str)
+            A list of strings for the headings
+        pattern : list(instance of Variable)
+            A list of Variables to be associated with the widget.
             These variables need to be the appropriate type for the
             entry_type associated with the data, as well as the data passed in
             (if the table is to be initially or automatically populated).
@@ -44,21 +47,26 @@ class WidgetTable(Frame):
                 etc.
             - func_has_row_ctx: (bool) whether or not the function specified by
                 func is given the current line as an argument.
-        - widgets_pattern - A list of Widgets that will be drawn in each
+        widgets_pattern : list(instance of Widget)
+            A list of Widgets that will be drawn in each
             column.
             These widgets *must* be un-instantiated to allow cloning when
             creating new rows.
-        - add_options - A fixed length list of options that can be added.
+        add_options : list
+            A fixed length list of options that can be added.
             If None then the rows can just be added arbitrarily using button.
-        - data_array - A list of the intial data to populate the table with.
+        data_array : list
+            A list of the intial data to populate the table with.
             This can either be raw data or an array of the variables
-        - adder_script - A function that will be called when the Add button is
+        adder_script : function
+            A function that will be called when the Add button is
             pressed or a value is picked from the add_options option box.
             If this function returns an values they are assumed to be the
             values to be passed into the newly created widgets if possible.
-        - remove_script - A callback for when a row is deleted
-        - sort_column - The column number that the data will automatically be
-            sorted by.
+        remove_script : function
+            A callback for when a row is deleted
+        sort_column : int
+            The column number that the data will automatically be sorted by.
         """
 
         self.master = master
@@ -78,13 +86,8 @@ class WidgetTable(Frame):
         self.remove_script = remove_script
         self.sort_column = sort_column
 
-        if os_name() == 'Windows':
-            self.entry_config = {}
-        else:
-            # TODO: make this a proper colour
-            # TODO: use the OSCONST object for these
-            self.entry_config = {'highlightbackground': '#E9E9E9',
-                                 'readonlybackground': '#E0E0E0'}
+        self.entry_config = {'readonlybackground': OSCONST.TEXT_RONLY_BG,
+                             'highlightbackground': OSCONST.TEXT_BG}
 
         # the index we need to redraw the rows after
         self.first_redraw_row = 0

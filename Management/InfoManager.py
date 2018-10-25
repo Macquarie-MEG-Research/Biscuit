@@ -123,9 +123,13 @@ class InfoManager(Notebook):
                 self.select(self._tabs[T_MISC])
             else:
                 if self.data[0].display_raw:
-                    self.scrolltext_tab.file = self._data[0]
-                    self.display_tabs(T_SCROLLTEXT)
-                    self.select(self._tabs[T_SCROLLTEXT])
+                    try:
+                        self.scrolltext_tab.file = self.data[0]
+                        self.display_tabs(T_SCROLLTEXT)
+                        self.select(self._tabs[T_SCROLLTEXT])
+                    except UnicodeDecodeError:
+                        self.display_tabs(T_MISC)
+                        self.select(self._tabs[T_MISC])
                 else:
                     self.display_tabs(T_MISC)
                     self.select(self._tabs[T_MISC])
@@ -171,6 +175,12 @@ class InfoManager(Notebook):
             "I don't know how to deal with "
             "{0} files yet!!".format(self.data[0].dtype))
 
+    def _display_bad_raw(self):
+        """ Display binary raw data message """
+        self.info_tab.set_text(
+            "The file you have selected contains binary data and cannot be "
+            "displayed correctly.")
+
     def _display_fif_part(self):
         """ Display fif file part message """
         self.info_tab.set_text(
@@ -189,7 +199,11 @@ class InfoManager(Notebook):
                 elif isinstance(self.data[0], FIFData):
                     self._display_fif_part()
                 elif isinstance(self.data[0], FileInfo):
-                    if (self.data[0].unknown_type is False and
+                    if self.data[0].display_raw:
+                        # in this case we have a file win binary data trying
+                        # to be displayed
+                        self._display_bad_raw()
+                    elif (self.data[0].unknown_type is False and
                             self.data[0].dtype != '.con'):
                         # in this case we are displaying the info about a
                         # single file

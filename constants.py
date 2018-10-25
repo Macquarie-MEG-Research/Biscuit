@@ -46,6 +46,11 @@ OSCONST.TEXT_BG_WIN = '#F0F0F0'
 OSCONST.TEXT_BG_MAC = '#E9E9E9'
 OSCONST.TEXT_BG_LNX = '#D9D9D9'
 
+# tkinter.entry readonlybackground colour
+OSCONST.TEXT_RONLY_BG_WIN = None
+OSCONST.TEXT_RONLY_BG_MAC = '#E0E0E0'
+OSCONST.TEXT_RONLY_BG_LNX = None
+
 # keyboard shortcut to add a new row in the widget table
 OSCONST.ADDROW_WIN = '<Control-n>'
 OSCONST.ADDROW_MAC = '<Command-n>'

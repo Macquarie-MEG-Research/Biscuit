@@ -1,6 +1,5 @@
-from tkinter import StringVar, IntVar
-#from tkinter import Button as tkButton
-from tkinter.ttk import Frame, Entry
+from tkinter import StringVar, IntVar, Entry
+from tkinter.ttk import Frame
 from FileTypes import FIFData
 from CustomWidgets.WidgetTable import WidgetTable
 
