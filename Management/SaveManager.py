@@ -1,7 +1,7 @@
 import pickle
 from FileTypes import FIFData, con_file, mrk_file, KITData
 import os.path as path
-from os import makedirs
+from os import makedirs, replace, rename
 
 from tkinter import StringVar
 from datetime import datetime
@@ -72,7 +72,8 @@ class SaveManager():
 
         # get the list of all children to the treeview:
         self.treeview_ids = list(self.parent.file_treeview.all_children())
-        self.treeview_ids.remove('')        # remove root
+        # remove root
+        self.treeview_ids.remove('')
 
         containers_to_load = []
 
@@ -184,13 +185,20 @@ class SaveManager():
         # first make sure the directory exists:
         if not path.exists(self.save_path):
             makedirs(self.save_path)
-        with open(self.save_file, 'wb') as f:
+        temp_save = self.save_file + '_temp'
+        with open(temp_save, 'wb') as f:
             for file in self.parent.preloaded_data.values():
                 if file.requires_save:
                     try:
                         pickle.dump(file, f)
-                    except TypeError:
+                    except (TypeError, AttributeError):
                         print('error saving file: {0}'.format(file))
                         raise
             savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.saved_time.set("Last saved:\t{0}".format(savetime))
+        # if we have reached here then the file was saved and we can
+        # replace the actual save data with the temp one
+        if path.exists(self.save_path):
+            replace(temp_save, self.save_file)
+        else:
+            rename(temp_save, self.save_file)
