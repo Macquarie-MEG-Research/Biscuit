@@ -105,13 +105,12 @@ class con_file(BIDSFile):
                     if isinstance(self.container.settings, dict):
                         def_trigger_info = self.container.settings.get(
                             'DefaultTriggers', None)
+            default_triggers = []
+            default_descriptions = []
             if def_trigger_info is not None:
                 default_triggers = [int(row[0]) for row in
                                     def_trigger_info]
                 default_descriptions = [row[1] for row in def_trigger_info]
-            else:
-                default_triggers = []
-                default_descriptions = []
 
             channels_from_load = list(self.interesting_channels)
             print(channels_from_load)

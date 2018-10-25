@@ -85,6 +85,7 @@ def convert(container, settings, parent=None):
                     else:
                         emptyroom = False
 
+                mrks = None
                 # process the list of mrks:
                 if job.hpi is not None:
                     if isinstance(job.hpi, list):

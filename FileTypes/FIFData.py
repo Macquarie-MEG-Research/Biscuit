@@ -66,6 +66,18 @@ class FIFData(BIDSContainer, BIDSFile):
                 self.info['Measurement date'] = datetime.fromtimestamp(
                     rec_date[0]).strftime('%d/%m/%Y')
 
+            # load any default event info
+            """
+            def_event_info = self.container.settings.get('DefaultTriggers',
+                                                         None)
+            default_events = []
+            default_descriptions = []
+            if def_event_info is not None:
+                default_events = [int(row[0]) for row in
+                                    def_trigger_info]
+                default_descriptions = [row[1] for row in def_event_info]
+            """
+
             # only pre-fill this if the file hasn't been loaded from a save
             if not self.loaded_from_save:
                 # load subject data
@@ -170,7 +182,7 @@ class FIFData(BIDSContainer, BIDSFile):
         # the event is the number encoded on the channel (already 2**(n-1))
         event_num = int(evt)
         # FIXME: this initial value is most likely dependent on the # of chans
-        return 0x800 + event_num
+        return event_num
 
     def __getstate__(self):
         data = BIDSContainer.__getstate__(self)
@@ -179,6 +191,9 @@ class FIFData(BIDSContainer, BIDSFile):
         for num, ch_data in self.channel_info.items():
             data['chs'][num] = [ch_data['ch_name'].get(),
                                 ch_data['ch_type'].get()]
+        data['evt'] = dict()
+        for evt in self.event_info:
+            data['evt'][evt['event'].get()] = evt['description'].get()
         return data
 
     def __setstate__(self, state):
@@ -190,3 +205,5 @@ class FIFData(BIDSContainer, BIDSFile):
                 'ch_name': StringVar(value=state['chs'][key][0]),
                 'ch_type': OptionsVar(value=state['chs'][key][1],
                                       options=['EOG', 'ECG', 'EMG'])}
+        for key, value in state.get('evt', dict()).items():
+            self.event_info.append({'event': key, 'description': value})

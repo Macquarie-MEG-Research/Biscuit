@@ -31,6 +31,7 @@ from constants import OSCONST
     cin:    channel info        # TODO: merge with FIFData format (somehow???)
     # FIFData:
     chs:    channel info        # TODO: move to BIDSContainer
+    evt:    event info
     # mrk_file
     acq:    acquisition ('pre' or 'post', file isn't saved if 'n/a')
 """
