@@ -51,9 +51,8 @@ class ConFileFrame(Frame):
                                    validate_cmd=None)
         self.task_info.label.grid(column=0, row=10)
         self.task_info.value.grid(column=1, row=10)
-        self.run_info = InfoEntry(self, 'Run number', IntVar(),
-                                  bad_values=[0],
-                                  validate_cmd=None)
+        self.run_info = InfoEntry(self, 'Run number', IntVar(), bad_values=[0],
+                                  validate_cmd=None, force_dtype=int)
         self.run_info.label.grid(column=0, row=11)
         self.run_info.value.grid(column=1, row=11)
         self.mrks_info = InfoList(self, "Associated .mrk's", [],

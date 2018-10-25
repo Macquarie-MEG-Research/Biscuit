@@ -113,7 +113,6 @@ class con_file(BIDSFile):
                 default_descriptions = [row[1] for row in def_trigger_info]
 
             channels_from_load = list(self.interesting_channels)
-            print(channels_from_load)
 
             """ optimise to only load interesting channels """
             for i in range(nchans):

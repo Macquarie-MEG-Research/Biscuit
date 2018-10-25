@@ -66,14 +66,15 @@ class ValidatedEntry(tkEntry):
     if the value entered is not valid.
     """
     def __init__(self, master, bad_values=[], good_colour="White",
-                 bad_colour="Red",
-                 validate_cmd=None, *args, **kwargs):
+                 bad_colour="Red", validate_cmd=None, force_dtype=None,
+                 *args, **kwargs):
         super(ValidatedEntry, self).__init__(master, *args, **kwargs)
 
         self.bad_values = bad_values
         self.good_colour = good_colour
         self.bad_colour = bad_colour
         self.validate_cmd = validate_cmd
+        self.force_dtype = force_dtype
 
         self._is_valid = True
 
@@ -81,11 +82,17 @@ class ValidatedEntry(tkEntry):
         self.configure(validate=ALL, validatecommand=(vcmd, '%P', '%s'))
 
     def _set_background(self, value_if_allowed, prior_value):
+        if self.force_dtype:
+            # just do int for now...
+            if self.force_dtype == int:
+                if not value_if_allowed.isdigit() and value_if_allowed != '':
+                    return False
         if value_if_allowed not in self.bad_values:
             self.is_valid = True
         else:
             self.is_valid = False
         # finally, run the provided extra validation function
+        # TODO: pass value_if_allowed to validate_cmd
         if self.validate_cmd is not None:
             self.validate_cmd()
         return True
@@ -113,10 +120,12 @@ class ValidatedEntry(tkEntry):
 
 class InfoEntry(InfoMaster):
     """
+    # TODO: add docstring here
     A custom entry box that will automatically return a ValidatedEntry
     box if bad values are specified
     """
-    def __init__(self, master, label, value, validate_cmd=None, bad_values=[]):
+    def __init__(self, master, label, value, validate_cmd=None, bad_values=[],
+                 force_dtype=None):
         super(InfoEntry, self).__init__(master, label, value, validate_cmd)
         self.bad_values = bad_values
 
@@ -128,7 +137,8 @@ class InfoEntry(InfoMaster):
             self._value = ValidatedEntry(self._master, bad_values=bad_values,
                                          textvariable=value,
                                          highlightbackground='#E9E9E9',
-                                         validate_cmd=validate_cmd)
+                                         validate_cmd=validate_cmd,
+                                         force_dtype=force_dtype)
 
     def check_valid(self):
         if isinstance(self._value, ValidatedEntry):

@@ -101,6 +101,7 @@ class FifFileFrame(Frame):
                                       padx=2)
         self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2,
                                       padx=2)
+        self.require_verification.append(self.sess_id_entry)
         self.task_info = InfoEntry(self, 'Task', StringVar(),
                                    bad_values=[''],
                                    validate_cmd=None)
@@ -110,8 +111,8 @@ class FifFileFrame(Frame):
         self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,
                                   padx=2)
         self.run_info = InfoEntry(self, 'Run number', IntVar(),
-                                  bad_values=[0],
-                                  validate_cmd=None)
+                                  bad_values=[0], validate_cmd=None,
+                                  force_dtype=int)
         self.require_verification.append(self.run_info)
         self.run_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
         self.run_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)
@@ -196,6 +197,7 @@ class FifFileFrame(Frame):
         self.proj_name_entry.value = self.file.proj_name
         self.proj_name_entry.validate_cmd = self.file.validate
         self.sess_id_entry.value = self.file.session_ID
+        self.sess_id_entry.validate_cmd = self.file.validate
         self.task_info.value = self.file.task
         self.task_info.validate_cmd = self.file.validate
         self.run_info.value = self.file.run
