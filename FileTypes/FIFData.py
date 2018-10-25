@@ -2,7 +2,7 @@ from mne.io import read_raw_fif
 from mne.io.constants import FIFF
 from datetime import datetime
 from numpy import ndarray
-from tkinter import messagebox, StringVar
+from tkinter import messagebox, StringVar, IntVar
 from Management import OptionsVar
 
 import os.path as path
@@ -172,6 +172,7 @@ class FIFData(BIDSContainer, BIDSFile):
         """ Take the event provided and convert to the format stored
         in the FIF file """
         """
+        # TODO: this may need a bunch of work...?
         if isinstance(evt, str):
             if 'STI' in evt.upper():
                 # the event is the name of the channel. Extract the channel
@@ -206,4 +207,5 @@ class FIFData(BIDSContainer, BIDSFile):
                 'ch_type': OptionsVar(value=state['chs'][key][1],
                                       options=['EOG', 'ECG', 'EMG'])}
         for key, value in state.get('evt', dict()).items():
-            self.event_info.append({'event': key, 'description': value})
+            self.event_info.append({'event': IntVar(value=key),
+                                    'description': StringVar(value=value)})
