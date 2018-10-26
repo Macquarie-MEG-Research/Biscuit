@@ -5,7 +5,7 @@ import mne
 
 bpath = "C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\2897"
 
-fname = join(bpath, '2897_TM_ME125_2018_02_02_B1.con')
+fname = join(bpath, '2897_TM_ME125_2018_02_02_B2_rest.con')
 outfile = join(bpath, "reTHM_data.txt")
 outfile_time = join(bpath, "reTHM_event_data.txt")
 mrk = join(bpath, "2897_TM_ME125_2018_02_02_ini.mrk")
@@ -23,8 +23,10 @@ raw = mne.io.read_raw_kit(fname,
                           stim_code='channel',
                           stimthresh=0.5)
 
-i = raw.info['proc_history']
-print(i)
+i = raw.info['chs']
+for j, ch in enumerate(i):
+    print(j)
+    print(ch)
 
 """
 events = mne.find_events(raw, stim_channel='STI 014', min_duration=0.050)

@@ -6,13 +6,14 @@ from tkinter import PanedWindow as tkPanedWindow
 from tkinter import filedialog, messagebox
 from tkinter.ttk import Frame, Style, Button, Label
 
+from copy import deepcopy
 import pickle
 import os.path as path
 from os import listdir, makedirs
 
 from webbrowser import open_new as open_hyperlink
 
-from FileTypes import generic_file, Folder, KITData, BIDSFile
+from FileTypes import generic_file, Folder, KITData, BIDSFile, BIDSContainer
 
 from CustomWidgets import EnhancedTreeview
 
@@ -317,14 +318,6 @@ class main(Frame):
         main_frame.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
 
-    """
-    def _update_savetime(self):
-        savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.file.saved_time = savetime
-
-        self.saved_time.set("Last saved:\t{0}\t".format(self.file.saved_time))
-    """
-
     def _populate_info_panel(self, sids):
         """
         This will receive the list of all selected tree entries
@@ -564,13 +557,12 @@ class main(Frame):
         self._write_settings()
 
     def _display_defaults_popup(self):
-        proj_settings = self.proj_settings.copy()
+        proj_settings = deepcopy(self.proj_settings)
         self.options_popup = SettingsWindow(self, self.settings,
                                             self.proj_settings)
-
         if proj_settings != self.proj_settings:
             for obj in self.preloaded_data.values():
-                if isinstance(obj, KITData):
+                if isinstance(obj, BIDSContainer):
                     obj.settings = self.proj_settings
 
     def _display_credits_popup(self):
