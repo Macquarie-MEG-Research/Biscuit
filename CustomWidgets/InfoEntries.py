@@ -83,9 +83,11 @@ class ValidatedEntry(tkEntry):
 
     def _set_background(self, value_if_allowed, prior_value):
         if self.force_dtype:
-            # just do int for now...
             if self.force_dtype == int:
                 if not value_if_allowed.isdigit() and value_if_allowed != '':
+                    return False
+            elif self.force_dtype == 'alnum':
+                if not value_if_allowed.isalnum() and value_if_allowed != '':
                     return False
         if value_if_allowed not in self.bad_values:
             self.is_valid = True

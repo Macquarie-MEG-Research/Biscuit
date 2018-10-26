@@ -47,8 +47,7 @@ class SessionInfoFrame(Frame):
             "(Options > 'Set Defaults'), a number of values can be set by "
             "default.")
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
-                                       bad_values=[''],
-                                       validate_cmd=None)
+                                       bad_values=[''], force_dtype='alnum')
         self.sess_id_entry.label.grid(column=0, row=3, sticky='ew', pady=2)
         self.sess_id_entry.value.grid(column=1, row=3, sticky='ew', pady=2)
         self.require_verification.append(self.sess_id_entry)

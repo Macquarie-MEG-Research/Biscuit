@@ -19,54 +19,53 @@ class WidgetTable(Frame):
     widgets in each column.
     We can have a button to remove rows, and a few different ways to add new
     rows.
+
+    Parameters
+    ----------
+    headings : list(str)
+        A list of strings for the headings
+    pattern : list(instance of Variable)
+        A list of Variables to be associated with the widget.
+        These variables need to be the appropriate type for the
+        entry_type associated with the data, as well as the data passed in
+        (if the table is to be initially or automatically populated).
+        The Variable information can be passed in as a dicitonary to allow
+        very specific modification of how the data works.
+        The dictionary has the following keys:
+        - var: An instantiated Variable object
+        - text: A string (used as the text on buttons, or default text
+            for an entry/label)
+        - configs: A dictionary of the configuration to be applied to the
+            widget.
+        - func: The function used as a callback for buttons, checkbuttons
+            etc.
+        - func_has_row_ctx: (bool) whether or not the function specified by
+            func is given the current line as an argument.
+    widgets_pattern : list(instance of Widget)
+        A list of Widgets that will be drawn in each
+        column.
+        These widgets *must* be un-instantiated to allow cloning when
+        creating new rows.
+    add_options : list
+        A fixed length list of options that can be added.
+        If None then the rows can just be added arbitrarily using button.
+    data_array : list
+        A list of the intial data to populate the table with.
+        This can either be raw data or an array of the variables
+    adder_script : function
+        A function that will be called when the Add button is
+        pressed or a value is picked from the add_options option box.
+        If this function returns an values they are assumed to be the
+        values to be passed into the newly created widgets if possible.
+    remove_script : function
+        A callback for when a row is deleted
+    sort_column : int
+        The column number that the data will automatically be sorted by.
+
     """
     def __init__(self, master, headings=[], pattern=[], widgets_pattern=[],
                  add_options=None, data_array=[], adder_script=None,
                  remove_script=None, sort_column=None, *args, **kwargs):
-        """
-        Parameters
-        ----------
-        headings : list(str)
-            A list of strings for the headings
-        pattern : list(instance of Variable)
-            A list of Variables to be associated with the widget.
-            These variables need to be the appropriate type for the
-            entry_type associated with the data, as well as the data passed in
-            (if the table is to be initially or automatically populated).
-            The Variable information can be passed in as a dicitonary to allow
-            very specific modification of how the data works.
-            The dictionary has the following keys:
-            - var: An instantiated Variable object
-            - text: A string (used as the text on buttons, or default text
-                for an entry/label)
-            - configs: A dictionary of the configuration to be applied to the
-                widget.
-            - func: The function used as a callback for buttons, checkbuttons
-                etc.
-            - func_has_row_ctx: (bool) whether or not the function specified by
-                func is given the current line as an argument.
-        widgets_pattern : list(instance of Widget)
-            A list of Widgets that will be drawn in each
-            column.
-            These widgets *must* be un-instantiated to allow cloning when
-            creating new rows.
-        add_options : list
-            A fixed length list of options that can be added.
-            If None then the rows can just be added arbitrarily using button.
-        data_array : list
-            A list of the intial data to populate the table with.
-            This can either be raw data or an array of the variables
-        adder_script : function
-            A function that will be called when the Add button is
-            pressed or a value is picked from the add_options option box.
-            If this function returns an values they are assumed to be the
-            values to be passed into the newly created widgets if possible.
-        remove_script : function
-            A callback for when a row is deleted
-        sort_column : int
-            The column number that the data will automatically be sorted by.
-        """
-
         self.master = master
 
         #s = Style(self.master)
@@ -125,13 +124,18 @@ class WidgetTable(Frame):
         self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
     def _add_row_from_key(self, *args):
-        # only add a new row if we can add anything, not entries from the
-        # add_options list.
+        """ Add a new row when the new row keyboard shortcut is pressed
+
+        This will only be possible when we don't have a fixed list of
+        possibilites to add.
+
+        """
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
             self.sf.configure_view(resize_canvas='x')
 
     def _create_widgets(self):
+        """ Create all the base widgets required """
         if isinstance(self.add_options, list):
             add_option_frame = Frame(self)
             Label(add_option_frame, text="Add an option: ").grid(column=0,
@@ -174,19 +178,34 @@ class WidgetTable(Frame):
 
     def add_row_data(self, idx, data=None):
         """
-        Take the data provided in `data` and add it to the list of data
-        for the entire table.
-        Paramaters:
-        - data : list
+        Add the provided row data at the required index
+
+        Paramaters
+        ----------
+        idx : int
+            Index the data is the be added at.
+        data : list
             This is a list of either the values the variables will take or the
             data itself.
             Any entry can be None which indicates the default un-initiated data
-            should be used
+            should be used.
+
         """
+        # TODO: fix the optimisation so that this is not 0 any more...
         self.first_redraw_row = 0  # len(self.data) - 1
         self._assign_row_data(idx, data)
 
     def add_row_widgets(self, count=1):
+        """ Add one or more sets of row widgets to the end of the table
+        The widgets are added from the WidgetTable's widget_pattern property.
+
+        Parameters
+        ----------
+        count : int
+            The number of rows of widgets to add.
+            Defaults to 1
+
+        """
         # remove the add button if it exsists
         if count != 0:
             if self.add_button is not None:
@@ -236,6 +255,16 @@ class WidgetTable(Frame):
         current data from the new data onward.
         We can add multiple rows at a time to save drawing, undrawing then
         drawing the add button again and again.
+
+        Parameters
+        data : list | None
+            Data to be automatically added to the new row(s)
+        count : int
+            Number of new rows to add.
+            Defaults to 1.
+        from_start : bool
+            Whether to assign row data from the start of not.
+            This should always be False unless count == 0.
         """
         refresh = False
 
@@ -269,8 +298,19 @@ class WidgetTable(Frame):
 
     def _assign_row_data(self, idx, data=None):
         """
-        If data is provided apply it to an appropriately constructed
-        list and return the list
+        Assign the data provided to the WidgetTable's data array's Variables.
+
+        Parameters
+        ----------
+        idx : int
+            Index to place the new data in the data array
+        data : list | None
+            Data to assign. This data is processed to ensure that it is in the
+            right format for being assigned to the underlying Variables.
+            This can consist of either the raw values for each widget, an
+            instance of a Variable, or a dictionary with parameters as
+            described by the docstring of the widget table.
+            (see help(WidgetTable) for more info)
         """
         row_vars = []
         for i in range(len(self.pattern)):
@@ -348,8 +388,9 @@ class WidgetTable(Frame):
 
     def _apply_data(self):
         """
-        Takes all the data and applies them to all the rows from the last
-        changed one onwards
+        Apply all the data in self.data to the widget array.
+        The widgets are traversed column by column so that we can create an
+        apply function specifically for that widget type.
         """
         # do columns then rows to save having to check data types repeatedly
         for column in range(self.num_columns):
@@ -402,8 +443,7 @@ class WidgetTable(Frame):
                 apply(self.widgets[row][column], self.data[row][column])
 
     def _correct_idx_refs(self):
-        # this iterates over the data and fixes up any functions that require a
-        # reference to their row number
+        """ Correct any reference to index in any function in the data array"""
         for i, row in enumerate(self.data):
             for val in row:
                 if isinstance(val, dict):
@@ -413,7 +453,17 @@ class WidgetTable(Frame):
                         val['func'] = lambda x=i: f(x)
 
     def delete_row(self, idx, ignore_script=False):
-        """ Remove the row widgets and data """
+        """ Remove the row widgets and data
+
+        Parameters
+        ----------
+        idx : int
+            Row index to delete.
+        ignore_script : bool
+            Whether or not to ignore the call to the removal script.
+            Defaults to False (runs removal script by default if there is one)
+
+        """
         if self.remove_script is not None and not ignore_script:
             self.remove_script(idx)
         for w in self.widgets[-1]:
@@ -422,7 +472,19 @@ class WidgetTable(Frame):
         del self.data[idx]
 
     def delete_rows_and_update(self, idx, count=1, ignore_script=False):
-        """ Removes the row and updates all the required info """
+        """ Remove one or more row widgets and update the table
+
+        Parameters
+        ----------
+        idx : int
+            Row index to delete.
+        count : int
+            Number of rows to delete. Defaults to 1.
+        ignore_script : bool
+            Whether or not to ignore the call to the removal script.
+            Defaults to False (runs removal script by default if there is one).
+
+        """
         # remove up to the maximum number of rows
         for _ in range(min(len(self.widgets), count)):
             self.delete_row(idx, ignore_script)
@@ -437,6 +499,7 @@ class WidgetTable(Frame):
         self.sf.configure_view(resize_canvas='')
 
     def _draw_separators(self):
+        """ Redraw all the separators when the table is being redrawn """
         rows = self.sf.frame.grid_size()[1]
         for i, sep in enumerate(self.separators):
             sep.grid_forget()
@@ -444,7 +507,9 @@ class WidgetTable(Frame):
                      rowspan=rows - self.separator_offset, sticky='ns')
 
     def add_row_from_button(self):
-        # before anything happens call the adder script if there is one:
+        """ Add a row from the 'Add Row' button """
+        # before anything happens call the adder script if there is one to
+        # determine whether there is any data that can populate the new row.
         if self.adder_script is not None:
             try:
                 ret = self.adder_script()
@@ -466,6 +531,7 @@ class WidgetTable(Frame):
         self.sf.configure_view(move_to_bottom=True, resize_canvas='x')
 
     def add_row_from_selection(self, event):
+        """ Add a new row from the list of possible rows to add """
         # this only needs to be different to implement the functionality to
         # allow the entry in the list to be removed if it needs to be
         # unless we leave that functionality up to the user...
@@ -480,7 +546,11 @@ class WidgetTable(Frame):
     def get(self, values=True):
         """
         Return a 2D array of all the data contained.
-        If values == True (default), the value of the Variables will be
+
+        Parameters
+        ----------
+        values : bool
+            If values == True, the value of the Variables will be
         returned. If False the Variables themselves will be returned
         """
         out_data = []
@@ -504,15 +574,22 @@ class WidgetTable(Frame):
     def set_row(self, idx, data):
         """
         Set the data for a specific row
-        Inputs:
-        - idx - index of the row
-        - data - row data (as values, not Variables)
+
+        Parameters
+        ----------
+        idx : int
+            Index of the row the data will be set in.
+        data : list
+            Row data to be assigned. This should be a list of raw values, not
+            a list of instances of Variables.
         """
         for i, val in enumerate(data):
             if val is not None:
                 self.data[idx][i].set(val)
 
     def sort_data(self):
+        """ If a sort column is specified on intialisation of the WidgetTable
+        then sort by this column """
         if isinstance(self.sort_column, int):
             if self.sort_column < self.num_columns:
                 self.data.sort(key=lambda x: x[self.sort_column].get())
@@ -538,6 +615,7 @@ class WidgetTable(Frame):
 
         self.sf.configure_view()
 
+    # !REMOVE
     def curr_row(self):
         a = self.focus_get().grid_info().get('row') - self.row_offset
         return a

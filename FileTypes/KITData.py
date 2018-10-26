@@ -91,11 +91,15 @@ class KITData(BIDSContainer):
             # TODO: clean this up a bit...
             """ Project settings """
             try:
-                proj_name = self.parent.file_treeview.item(
-                    self._id)['text'].split('_')[2]
+                if self.proj_name.get() == '':
+                    # only set the name from the folder name if we don't
+                    # already have one (eg from a save)
+                    proj_name = self.parent.file_treeview.item(
+                        self._id)['text'].split('_')[2]
+                    self.proj_name.set(proj_name)
             except IndexError:
-                proj_name = ''
-            self.proj_name.set(proj_name)
+                # the proj_name will already be an empty string by default
+                pass
             # set the settings via the setter.
             try:
                 self.settings = self.proj_settings
@@ -105,11 +109,15 @@ class KITData(BIDSContainer):
 
             """ Subject settings """
             try:
-                sub_name = self.parent.file_treeview.item(
-                    self._id)['text'].split('_')[0]
+                if self.subject_ID.get() == '':
+                    # only set the name from the subject id if we don't
+                    # already have one (eg from a save)
+                    sub_name = self.parent.file_treeview.item(
+                        self._id)['text'].split('_')[0]
+                    self.subject_ID.set(sub_name)
             except IndexError:
-                sub_name = ''
-            self.subject_ID.set(sub_name)
+                # the subject_ID will already be an empty string by default
+                pass
 
             self.validate()
 

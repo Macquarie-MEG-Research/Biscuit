@@ -95,24 +95,21 @@ class FifFileFrame(Frame):
             "(Options > 'Set Defaults'), a number of values can be set by "
             "default.")
         self.sess_id_entry = InfoEntry(self, "Session ID", StringVar(),
-                                       bad_values=[''],
-                                       validate_cmd=None)
+                                       bad_values=[''], force_dtype='alnum')
         self.sess_id_entry.label.grid(column=0, row=9, sticky='ew', pady=2,
                                       padx=2)
         self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2,
                                       padx=2)
         self.require_verification.append(self.sess_id_entry)
         self.task_info = InfoEntry(self, 'Task', StringVar(),
-                                   bad_values=[''],
-                                   validate_cmd=None)
+                                   bad_values=[''], force_dtype='alnum')
         self.require_verification.append(self.task_info)
         self.task_info.label.grid(column=0, row=10, sticky='ew', pady=2,
                                   padx=2)
         self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,
                                   padx=2)
         self.run_info = InfoEntry(self, 'Run number', IntVar(),
-                                  bad_values=[0], validate_cmd=None,
-                                  force_dtype=int)
+                                  bad_values=['0', ''], force_dtype=int)
         self.require_verification.append(self.run_info)
         self.run_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
         self.run_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)
