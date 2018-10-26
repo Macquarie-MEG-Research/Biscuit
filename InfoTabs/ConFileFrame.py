@@ -90,9 +90,7 @@ class ConFileFrame(Frame):
         self.reTHM_info.value = str(self.file.extra_data.get('chm', False))
 
         self.task_info.value = self.file.task
-        self.task_info.validate_cmd = self.file.validate
         self.run_info.value = self.file.run
-        self.run_info.validate_cmd = self.file.validate
         self.mrks_info.value = self.file.hpi
         self.mrks_info.validate_cmd = self.file.validate
         self.is_junk_info.value = self.file.is_junk

@@ -28,12 +28,14 @@ class BIDSContainer(FileInfo):
         self.proj_name = StringVar()
         self.proj_name.trace("w", self.check_projname_change)
         self.session_ID = StringVar()
+        self.session_ID.trace("w", self.validate)
         # this will be a list of BIDSFile's which have their data extracted
         # and passed to mne_bids.
         self.jobs = []
 
         # subject info
         self.subject_ID = StringVar()
+        self.subject_ID.trace("w", self.validate)
         # self.subject_age format [DD, MM, YYYY]
         self.subject_age = [StringVar(), StringVar(), StringVar()]
         self.subject_gender = OptionsVar(options=['M', 'F', 'U'])
@@ -70,7 +72,7 @@ class BIDSContainer(FileInfo):
         self.validate()
         self.validation_initialised = True
 
-    def validate(self):
+    def validate(self, *args):
         self.valid = self.check_valid()
         self._set_bids_button_state()
 

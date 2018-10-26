@@ -189,19 +189,14 @@ class FifFileFrame(Frame):
         self.activeshield_info.value = self.file.info['Has Active Shielding']
         # update subject info
         self.sub_id_entry.value = self.file.subject_ID
-        self.sub_id_entry.validate_cmd = self.file.validate
         self.sub_age_entry.setvar(self.file.subject_age)
         self.sub_gender_entry.value = self.file.subject_gender
         self.sub_group_entry.value = self.file.subject_group
         # update required info
         self.proj_name_entry.value = self.file.proj_name
-        self.proj_name_entry.validate_cmd = self.file.validate
         self.sess_id_entry.value = self.file.session_ID
-        self.sess_id_entry.validate_cmd = self.file.validate
         self.task_info.value = self.file.task
-        self.task_info.validate_cmd = self.file.validate
         self.run_info.value = self.file.run
-        self.run_info.validate_cmd = self.file.validate
         self.is_emptyroom_info.value = self.file.is_empty_room
         self.is_emptyroom_info.validate_cmd = self.file.validate
         self.has_emptyroom_info.value = self.file.has_empty_room

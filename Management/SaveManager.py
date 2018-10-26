@@ -33,6 +33,7 @@ from constants import OSCONST
     chs:    channel info        # TODO: move to BIDSContainer
     evt:    event info
     # mrk_file
+    # TODO: This will probably change at some point once the spec is decided on
     acq:    acquisition ('pre' or 'post', file isn't saved if 'n/a')
 """
 

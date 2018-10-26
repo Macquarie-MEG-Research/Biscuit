@@ -22,7 +22,9 @@ class BIDSFile(FileInfo):
     def _create_vars(self):
         FileInfo._create_vars(self)
         self.run = StringVar()
+        self.run.trace("w", self.validate)
         self.task = StringVar()
+        self.task.trace("w", self.validate)
         self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
         self.has_empty_room = BooleanVar()
