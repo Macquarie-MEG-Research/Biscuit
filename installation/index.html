@@ -112,22 +112,24 @@
 <p>Biscuit is completely written in python, allowing it to be run on any computer you can install python on.
 To allow for the reading of MEG data and conversion a few libraries are required to be installed. There are a few options available depending on the current python install on your system.</p>
 <h2 id="already-have-python-installed">&gt; Already have Python installed</h2>
-<p>Biscuit is written for python 3.4 and above. If you already have python installed you just need to ensure you have the required dependencies installed.
-The easiest way to do this is by using <code>pip</code>:</p>
-<pre><code>pip install numpy scipy matplotlib pandas Pygments
+<p>Biscuit is written for python 3.4 and above, however it is recommended that you use at least the latest version of 3.6 which can be found <a href="https://www.python.org/downloads/release/python-367/">here</a>. If you already have python installed you just need to ensure you have the required dependencies installed.
+The easiest way to do this is by using <code>pip</code> (see potential issues <a href="installation/#issues-with-pip">here</a>):</p>
+<pre><code>python3 -m pip install numpy scipy matplotlib pandas Pygments Pillow
 </code></pre>
 
 <p>(<code>Pygments</code> is used for syntax highlighting. If you do not want this you can ignore this library, however all the other libraries are required for BIDS conversion).</p>
 <p>On linux you may also require <code>python3-pil.imagetk</code> and <code>python3-tk</code> for the GUI to function.</p>
 <h2 id="dont-have-python-installed">&gt; Don't have Python installed</h2>
-<p>If you do not have a current Python install on your system, it is recommended that you install the <a href="https://anaconda.org/anaconda/python">Anaconda</a> Python distribution. You can also follow the steps to <a href="https://www.martinos.org/mne/stable/getting_started.html">install MNE-Python</a>.</p>
+<p>If you do not have a current Python install on your system, you can either install the <a href="https://anaconda.org/anaconda/python">Anaconda</a> Python distribution.
+Anaconda is however a reasonably large installation, so you may prefer to simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the website</a> and install the packages using pip as above. This has the benefit of also being faster to install and gives you more control over what is installed.
+You can also follow the steps to <a href="https://www.martinos.org/mne/stable/getting_started.html">install MNE-Python</a>.</p>
 <h2 id="installing-the-most-recent-version-of-mne">Installing the most recent version of MNE</h2>
-<p>Currently Biscuit uses features introduced in MNE that aren't yet included in the public release. Once the public release is updated the easiest way to install MNE is by entering</p>
-<pre><code>pip install mne
+<p>Currently Biscuit uses features introduced in MNE (0.17dev0) that aren't yet included in the public release (0.16). Once the public release is updated the easiest way to install MNE is by entering</p>
+<pre><code>python3 -m pip install mne
 </code></pre>
 
 <p>Until then, you will need to enter</p>
-<pre><code>pip install -U https://api.github.com/repos/mne-tools/mne-python/zipball/master
+<pre><code>python3 -m pip install -U https://api.github.com/repos/mne-tools/mne-python/zipball/master
 </code></pre>
 
 <p>(see <a href="https://github.com/mne-tools/mne-python#get-the-latest-code">here</a>)</p>
@@ -141,6 +143,7 @@ The easiest way to do this is by using <code>pip</code>:</p>
 If an error is raised, entering <code>python --version</code> should show the current version (&gt;3.4).
 If neither <code>python3 --version</code> or <code>python --version</code> return a value or error, then Python has not been installed correctly. You may need to ensure that python is installed to the path:
 <a href="https://docs.python.org/3/using/windows.html"><img alt="python_path" src="https://docs.python.org/3/_images/win_installer.png" /></a></p>
+<p>Note that you <em>shouldn't</em> have to do this for python version 3.6 and above.</p>
 <p>Whichever command (<code>python</code> or <code>python3</code>) is the one which shows the correctly installed version of python &gt; 3.4, can be used to call pip explicitly for that version:</p>
 <pre><code>python -m pip install &lt;package names&gt;
 </code></pre>
@@ -158,7 +161,7 @@ Extract the files from the .zip to whatever directory you choose.</p>
 <h2 id="windows">Windows</h2>
 <p>Double-clicking on the <code>Biscuit.py</code> file will run Biscuit. A python console will appear also which can be ignored.</p>
 <h2 id="macos">MacOS</h2>
-<p>Double-clicking on the <code>run-mac.command</code> will run Biscuit. This script changes the current working directory to the current directory then calls the python script. It is the same as running <code>python Biscuit.py</code> from terminal while in the <em>Biscuit</em> folder.</p>
+<p>Double-clicking on the <code>run-mac.command</code> will run Biscuit. This script changes the current working directory to the current directory then calls the python script. It is the same as running <code>python3 Biscuit.py</code> from terminal while in the <em>Biscuit</em> folder.</p>
 <h2 id="linux">Linux</h2>
 <p>Double-clicking <code>Biscuit.py</code> may also work but this is pretty untested right now. Run <code>Biscuit.py</code> however you know best.</p>
 <p>Some linux python installs do not come with the libraries required to display the GUI. If running <code>Biscuit.py</code> causes errors to be thrown, you will need to install <code>tkinter</code> separately by using <code>apt-get</code> (or similar package manager) to add <code>python3-pil.imagetk</code> and <code>python3-tk</code>.</p></div>
