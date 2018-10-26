@@ -50,8 +50,10 @@ class ChannelInfoFrame(Frame):
         state = self.channels_table.data[idx][-2]['var'].get()
         if state:
             self.channels_table.widgets[idx][-2].config(state='normal')
+            self.channels_table.data[idx][-1]['configs']['state'] = 'normal'
         else:
             self.channels_table.widgets[idx][-2].config(state='readonly')
+            self.channels_table.data[idx][-1]['configs']['state'] = 'readonly'
 
     def add_channel_vars(self, i):
         if i not in self._file.tab_info.keys():

@@ -8,8 +8,6 @@ from PIL import Image, ImageTk
 # underlying pattern of a row if any.
 from copy import copy
 
-from platform import system as os_name
-
 from constants import OSCONST
 
 from .ScrollableFrame import ScrollableFrame
