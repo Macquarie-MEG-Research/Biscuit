@@ -1,6 +1,7 @@
 from tkinter import StringVar, IntVar, Entry
 from tkinter.ttk import Frame
 from FileTypes import FIFData
+from CustomWidgets.InfoEntries import ValidatedEntry
 from CustomWidgets.WidgetTable import WidgetTable
 
 
@@ -27,7 +28,8 @@ class EventInfoFrame(Frame):
             pattern=[IntVar, StringVar],
             adder_script=self._add_event,
             remove_script=self._remove_event,
-            widgets_pattern=[Entry, Entry],
+            widgets_pattern=[lambda x: ValidatedEntry(x, force_dtype='int'),
+                             Entry],
             sort_column=0)
         self.events_table.grid(sticky='nsew')
         self.grid_columnconfigure(0, weight=1)

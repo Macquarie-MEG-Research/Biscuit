@@ -109,7 +109,7 @@ class FifFileFrame(Frame):
         self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,
                                   padx=2)
         self.run_info = InfoEntry(self, 'Run number', IntVar(),
-                                  bad_values=['0', ''], force_dtype=int)
+                                  bad_values=['0', ''], force_dtype='int')
         self.require_verification.append(self.run_info)
         self.run_info.label.grid(column=0, row=11, sticky='ew', pady=2, padx=2)
         self.run_info.value.grid(column=1, row=11, sticky='ew', pady=2, padx=2)

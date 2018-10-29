@@ -2,7 +2,7 @@ from tkinter import Toplevel, StringVar, WORD, IntVar, END, Entry
 from tkinter.ttk import Frame, Label, Button
 from tkinter.scrolledtext import ScrolledText
 from CustomWidgets import DateEntry
-from CustomWidgets.InfoEntries import InfoEntry
+from CustomWidgets.InfoEntries import InfoEntry, ValidatedEntry
 from CustomWidgets.WidgetTable import WidgetTable
 
 
@@ -72,7 +72,8 @@ class ProjectSettingsWindow(Toplevel):
         self.channels_table = WidgetTable(
             self.frame, headings=["Trigger Channel", "Event Description"],
             pattern=[IntVar, StringVar],
-            widgets_pattern=[Entry, Entry],
+            widgets_pattern=[lambda x: ValidatedEntry(x, force_dtype='int'),
+                             Entry],
             add_options=None,
             data_array=self.settings.get('DefaultTriggers', []),
             sort_column=0)

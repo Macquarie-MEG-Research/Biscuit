@@ -397,6 +397,11 @@ class WidgetTable(Frame):
             # first, create a lambda which can be re-used for each row
             w = self.widgets_pattern[column]
             try:
+                if callable(w):
+                    # in this case the widget is actually one wrapped in a
+                    # lambda statement.
+                    # extract it by checking the type
+                    w = type(w(self))
                 if issubclass(w, Label):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
