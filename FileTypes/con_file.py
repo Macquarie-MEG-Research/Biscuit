@@ -53,6 +53,8 @@ class con_file(BIDSFile):
 
         self.tab_info = {}
 
+        self.associated_channel_tab = None
+
     def load_data(self):
         # reads in various other pieces of information required
         with open(self.file, 'rb') as file:
@@ -154,6 +156,26 @@ class con_file(BIDSFile):
                                             desc_var]
 
         self.loaded = True
+
+    def _apply_settings(self):
+        """ Check the current settings and add any new channels from them """
+        default_triggers = self.container.settings.get('DefaultTriggers')
+        curr_triggers = self.tab_info.keys()
+        if default_triggers is not None:
+            for i, desc in default_triggers:
+                if i not in curr_triggers:
+                    # add the variables to self.tab_info[i]
+                    name_var = StringVar()
+                    name_var.set(self.channel_names[i])
+                    bad_var = BooleanVar()
+                    bad_var.set(False)
+                    trigger_var = BooleanVar()
+                    trigger_var.set(True)
+                    desc_var = StringVar()
+                    desc_var.set(desc)
+                    self.tab_info[i] = [name_var, bad_var, trigger_var,
+                                        desc_var]
+                    self.interesting_channels.add(i)
 
     # TODO: maybe not have this return two lists??
     def get_event_data(self):

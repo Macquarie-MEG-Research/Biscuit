@@ -205,6 +205,11 @@ class KITData(BIDSContainer):
 
         return True
 
+    def _apply_settings(self):
+        super(KITData, self)._apply_settings()
+        for job in self.jobs:
+            job._apply_settings()
+
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):
         """ Generate a list of all KIT related files within the folder

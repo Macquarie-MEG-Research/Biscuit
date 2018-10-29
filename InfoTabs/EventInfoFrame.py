@@ -37,7 +37,12 @@ class EventInfoFrame(Frame):
 
     def _remove_event(self, idx):
         """ Remove the specified index """
-        del self.file.event_info[idx]
+        rem_id = self.events_table.data[idx][0].get()
+        self.file.interesting_events.remove(rem_id)
+        for event in self.file.event_info:
+            if event['event'].get() == rem_id:
+                self.file.event_info.remove(event)
+                break
 
     def _add_event(self):
         """ Add the two new variables to the underlying FIFData object """
@@ -69,7 +74,10 @@ class EventInfoFrame(Frame):
         # if the file is being set as a con_file continue
         if other != self._file:
             if isinstance(other, FIFData):
+                if self.file is not None:
+                    self._file.associated_event_tab = None
                 self._file = other
+                self.file.associated_event_tab = self
                 self.update()
             else:
                 self.is_loaded = False

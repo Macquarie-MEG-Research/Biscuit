@@ -80,17 +80,17 @@ class FifFileFrame(Frame):
         # required information
         Label(self, text="Required Information:").grid(column=0, row=7,
                                                        columnspan=2)
-        self.proj_name_entry = InfoEntry(self, "Project name", StringVar(),
-                                         bad_values=[''],
-                                         validate_cmd=None)
-        self.require_verification.append(self.proj_name_entry)
-        self.proj_name_entry.label.grid(column=0, row=8, sticky='ew', pady=2,
-                                        padx=2)
-        self.proj_name_entry.value.grid(column=1, row=8, sticky='ew', pady=2,
-                                        padx=2)
-        self.proj_name_entry.tooltip(
-            "Name of project this file belongs to.\n"
-            "If you enter the name of a project listed in the project "
+        self.proj_id_entry = InfoEntry(self, "Project ID", StringVar(),
+                                       bad_values=[''],
+                                       validate_cmd=None)
+        self.require_verification.append(self.proj_id_entry)
+        self.proj_id_entry.label.grid(column=0, row=8, sticky='ew', pady=2,
+                                      padx=2)
+        self.proj_id_entry.value.grid(column=1, row=8, sticky='ew', pady=2,
+                                      padx=2)
+        self.proj_id_entry.tooltip(
+            "ID of project this file belongs to.\n"
+            "If you enter the ID of a project listed in the project "
             "settings\n"
             "(Options > 'Set Defaults'), a number of values can be set by "
             "default.")
@@ -190,7 +190,7 @@ class FifFileFrame(Frame):
         self.sub_gender_entry.value = self.file.subject_gender
         self.sub_group_entry.value = self.file.subject_group
         # update required info
-        self.proj_name_entry.value = self.file.proj_name
+        self.proj_id_entry.value = self.file.proj_name
         self.sess_id_entry.value = self.file.session_ID
         self.task_info.value = self.file.task
         self.run_info.value = self.file.run
@@ -215,8 +215,6 @@ class FifFileFrame(Frame):
         self._file = value
         # and then associate the incoming file
         self.file.associated_tab = self
-        # re-assign the settings in case they have changed
-        self.file.settings = self.file.settings
         self.update_widgets()
         for widget in self.require_verification:
             widget.check_valid()

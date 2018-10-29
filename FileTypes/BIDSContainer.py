@@ -112,10 +112,6 @@ class BIDSContainer(FileInfo):
                                                       'Control']))
         self.subject_group.options = groups
         self._update_groups()
-        """
-        for job in self.jobs:
-            job._update_channels()
-        """
 
     def _update_groups(self, *args):
         """Update the EntryChoice that contains the group options"""

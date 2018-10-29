@@ -139,6 +139,8 @@ class SaveManager():
             # mrk_file objects
             for _, obj in self.parent.preloaded_data.items():
                 try:
+                    obj.loaded_from_save = True
+                    obj.load_data()
                     if isinstance(obj, con_file):
                         mrk_paths = obj.hpi
                         for i, mrk_path in enumerate(mrk_paths):
@@ -148,7 +150,6 @@ class SaveManager():
                             except KeyError:
                                 mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
                         # also validate the con file:
-                        #obj.load_data()
                         obj.validate()
                 except FileNotFoundError:
                     pass

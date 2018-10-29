@@ -34,15 +34,14 @@ class SessionInfoFrame(Frame):
                                                   columnspan=5, sticky='ew')
 
         # now draw the session info
-        self.proj_name_entry = InfoEntry(self, "Project name", StringVar(),
-                                         bad_values=[''],
-                                         validate_cmd=None)
-        self.require_verification.append(self.proj_name_entry)
-        self.proj_name_entry.label.grid(column=0, row=2, sticky='ew', pady=2)
-        self.proj_name_entry.value.grid(column=1, row=2, sticky='ew', pady=2)
-        self.proj_name_entry.tooltip(
-            "Name of project this collection of file belongs to.\n"
-            "If you enter the name of a project listed in the project "
+        self.proj_id_entry = InfoEntry(self, "Project ID", StringVar(),
+                                       bad_values=[''])
+        self.require_verification.append(self.proj_id_entry)
+        self.proj_id_entry.label.grid(column=0, row=2, sticky='ew', pady=2)
+        self.proj_id_entry.value.grid(column=1, row=2, sticky='ew', pady=2)
+        self.proj_id_entry.tooltip(
+            "ID of project this collection of file belongs to.\n"
+            "If you enter the ID of a project listed in the project "
             "settings\n"
             "(Options > 'Set Defaults'), a number of values can be set by "
             "default.")
@@ -91,7 +90,7 @@ class SessionInfoFrame(Frame):
         self.grid()
 
     def update_widgets(self):
-        self.proj_name_entry.value = self.file.proj_name
+        self.proj_id_entry.value = self.file.proj_name
         self.sess_id_entry.value = self.file.session_ID
         self.sub_id_entry.value = self.file.subject_ID
         self.sub_age_entry.setvar(self.file.subject_age)

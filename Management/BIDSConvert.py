@@ -131,6 +131,6 @@ def convert(container, settings, parent=None):
     return True
 
 
-def _shorten_path(path):
+def _shorten_path(fname):
     """ strip just the final part of the path """
-    return path.split('\\')[-1][:-6]
+    return path.basename(fname)[:-6]

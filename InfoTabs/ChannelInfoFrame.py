@@ -159,9 +159,12 @@ class ChannelInfoFrame(Frame):
         the channel info list
         """
         # if the file is being set as a con_file continue
-        if other != self._file:
+        if other != self.file:
             if isinstance(other, con_file):
+                if self.file is not None:
+                    self._file.associated_channel_tab = None
                 self._file = other
+                self.file.associated_channel_tab = self
                 self.update()
             else:
                 self.is_loaded = False

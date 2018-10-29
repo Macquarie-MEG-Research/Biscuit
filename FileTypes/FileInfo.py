@@ -61,6 +61,9 @@ class FileInfo():
         # used for files that are viewed with the text viewer
         self.saved_time = "Never"
 
+    def _apply_settings(self):
+        pass
+
     def check_valid(self):
         """ Returns True (method will be overriden by derived classes) """
         return True

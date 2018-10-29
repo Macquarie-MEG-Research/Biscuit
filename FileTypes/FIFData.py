@@ -31,11 +31,16 @@ class FIFData(BIDSContainer, BIDSFile):
         # name of main file part
         self.mainfile_name = None
 
+        self.interesting_events = set()
+
+        self.associated_event_tab = None
+
     def load_data(self):
         # first, let's make sure that there are no other files in the same
         # folder with the same name but with a number after it to indicate
         # being part of a split file
         fname, _ = path.splitext(self.file)
+        # TODO: this is matched for BIDS produced files. (Don't want!)
         m = re.compile(".*-[0-9]")
         if re.match(m, fname):
             # the file is part of a larger one.
@@ -65,18 +70,6 @@ class FIFData(BIDSContainer, BIDSFile):
             else:
                 self.info['Measurement date'] = datetime.fromtimestamp(
                     rec_date[0]).strftime('%d/%m/%Y')
-
-            # load any default event info
-            """
-            def_event_info = self.container.settings.get('DefaultTriggers',
-                                                         None)
-            default_events = []
-            default_descriptions = []
-            if def_event_info is not None:
-                default_events = [int(row[0]) for row in
-                                    def_trigger_info]
-                default_descriptions = [row[1] for row in def_event_info]
-            """
 
             # only pre-fill this if the file hasn't been loaded from a save
             if not self.loaded_from_save:
@@ -108,6 +101,19 @@ class FIFData(BIDSContainer, BIDSFile):
                             'ch_type': OptionsVar(
                                 value='EOG',
                                 options=['EOG', 'ECG', 'EMG'])}
+
+                # load any default event info
+                if isinstance(self.container.settings, dict):
+                    def_event_info = self.container.settings.get(
+                        'DefaultTriggers')
+
+                    if def_event_info is not None:
+                        for key, value in def_event_info:
+                            if key not in self.interesting_events:
+                                self.event_info.append(
+                                    {'event': IntVar(value=key),
+                                     'description': StringVar(value=value)})
+                                self.interesting_events.add(key)
 
             self.loaded = True
 
@@ -168,6 +174,22 @@ class FIFData(BIDSContainer, BIDSFile):
         self.raw.info['subject_info']['birthday'] = bday
         self.raw.info['subject_info']['sex'] = sex
 
+    def _apply_settings(self):
+        """ Check the current settings and add any new channels from them """
+        # apply BIDSContainer settings first (groups and find correct settings)
+        BIDSContainer._apply_settings(self)
+        default_events = self.container.settings.get('DefaultTriggers')
+        curr_events = self.interesting_events.copy()
+        if not self.loaded_from_save:
+            if default_events is not None:
+                for i, desc in default_events:
+                    if i not in curr_events:
+                        # add the variables to self.event_info
+                        self.event_info.append(
+                            {'event': IntVar(value=i),
+                             'description': StringVar(value=desc)})
+                        self.interesting_events.add(i)
+
     def _process_event(self, evt):
         """ Take the event provided and convert to the format stored
         in the FIF file """
@@ -209,3 +231,4 @@ class FIFData(BIDSContainer, BIDSFile):
         for key, value in state.get('evt', dict()).items():
             self.event_info.append({'event': IntVar(value=key),
                                     'description': StringVar(value=value)})
+            self.interesting_events.add(key)
