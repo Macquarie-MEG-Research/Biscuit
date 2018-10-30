@@ -152,7 +152,6 @@ class main(Frame):
         # we want to put folders above files (it looks nicer!!)
         try:
             for file in listdir(dir_):
-                fname, ext = path.splitext(file)
                 fullpath = path.join(dir_, file)
 
                 # need to check to see whether or not the file/folder already
@@ -161,10 +160,11 @@ class main(Frame):
                 if path.isdir(fullpath):
                     if exists_id is None:
                         exists_id = self.file_treeview.ordered_insert(
-                            parent, values=['', fullpath], text=fname,
+                            parent, values=['', fullpath], text=file,
                             open=False)
                     self._fill_file_tree(exists_id, directory=fullpath)
                 else:
+                    fname, ext = path.splitext(file)
                     if exists_id is None:
                         self.file_treeview.insert(parent, 'end',
                                                   values=[ext, fullpath],
