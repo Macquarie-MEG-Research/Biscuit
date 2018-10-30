@@ -1,4 +1,4 @@
-from utils import threaded
+from utils.utils import threaded
 import os.path as path
 from os import makedirs
 from tkinter import StringVar

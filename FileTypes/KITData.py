@@ -1,6 +1,6 @@
 from .BIDSContainer import BIDSContainer
 from Management import OptionsVar
-from utils import get_object_class
+from utils.utils import get_object_class
 from FileTypes.generic_file import generic_file
 from FileTypes.BIDSFile import BIDSFile
 from FileTypes.FileInfo import FileInfo

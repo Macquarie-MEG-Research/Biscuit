@@ -6,7 +6,7 @@ from os import makedirs, replace, rename
 from tkinter import StringVar
 from datetime import datetime
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 """ Save format specification/taken names:
     # FileInfo:

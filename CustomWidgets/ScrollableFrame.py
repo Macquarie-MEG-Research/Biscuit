@@ -1,7 +1,7 @@
 from tkinter import ALL, Canvas, Scrollbar
 from tkinter.ttk import Frame
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 from platform import system as os_name
 

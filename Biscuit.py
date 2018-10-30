@@ -22,9 +22,9 @@ from Management.InfoManager import InfoManager
 from Management.SaveManager import SaveManager
 from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup
 
-from utils import threaded, get_object_class
+from utils.utils import threaded, get_object_class
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}

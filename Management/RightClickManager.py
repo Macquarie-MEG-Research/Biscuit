@@ -2,7 +2,7 @@ from tkinter import Menu, StringVar, messagebox, simpledialog
 import os.path as path
 
 from FileTypes import con_file
-from utils import create_folder
+from utils.utils import create_folder
 
 """
 TODO:

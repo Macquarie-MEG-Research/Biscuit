@@ -3,7 +3,7 @@ from tkinter.ttk import Frame, Label, Button
 from CustomWidgets.WidgetTable import WidgetTable
 from Windows import ProjectSettingsWindow
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 import os.path as path
 import pickle

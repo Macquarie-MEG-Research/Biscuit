@@ -2,7 +2,7 @@ from tkinter import ALL
 # import this specifically like this because we can actually set the bg colour
 from tkinter import Entry as tkEntry
 from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
-from utils import clear_widget
+from utils.utils import clear_widget
 from Management import ToolTipManager
 
 ttm = ToolTipManager()

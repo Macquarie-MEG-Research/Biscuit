@@ -1,7 +1,7 @@
 from tkinter import WORD, END, StringVar
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button, Label
-from utils import threaded
+from utils.utils import threaded
 try:
     from pygments import lex
     from pygments.lexers.python import Python3Lexer

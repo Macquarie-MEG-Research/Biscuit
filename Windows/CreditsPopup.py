@@ -1,7 +1,7 @@
 from tkinter import (Toplevel, Frame, Button, Text, END, FLAT, DISABLED)
 from webbrowser import open_new as open_hyperlink
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 from Management.tkHyperlinkManager import HyperlinkManager
 

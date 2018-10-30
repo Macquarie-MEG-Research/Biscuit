@@ -8,7 +8,7 @@ class or tested for with `issubclass`.
 from tkinter import StringVar, ACTIVE, DISABLED
 from Management import OptionsVar
 from .FileInfo import FileInfo
-from utils import flatten, generate_readme
+from utils.utils import flatten, generate_readme
 
 
 class BIDSContainer(FileInfo):

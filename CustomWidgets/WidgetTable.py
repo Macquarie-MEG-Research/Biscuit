@@ -8,7 +8,7 @@ from PIL import Image, ImageTk
 # underlying pattern of a row if any.
 from copy import copy
 
-from constants import OSCONST
+from utils.constants import OSCONST
 
 from .ScrollableFrame import ScrollableFrame
 
