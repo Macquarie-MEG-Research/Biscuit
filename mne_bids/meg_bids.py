@@ -2,6 +2,7 @@
 #          Alexandre Gramfort <alexandre.gramfort@telecom-paristech.fr>
 #          Teon Brooks <teon.brooks@gmail.com>
 #          Chris Holdgraf <choldgraf@berkeley.edu>
+#          Matt Sanderson <matt.sanderson@mq.edu.au>
 #
 # License: BSD (3-clause)
 

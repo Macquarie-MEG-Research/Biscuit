@@ -1,4 +1,4 @@
-from tkinter import HIDDEN, NORMAL
+from tkinter import HIDDEN, NORMAL, TclError
 from tkinter.ttk import Notebook
 
 from FileTypes import FileInfo, Folder, FIFData
@@ -84,7 +84,10 @@ class InfoManager(Notebook):
             self.con_info_tab.file = self.data[0]
             self.display_tabs(T_CON, T_CHANNELS)
             if self.context.previous == {'.CON'}:
-                self.select(self.select())  # keep current selected
+                try:
+                    self.select(self.select())  # keep current selected
+                except TclError:
+                    self.select(self._tabs[T_CON])
             else:
                 self.select(self._tabs[T_CON])
         # If a .fif file is selected then show the fif info tab and event tab
@@ -94,7 +97,10 @@ class InfoManager(Notebook):
                 self.fif_event_tab.file = self.data[0]
                 self.display_tabs(T_FIF, T_EVENTS)
                 if self.context.previous == {'.FIF'} and self.select() != '':
-                    self.select(self.select())  # keep current selected
+                    try:
+                        self.select(self.select())  # keep current selected
+                    except TclError:
+                        self.select(self._tabs[T_FIF])
                 else:
                     self.select(self._tabs[T_FIF])
             else:

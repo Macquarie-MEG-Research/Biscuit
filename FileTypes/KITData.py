@@ -72,6 +72,7 @@ class KITData(BIDSContainer):
                         if isinstance(obj, BIDSFile):
                             obj.container = self
                             self.jobs.append(obj)
+                        obj.load_data()
                         # add the data to the preload data
                         self.parent.preloaded_data[sid] = obj
                         files[ext].append(obj)
