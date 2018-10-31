@@ -11,6 +11,7 @@ import pickle
 import os.path as path
 from os import listdir, makedirs
 
+import webbrowser
 from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, Folder, KITData, BIDSFile, BIDSContainer
@@ -245,11 +246,12 @@ class main(Frame):
         self.info_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Info", menu=self.info_menu)
 
-        # credits menu
         self.info_menu.add_command(label="Credits",
                                    command=self._display_credits_popup)
         self.info_menu.add_command(label="Help",
                                    command=self._load_help_link)
+        self.info_menu.add_command(label="Open Settings Folder",
+                                   command=self._open_settings)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -570,6 +572,9 @@ class main(Frame):
 
     def _load_help_link(self):
         open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
+
+    def _open_settings(self):
+        webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
 
     def get_selection_info(self):
         data = []
