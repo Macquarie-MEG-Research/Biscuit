@@ -137,19 +137,20 @@ Because KIT data consists of multiple files unlike Elekta data which consists of
 <h4 id="required-information_1">Required information</h4>
 <ul>
 <li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
-<li><strong>Acquisition</strong>: Synonymous with <code>run</code>. An identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
+<li><strong>Run</strong>: An integer identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
 <li><strong>Associated .mrk's</strong>: A list of any <code>.mrk</code> files that are associated with this <code>.con</code> file. Details on how to do this <a href="./#associating-a-mrk-file">here</a></li>
 </ul>
 <h4 id="optional-information">Optional information</h4>
 <ul>
-<li><strong>Is junk</strong>: This indicates that the <code>.con</code> file isn't needed as part of the data set. The file will not be copied to the BIDS folder.</li>
+<li><strong>Ignore</strong>: This indicates that the <code>.con</code> file isn't needed as part of the data set. The file will not be copied to the BIDS folder.</li>
 <li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
 <li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
 </ul>
 <h3 id="channel-information">Channel information</h3>
 <p>It is often important to specify if a certain channel is bad, or if a channel has any trigger information on it so that <em>MNE</em> can process this information properly and <em>MNE-BIDS</em> can produce the correct event information on export.
 If you have set up any default channels when <a href="../guide_general/#settings-windows">setting up your project defaults</a>, then you will automatically see any channels specified as trigger channels in the channel tab, along with their default trigger description.
-You can however add any other channel detected in the <code>.con</code> file to add to the list if you need to add extra trigger channels for the particular recording.</p>
+<img alt="con_channels" src="../images/screenshots/KIT_con_channels.PNG" /></p>
+<p>You can however add any other channel detected in the <code>.con</code> file to add to the list if you need to add extra trigger channels for the particular recording.</p>
 <h2 id="associating-an-mrk-file">Associating an <code>.mrk</code> file</h2>
 <p>It is crucial for each <code>.con</code> file to know what <code>.mrk</code> file was used during the recording.
 We can associate a <code>.con</code> file with an <code>.mrk</code> file in one of 3 different ways, all achieved by <em>right-clicking</em> on the <code>.mrk</code> or <code>.con</code> file in question.</p>
@@ -165,7 +166,7 @@ We can associate a <code>.con</code> file with an <code>.mrk</code> file in one 
 <p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.</p>
 <p><img alt="kit_complete" src="../images/screenshots/KIT_container_complete.PNG" /></p>
 <p>To export you simply press this button once and a popup will appear which gives the current progress of the export process.
-Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder that will be in the file view.</p></div>
+Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder in the file view.</p></div>
         </div>
 
         <footer class="col-md-12">

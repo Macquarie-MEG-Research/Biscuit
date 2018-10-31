@@ -113,7 +113,7 @@
 <li><strong>Project Name</strong>: ID of the project. This should match the project ID specified in the project settings so that any default values can be applied automatically.</li>
 <li><strong>Session ID</strong>: Session number with the particular participant.</li>
 <li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
-<li><strong>Acquisition</strong>: Synonymous with <code>run</code>. An identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
+<li><strong>Run</strong>: An integer identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
 </ul>
 <h4 id="subject-information">Subject information</h4>
 <ul>
@@ -122,7 +122,7 @@
 <li><strong>Subject Gender</strong>: One of M (Male), F (Female), U (Unknown).</li>
 <li><strong>Subject Group</strong>: The group within the study the participant belongs to. THe default values are <code>Participant</code> and <code>Control</code>, however these can be set in the <a href="../guide_general/#settings_window">project default settings</a>.</li>
 </ul>
-<h4 id="optional-iinformation">Optional iinformation</h4>
+<h4 id="optional-information">Optional information</h4>
 <ul>
 <li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
 <li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
