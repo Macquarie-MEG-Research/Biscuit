@@ -166,7 +166,10 @@ class con_file(BIDSFile):
                 if i not in curr_triggers:
                     # add the variables to self.tab_info[i]
                     name_var = StringVar()
-                    name_var.set(self.channel_names[i])
+                    try:
+                        name_var.set(self.channel_names[i])
+                    except IndexError:
+                        break
                     bad_var = BooleanVar()
                     bad_var.set(False)
                     trigger_var = BooleanVar()
