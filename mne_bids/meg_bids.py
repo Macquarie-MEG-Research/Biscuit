@@ -234,14 +234,12 @@ def _scans_tsv(raw, raw_fname, fname, verbose):
     """Create tsv file for scans."""
 
     meas_date = raw.info['meas_date']
-    if isinstance(meas_date, (np.ndarray, list)):
+    if isinstance(meas_date, (tuple, list, np.ndarray)):
         meas_date = meas_date[0]
-
-    if meas_date is None:
-        acq_time = 'n/a'
-    else:
         acq_time = datetime.fromtimestamp(
-            meas_date[0]).strftime('%Y-%m-%dT%H:%M:%S')
+            meas_date).strftime('%Y-%m-%dT%H:%M:%S')
+    else:
+        acq_time = 'n/a'
 
     # check to see if the file already exists.
     # If it does we will want to determine whether or not the data

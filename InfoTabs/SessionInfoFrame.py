@@ -49,6 +49,10 @@ class SessionInfoFrame(Frame):
                                        bad_values=[''], force_dtype='alnum')
         self.sess_id_entry.label.grid(column=0, row=3, sticky='ew', pady=2)
         self.sess_id_entry.value.grid(column=1, row=3, sticky='ew', pady=2)
+        self.sess_id_entry.tooltip(
+            "ID of the session for the participant. Generally this will just "
+            "be a number,\neg. 1, however a string may be used to be more "
+            "descriptive.")
         self.require_verification.append(self.sess_id_entry)
 
         # now the subject info

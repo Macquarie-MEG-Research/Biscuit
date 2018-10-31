@@ -65,19 +65,29 @@ class ConFileFrame(Frame):
 
         Label(self, text="Optional Information:").grid(column=0, row=14,
                                                        columnspan=2)
-        self.is_junk_info = InfoCheck(self, 'Is junk', BooleanVar(),
+        self.is_junk_info = InfoCheck(self, 'Ignore', BooleanVar(),
                                       validate_cmd=None)
         self.is_junk_info.label.grid(column=0, row=15)
         self.is_junk_info.value.grid(column=1, row=15)
+        self.is_junk_info.tooltip(
+            "Whether or not to not include this file in the produced BIDS "
+            "file structure")
         self.is_emptyroom_info = InfoCheck(self, 'Is empty room',
                                            BooleanVar(),
                                            validate_cmd=None)
         self.is_emptyroom_info.label.grid(column=0, row=16)
         self.is_emptyroom_info.value.grid(column=1, row=16)
+        self.is_emptyroom_info.tooltip(
+            "Indicates whether this file contains empty room data")
         self.has_emptyroom_info = InfoCheck(self, 'Has empty room',
                                             BooleanVar())
         self.has_emptyroom_info.label.grid(column=0, row=17)
         self.has_emptyroom_info.value.grid(column=1, row=17)
+        self.has_emptyroom_info.tooltip(
+            "Whether or not this file has an associated empty room file.\n"
+            "Only check this if there actually exists a file with 'Is empty "
+            "room' marked as True from the same day,\notherwise this will "
+            "produce erroneous results.")
         self.grid()
 
     def update_widgets(self):

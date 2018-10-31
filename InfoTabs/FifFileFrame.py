@@ -100,6 +100,10 @@ class FifFileFrame(Frame):
                                       padx=2)
         self.sess_id_entry.value.grid(column=1, row=9, sticky='ew', pady=2,
                                       padx=2)
+        self.sess_id_entry.tooltip(
+            "ID of the session for the participant. Generally this will just "
+            "be a number,\neg. 1, however a string may be used to be more "
+            "descriptive.")
         self.require_verification.append(self.sess_id_entry)
         self.task_info = InfoEntry(self, 'Task', StringVar(),
                                    bad_values=[''], force_dtype='alnum')
@@ -125,10 +129,17 @@ class FifFileFrame(Frame):
                                            validate_cmd=None)
         self.is_emptyroom_info.label.grid(column=0, row=14)
         self.is_emptyroom_info.value.grid(column=1, row=14)
+        self.is_emptyroom_info.tooltip(
+            "Indicates whether this file contains empty room data")
         self.has_emptyroom_info = InfoCheck(self, 'Has empty room',
                                             BooleanVar())
         self.has_emptyroom_info.label.grid(column=0, row=15)
         self.has_emptyroom_info.value.grid(column=1, row=15)
+        self.has_emptyroom_info.tooltip(
+            "Whether or not this file has an associated empty room file.\n"
+            "Only check this if there actually exists a file with 'Is empty "
+            "room' marked as True from the same day,\notherwise this will "
+            "produce erroneous results.")
 
         # channels area (just to rename/set BIO channels)
         Label(self, text="Channel Data:").grid(column=3, row=7,
