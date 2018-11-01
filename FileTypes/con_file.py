@@ -27,15 +27,6 @@ class con_file(BIDSFile):
 
         if 'emptyroom' in self.file:
             self.is_empty_room.set(True)
-        """
-        # this won't work because the con files are instantiated before the IC
-        if self.parent is not None:
-            cons = self.parent.contained_files.get('.con', [])
-            print(cons, 'hi')
-            for con in cons:
-                if 'emptyroom' in con.file:
-                    self.has_empty_room.set(True)
-        """
 
     def _create_vars(self):
         """

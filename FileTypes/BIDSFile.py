@@ -21,7 +21,7 @@ class BIDSFile(FileInfo):
 
     def _create_vars(self):
         FileInfo._create_vars(self)
-        self.run = StringVar()
+        self.run = StringVar(value='1')
         self.run.trace("w", self.validate)
         self.task = StringVar()
         self.task.trace("w", self.validate)

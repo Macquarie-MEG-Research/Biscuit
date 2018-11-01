@@ -27,7 +27,7 @@ class BIDSContainer(FileInfo):
         FileInfo._create_vars(self)
         self.proj_name = StringVar()
         self.proj_name.trace("w", self.check_projname_change)
-        self.session_ID = StringVar()
+        self.session_ID = StringVar(value='1')
         self.session_ID.trace("w", self.validate)
         # this will be a list of BIDSFile's which have their data extracted
         # and passed to mne_bids.

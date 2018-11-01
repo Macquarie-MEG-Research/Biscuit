@@ -99,7 +99,19 @@ def generate_readme(data):
         end_date = 'Unknown'
     out_str += "End date:\t\t{0}\n\n".format(end_date)
     out_str += "Project Description:\n"
-    out_str += data.get("Description", "None")
+    out_str += data.get("Description", "None") + "\n\n"
+    groups = data.get("Groups", [])
+    if len(groups) != 0:
+        out_str += 'Participant groups:\n'
+        for group in groups:
+            out_str += ' - ' + group[0] + '\n'
+        out_str += '\n'
+    triggers = data.get('DefaultTriggers')
+    if len(triggers) != 0:
+        out_str += 'Trigger channels:\n'
+        for trigger in triggers:
+            out_str += '{0}:\t{1}\n'.format(trigger[0], trigger[1])
+
     return out_str
 
 
