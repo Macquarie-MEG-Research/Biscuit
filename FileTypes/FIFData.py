@@ -24,7 +24,7 @@ class FIFData(BIDSContainer, BIDSFile):
         # as the FIF file is only a single file that contains everything it is
         # its own container, and it's own list of jobs
         self.container = self
-        self.jobs = [self]
+        self.jobs = set([self])
         self.info['Has Active Shielding'] = "False"
         self.hpi = None
 

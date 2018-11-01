@@ -321,22 +321,6 @@ class main(Frame):
         main_frame.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
 
-    def _populate_info_panel(self, sids):
-        """
-        This will receive the list of all selected tree entries
-
-        I *think* this can be removed by using the data property of the
-        InfoManager
-        """
-        #self.info_notebook.check_context()
-        self.info_notebook.data = [
-            self.preloaded_data.get(id_, None) for id_ in
-            sids if self.preloaded_data.get(id_, None) is not None]
-        # if the info panel needs to be redrawn, redraw it
-        if self.info_notebook.requires_update:
-            #self.info_notebook.populate()
-            self.info_notebook.determine_tabs()
-
     def _right_click_treeview_entry(self, event):
         # have a separate function to wrap the call to the RightClick .popup
         # method.
@@ -514,7 +498,11 @@ class main(Frame):
                         obj.dtype = ext
                     # finally, add the object to the preloaded data
                     self.preloaded_data[id_] = obj
-        self._populate_info_panel(sids)
+
+        # set the info tab's data to be the list of selected data
+        self.info_notebook.data = [
+            self.preloaded_data.get(id_, None) for id_ in
+            sids if self.preloaded_data.get(id_, None) is not None]
         return
 
     def _check_KIT_folder(self, id_):

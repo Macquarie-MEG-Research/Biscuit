@@ -52,7 +52,7 @@ class KITData(BIDSContainer):
                         if isinstance(self.parent.preloaded_data[sid],
                                       BIDSFile):
                             # container will have already been set
-                            self.jobs.append(self.parent.preloaded_data[sid])
+                            self.jobs.add(self.parent.preloaded_data[sid])
                 else:
                     item = self.parent.file_treeview.item(sid)
                     # generate the FileInfo subclass object
@@ -71,7 +71,7 @@ class KITData(BIDSContainer):
                             obj.dtype = ext
                         if isinstance(obj, BIDSFile):
                             obj.container = self
-                            self.jobs.append(obj)
+                            self.jobs.add(obj)
                         obj.load_data()
                         # add the data to the preload data
                         self.parent.preloaded_data[sid] = obj
@@ -135,7 +135,7 @@ class KITData(BIDSContainer):
     # TODO: fix up 'jobs' stuff
     def _create_raws(self):
         # refresh to avoid adding the con files each time
-        self.jobs = []
+        self.jobs = set()
         for con_file in self.contained_files['.con']:
             # first ensure the data is loaded:
             if con_file.loaded is False:
@@ -202,7 +202,7 @@ class KITData(BIDSContainer):
                     'Name': self.proj_name.get(),
                     'DeviceSerialNumber': con_file.info['Serial Number']}
 
-            self.jobs.append(con_file)
+            self.jobs.add(con_file)
 
         return True
 

@@ -31,7 +31,7 @@ class BIDSContainer(FileInfo):
         self.session_ID.trace("w", self.validate)
         # this will be a list of BIDSFile's which have their data extracted
         # and passed to mne_bids.
-        self.jobs = []
+        self.jobs = set()
 
         # subject info
         self.subject_ID = StringVar()
@@ -68,7 +68,7 @@ class BIDSContainer(FileInfo):
     def init_validation(self):
         """ Checks the validity of any associated jobs and self"""
         for job in self.jobs:
-            job.validate()
+            job.validate(validate_container=False)
         self.validate()
         self.validation_initialised = True
 

@@ -256,13 +256,4 @@ class InfoManager(Notebook):
         if self.parent.file_treeview.selection()[0] == new_data[0].ID:
             if new_data != self._data:
                 self._data = new_data
-                self.requires_update = True
-            else:
-                self.requires_update = False
-
-    def check_context(self):
-        # see whether or not the context has changed
-        if self.context.changed:
-            self.requires_update = True
-        else:
-            self.requires_update = False
+                self.determine_tabs()

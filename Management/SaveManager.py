@@ -140,8 +140,8 @@ class SaveManager():
             for _, obj in self.parent.preloaded_data.items():
                 try:
                     obj.loaded_from_save = True
-                    obj.load_data()
                     if isinstance(obj, con_file):
+                        obj.load_data()
                         mrk_paths = obj.hpi
                         for i, mrk_path in enumerate(mrk_paths):
                             sid = self.get_file_id(mrk_path)

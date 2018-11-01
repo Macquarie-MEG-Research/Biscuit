@@ -50,13 +50,13 @@ class BIDSFile(FileInfo):
     def load_data(self):
         pass
 
-    def validate(self, *args):
+    def validate(self, validate_container=True, *args):
         """
         Check whether the file is valid (ie. contains all the required info for
         BIDS exporting)
         """
         self.valid = self.check_valid()
-        if self.container is not None:
+        if self.container is not None and validate_container:
             self.container.validate()
 
     def check_valid(self):
