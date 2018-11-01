@@ -46,7 +46,8 @@ class SettingsWindow(Toplevel):
         frame = Frame(self)
         frame.grid(sticky='nsew')
 
-        Label(frame, text="Project defaults").grid(column=0, row=0)
+        Label(frame, text="Project defaults").grid(column=0, row=0,
+                                                   columnspan=2)
         self.defaults_list_frame = Frame(frame, borderwidth=2,
                                          relief='ridge')
         self.projects_table = WidgetTable(
@@ -61,9 +62,12 @@ class SettingsWindow(Toplevel):
             adder_script=self._add_project_row,
             remove_script=self._remove_row)
         self.projects_table.grid(column=0, row=0, sticky='nsew')
-        self.defaults_list_frame.grid(column=0, row=1, sticky='nsew')
-        Button(frame, text="Exit", command=self.exit).grid(row=2, column=0,
-                                                           sticky='sw')
+        self.defaults_list_frame.grid(column=0, row=1, columnspan=2,
+                                      sticky='nsew')
+        Button(frame, text="Save and Exit",
+               command=self.save_and_exit).grid(row=2, column=0, sticky='se')
+        Button(frame, text="Cancel",
+               command=self.exit).grid(row=2, column=1, sticky='sw')
 
         self.defaults_list_frame.grid_rowconfigure(0, weight=1)
         self.defaults_list_frame.grid_columnconfigure(0, weight=1)
@@ -115,13 +119,14 @@ class SettingsWindow(Toplevel):
     def _remove_row(self, idx):
         del self.proj_settings[idx]
 
-    def exit(self):
+    def save_and_exit(self):
         self._write_settings()
+        self.exit()
+
+    def exit(self):
         self.withdraw()
         self.update_idletasks()
         self.master.focus_set()
-        #self.master.file_treeview.selection_toggle(
-        #    self.master.file_treeview.selection())
         self.destroy()
 
     def _write_settings(self):
