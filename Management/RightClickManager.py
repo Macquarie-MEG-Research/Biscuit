@@ -22,8 +22,7 @@ class RightClick():
         self.parent = parent
 
         # create a popup menu
-        self.popup_menu = Menu(self.parent, tearoff=0,
-                               postcommand=self._determine_entries)
+        self.popup_menu = Menu(self.parent, tearoff=0)
 
         self.prev_selection = ()
         self.curr_selection = ()
@@ -40,34 +39,6 @@ class RightClick():
             self.prev_selection = self.curr_selection
         # now get the current set of selected files
         self.curr_selection = self.parent.file_treeview.selection()
-
-    """ Need to consolidate the _determine_entries and _add_options functions
-    at some point """
-
-    def _determine_entries(self):
-        """
-        # TODO: remove?
-        if "FOLDER" in self.context:
-            entry = self.parent.preloaded_data[self.curr_selection[0]]
-            if isinstance(entry, InfoContainer):
-                if entry.check_bids_ready():
-                    self.popup_menu.add_command(label="Convert to BIDS",
-                                                command=self._folder_to_bids)
-                    self.popup_menu.add_command(label="See progress",
-                                                command=self.check_progress)
-        """
-        # give the option to associate one or more mrk files with all con files
-        if (".MRK" in self.context and
-                not self.parent.treeview_select_mode.startswith("ASSOCIATE")):
-            self.popup_menu.add_command(
-                label="Associate with all",
-                command=lambda: self._associate_mrk(all_=True))
-        # Add an option mark all selected .con files as junk
-        if ".CON" in self.context and not self.context.is_mixed:
-            self.popup_menu.add_command(label="Ignore files",
-                                        command=self._ignore_cons)
-            self.popup_menu.add_command(label="Include files",
-                                        command=self._include_cons)
 
     def _add_options(self):
         # a context dependent function to only add options that are applicable
@@ -93,6 +64,19 @@ class RightClick():
         elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
             self.popup_menu.add_command(label="Associate",
                                         command=self._associate_mrk)
+
+        # give the option to associate one or more mrk files with all con files
+        if (".MRK" in self.context and
+                not self.parent.treeview_select_mode.startswith("ASSOCIATE")):
+            self.popup_menu.add_command(
+                label="Associate with all",
+                command=lambda: self._associate_mrk(all_=True))
+        # Add an option mark all selected .con files as junk
+        if ".CON" in self.context and not self.context.is_mixed:
+            self.popup_menu.add_command(label="Ignore files",
+                                        command=self._ignore_cons)
+            self.popup_menu.add_command(label="Include files",
+                                        command=self._include_cons)
 
     def _ignore_cons(self):
         """

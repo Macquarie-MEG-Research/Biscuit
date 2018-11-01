@@ -18,7 +18,8 @@ from FileTypes import generic_file, Folder, KITData, BIDSFile, BIDSContainer
 
 from CustomWidgets import EnhancedTreeview
 
-from Management import ClickContext, RightClick
+from Management import ClickContext
+from Management.RightClickManager import RightClick
 from Management.InfoManager import InfoManager
 from Management.SaveManager import SaveManager
 from Windows import SettingsWindow, ProgressPopup, CheckSavePopup, CreditsPopup

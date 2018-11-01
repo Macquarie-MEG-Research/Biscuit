@@ -4,4 +4,4 @@ from .CustomVars import OptionsVar, StreamedVar  # noqa
 #from .SaveManager import SaveManager  # noqa
 from .wckToolTips import ToolTipManager  # noqa
 from .BIDSConvert import convert  # noqa
-from .RightClickManager import RightClick  # noqa
+#from .RightClickManager import RightClick  # noqa

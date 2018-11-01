@@ -39,8 +39,13 @@ def convert(container, settings, parent=None):
 
     with redirect_stdout(progress):
         for job in container.jobs:
-            job_name.set("Run: {0}, Task: {1}".format(
-                job.run.get(), job.task.get()))
+            task = job.task.get()
+            if task == '':
+                task = 'n/a'
+            run = job.run.get()
+            if run == '':
+                run = 'n/a'
+            job_name.set("Task: {0}, Run: {1}".format(task, run))
             if not job.is_junk.get():
                 target_folder = path.join(bids_folder_path,
                                           container.proj_name.get())
@@ -133,4 +138,4 @@ def convert(container, settings, parent=None):
 
 def _shorten_path(fname):
     """ strip just the final part of the path """
-    return path.basename(fname)[:-6]
+    return path.basename(fname).split("'")[0]

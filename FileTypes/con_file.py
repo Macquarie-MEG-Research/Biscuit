@@ -159,7 +159,9 @@ class con_file(BIDSFile):
 
     def _apply_settings(self):
         """ Check the current settings and add any new channels from them """
-        default_triggers = self.container.settings.get('DefaultTriggers')
+        default_triggers = None
+        if self.container is not None:
+            default_triggers = self.container.settings.get('DefaultTriggers')
         curr_triggers = self.tab_info.keys()
         if default_triggers is not None:
             for i, desc in default_triggers:
