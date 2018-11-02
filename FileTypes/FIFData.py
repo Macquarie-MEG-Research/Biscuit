@@ -35,6 +35,8 @@ class FIFData(BIDSContainer, BIDSFile):
 
         self.associated_event_tab = None
 
+        self.has_error = False
+
     def load_data(self):
         # first, let's make sure that there are no other files in the same
         # folder with the same name but with a number after it to indicate
@@ -61,6 +63,13 @@ class FIFData(BIDSContainer, BIDSFile):
                     self.raw = read_raw_fif(self.file, verbose='ERROR',
                                             allow_maxshield=True)
                     self.info['Has Active Shielding'] = "True"
+            finally:
+                if self.raw is None:
+                    self.has_error = True
+                    self.requires_save = False
+                    self.loaded = True
+                    # in this case the reading of the raw file
+                    raise IOError
             self.info['Channels'] = self.raw.info['nchan']
             rec_date = self.raw.info['meas_date']
             if isinstance(rec_date, ndarray):

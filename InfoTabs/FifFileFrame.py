@@ -226,7 +226,8 @@ class FifFileFrame(Frame):
         self._file = value
         # and then associate the incoming file
         self.file.associated_tab = self
-        self.update_widgets()
-        for widget in self.require_verification:
-            widget.check_valid()
-        self.file.validate()
+        if not self.file.has_error:
+            self.update_widgets()
+            for widget in self.require_verification:
+                widget.check_valid()
+            self.file.validate()

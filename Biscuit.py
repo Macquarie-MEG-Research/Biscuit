@@ -491,7 +491,10 @@ class main(Frame):
                         # or not
                         if isinstance(obj, generic_file):
                             obj.dtype = ext
-                        obj.load_data()
+                        try:
+                            obj.load_data()
+                        except IOError:
+                            pass
                     else:
                         obj = generic_file(id_=id_, file=path_,
                                            parent=self)

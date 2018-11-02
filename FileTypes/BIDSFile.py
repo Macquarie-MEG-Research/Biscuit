@@ -20,6 +20,7 @@ class BIDSFile(FileInfo):
             self.is_empty_room.set(True)
 
     def _create_vars(self):
+        # This is called multiple times for FIF files???
         FileInfo._create_vars(self)
         self.run = StringVar(value='1')
         self.run.trace("w", self.validate)

@@ -92,7 +92,9 @@ class InfoManager(Notebook):
                 self.select(self._tabs[T_CON])
         # If a .fif file is selected then show the fif info tab and event tab
         elif self.context == '.FIF':
-            if self.data[0].mainfile_name is None:
+            if (self.data[0].mainfile_name is None and
+                    not self.data[0].has_error):
+                print(self.data[0].has_error)
                 self.fif_info_tab.file = self.data[0]
                 self.fif_event_tab.file = self.data[0]
                 self.display_tabs(T_FIF, T_EVENTS)
@@ -169,6 +171,11 @@ class InfoManager(Notebook):
             "Selected folder does not contain all the required files for "
             "exporting KIT data to a BIDS compatible data set.")
 
+    def _display_invalid_fif(self):
+        """ Display invalid fif message """
+        self.info_tab.set_text("Selected file has errors, please check your "
+                               "file.")
+
     def _display_multiple_types(self):
         """ Display multiple types selected message """
         self.info_tab.set_text(
@@ -203,7 +210,10 @@ class InfoManager(Notebook):
                 if isinstance(self.data[0], Folder):
                     self._display_invalid_folder()
                 elif isinstance(self.data[0], FIFData):
-                    self._display_fif_part()
+                    if self.data[0].has_error:
+                        self._display_invalid_fif()
+                    else:
+                        self._display_fif_part()
                 elif isinstance(self.data[0], FileInfo):
                     if self.data[0].display_raw:
                         # in this case we have a file win binary data trying
