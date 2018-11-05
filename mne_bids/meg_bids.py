@@ -131,10 +131,10 @@ def _events_tsv(events, raw, fname, event_id, verbose, overwrite):
 
     df = pd.DataFrame(np.c_[events[:, 0], np.zeros(events.shape[0]),
                             events[:, 2]],
-                      columns=['onset', 'duration', 'condition'])
+                      columns=['onset', 'duration', 'trial_type'])
     if event_id:
         event_id_map = {v: k for k, v in event_id.items()}
-        df.condition = df.condition.map(event_id_map)
+        df.trial_type = df.trial_type.map(event_id_map)
     df.onset /= sfreq
     df = df.fillna('n/a')
     if not os.path.exists(fname) or overwrite is True:
