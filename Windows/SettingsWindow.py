@@ -99,7 +99,7 @@ class SettingsWindow(Toplevel):
 
     def _add_project_row(self):
         proj_settings = dict()
-        ProjectSettingsWindow(self, proj_settings)
+        ProjectSettingsWindow(self.master, proj_settings)
         if proj_settings != dict():
             if (proj_settings.get('ProjectID', '') not in
                     [d.get('ProjectID', '') for d in self.proj_settings]):
@@ -111,7 +111,7 @@ class SettingsWindow(Toplevel):
     def _edit_project_row(self, idx):
         curr_row = idx
         proj_settings = self.proj_settings[curr_row]
-        ProjectSettingsWindow(self, proj_settings)
+        ProjectSettingsWindow(self.master, proj_settings)
         self.projects_table.set_row(curr_row,
                                     self.settings_view(proj_settings))
         self.proj_settings[curr_row] = proj_settings
