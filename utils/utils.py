@@ -106,7 +106,7 @@ def generate_readme(data):
         for group in groups:
             out_str += ' - ' + group[0] + '\n'
         out_str += '\n'
-    triggers = data.get('DefaultTriggers')
+    triggers = data.get('DefaultTriggers', [])
     if len(triggers) != 0:
         out_str += 'Trigger channels:\n'
         for trigger in triggers:

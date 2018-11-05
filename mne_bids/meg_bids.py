@@ -753,6 +753,6 @@ def _read_events(events_data, raw):
                              'found %s' % events.shape[1])
         events = events_data
     else:
-        #events = find_events(raw, stim_channel='STI 014')   #min_duration=0.001)
+        #events = find_events(raw, stim_channel='STI 014', min_duration=0.001)
         events = find_events(raw, min_duration=0.002, initial_event=True, mask=0xFF)
     return events

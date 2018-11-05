@@ -182,7 +182,8 @@ class con_file(BIDSFile):
         for ch_num in self.interesting_channels:
             ch_data = self.tab_info[ch_num]
             if ch_data[2].get() == 1:
-                trigger_channels.append(str(ch_num + 1))    # +1 for MNE
+                # TODO: +1 for adult system I think...
+                trigger_channels.append(str(ch_num))    # +1 for MNE
                 descriptions.append(ch_data[3].get())
 
         return trigger_channels, descriptions
