@@ -2,6 +2,7 @@ from tkinter import Toplevel, StringVar
 from tkinter.ttk import Frame, Label, Button
 from CustomWidgets.WidgetTable import WidgetTable
 from Windows import ProjectSettingsWindow
+from platform import system as os_name
 
 from utils.constants import OSCONST
 
@@ -99,7 +100,10 @@ class SettingsWindow(Toplevel):
 
     def _add_project_row(self):
         proj_settings = dict()
-        ProjectSettingsWindow(self, proj_settings)
+        if os_name() == 'Windows':
+            ProjectSettingsWindow(self.master, proj_settings)
+        else:
+            ProjectSettingsWindow(self, proj_settings)
         if proj_settings != dict():
             if (proj_settings.get('ProjectID', '') not in
                     [d.get('ProjectID', '') for d in self.proj_settings]):
@@ -111,7 +115,10 @@ class SettingsWindow(Toplevel):
     def _edit_project_row(self, idx):
         curr_row = idx
         proj_settings = self.proj_settings[curr_row]
-        ProjectSettingsWindow(self, proj_settings)
+        if os_name() == 'Windows':
+            ProjectSettingsWindow(self.master, proj_settings)
+        else:
+            ProjectSettingsWindow(self, proj_settings)
         self.projects_table.set_row(curr_row,
                                     self.settings_view(proj_settings))
         self.proj_settings[curr_row] = proj_settings

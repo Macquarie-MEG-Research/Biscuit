@@ -38,7 +38,7 @@ OSCONST = OSConstMap()
 
 # tkinter.canvas background colour
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')
-OSCONST.CANVAS_BG_MAC = '#E9E9E9'
+OSCONST.CANVAS_BG_MAC = '#ECECEC'
 OSCONST.CANVAS_BG_LNX = '#D9D9D9'
 
 # tkinter.entry background colour (I think?)
