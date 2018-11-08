@@ -436,7 +436,6 @@ class DNDManager():
     def on_drag(self, event):
         # you could use this method to move a floating window that
         # represents what you're dragging
-        #print("What a drag!")
         try:
             # this can throw an error if the user very quickly clicks and moves
             # the mouse

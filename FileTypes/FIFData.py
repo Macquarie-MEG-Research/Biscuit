@@ -183,6 +183,37 @@ class FIFData(BIDSContainer, BIDSFile):
         self.raw.info['subject_info']['birthday'] = bday
         self.raw.info['subject_info']['sex'] = sex
 
+    def autodetect_emptyroom(self):
+        """ Autodetect if there are any other files in the same folder with the
+        same recording data. If so, give them the 'has empty room' property if
+        this file has 'is empty room' as True.
+
+        """
+        if not self.loaded_from_save:
+            er_date = self.info.get('Measurement date', '')
+            # first, get all the files in the same folder that have been
+            # loaded
+            siblings = []
+            parent_sid = self.parent.file_treeview.parent(self.ID)
+            for sid in self.parent.file_treeview.get_children(parent_sid):
+                if sid in self.parent.preloaded_data:
+                    if sid != self.ID:
+                        # don't add self
+                        obj = self.parent.preloaded_data[sid]
+                        if isinstance(obj, FIFData):
+                            siblings.append(obj)
+            if self.is_empty_room.get():
+                # next, iterate over these and check for the empty room
+                # property
+                for obj in siblings:
+                    if obj.info.get('Measurement date', None) == er_date:
+                        obj.has_empty_room.set(True)
+            else:
+                for obj in siblings:
+                    obj.has_empty_room.set(False)
+                
+        
+
     def _apply_settings(self):
         """ Check the current settings and add any new channels from them """
         # apply BIDSContainer settings first (groups and find correct settings)

@@ -8,6 +8,7 @@ class BIDSFile(FileInfo):
     converted to BIDS format.
     For KIT data this is the .con file.
     For Elekta data this is the .fif file.
+
     """
     def __init__(self, id_=None, file=None, settings=dict(), parent=None):
         super(BIDSFile, self).__init__(id_, file, parent)
@@ -20,7 +21,8 @@ class BIDSFile(FileInfo):
             self.is_empty_room.set(True)
 
     def _create_vars(self):
-        # This is called multiple times for FIF files???
+        # TODO: Fix
+        # This is called multiple times...
         FileInfo._create_vars(self)
         self.run = StringVar(value='1')
         self.run.trace("w", self.validate)
@@ -28,6 +30,7 @@ class BIDSFile(FileInfo):
         self.task.trace("w", self.validate)
         self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
+        self.is_empty_room.trace("w", self.propagate_emptyroom_data)
         self.has_empty_room = BooleanVar()
 
         self.hpi = []
@@ -54,7 +57,8 @@ class BIDSFile(FileInfo):
     def validate(self, validate_container=True, *args):
         """
         Check whether the file is valid (ie. contains all the required info for
-        BIDS exporting)
+        BIDS exporting).
+
         """
         self.valid = self.check_valid()
         if self.container is not None and validate_container:
@@ -63,7 +67,8 @@ class BIDSFile(FileInfo):
     def check_valid(self):
         """
         Go over all the required settings and determine whether the file is
-        ready to be exported to the bids format
+        ready to be exported to the bids format.
+
         """
         is_valid = super(BIDSFile, self).check_valid()
         # if empty room or junk we consider them good
@@ -76,6 +81,17 @@ class BIDSFile(FileInfo):
 
     def get_event_data(self):
         return ['', '']
+
+    def propagate_emptyroom_data(self, *args):
+        """ Callback to propagate the empty room state
+
+        This is used to tell the container object that the empty room status
+        of this file has changed and change the 'has empty room' state of any
+        other files in the same folder (for KIT).
+
+        """
+        if self.container is not None:
+            self.container.autodetect_emptyroom()
 
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()

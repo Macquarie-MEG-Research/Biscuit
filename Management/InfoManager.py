@@ -94,7 +94,6 @@ class InfoManager(Notebook):
         elif self.context == '.FIF':
             if (self.data[0].mainfile_name is None and
                     not self.data[0].has_error):
-                print(self.data[0].has_error)
                 self.fif_info_tab.file = self.data[0]
                 self.fif_event_tab.file = self.data[0]
                 self.display_tabs(T_FIF, T_EVENTS)

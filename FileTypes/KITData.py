@@ -121,6 +121,8 @@ class KITData(BIDSContainer):
                 pass
 
             self.validate()
+            # autodetect any empty room changes
+            self.autodetect_emptyroom()
 
         self.contained_files = files
         self.loaded = True
@@ -210,6 +212,30 @@ class KITData(BIDSContainer):
         super(KITData, self)._apply_settings()
         for job in self.jobs:
             job._apply_settings()
+
+    def autodetect_emptyroom(self):
+        """ Autodetect whether or not an empty room file is contained within
+        the project.
+
+        If a .con file is found that is specified as empty room, any other .con
+        files with the same date will automatically have their 'has empty room'
+        property set as true
+        """
+        if not self.loaded_from_save:
+            emptryroom_job = None
+            for job in self.jobs:
+                if job.is_empty_room.get():
+                    emptryroom_job = job
+                    break
+            if emptryroom_job:
+                er_date = emptryroom_job.info['Measurement date']
+                for job in self.jobs:
+                    if job != emptryroom_job:
+                        if job.info['Measurement date'] == er_date:
+                            job.has_empty_room.set(True)
+            else:
+                for job in self.jobs:
+                    job.has_empty_room.set(False)
 
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):

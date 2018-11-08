@@ -108,7 +108,6 @@ class main(Frame):
         self.file_treeview.tag_configure(
             'JUNK_FILE', font=("TkTextFont", self.treeview_text_size,
                                'overstrike'))
-        #print(self.file_treeview.tag_configure('ASSOC_FILES'))
 
         self.save_handler.load()
 
@@ -219,7 +218,6 @@ class main(Frame):
         #    self._get_matlab_location()
 
     def _write_settings(self):
-        print(path.dirname(self.settings_file))
         if not path.exists(path.dirname(self.settings_file)):
             makedirs(path.dirname(self.settings_file))
         with open(self.settings_file, 'wb') as settings:
