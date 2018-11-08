@@ -25,9 +25,6 @@ class con_file(BIDSFile):
             # an empty room file is good in it's default state
             self.is_good = True
 
-        if 'emptyroom' in self.file:
-            self.is_empty_room.set(True)
-
     def _create_vars(self):
         """
         Create the required Variables

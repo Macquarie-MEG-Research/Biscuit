@@ -112,10 +112,12 @@ class ConFileFrame(Frame):
     def file(self):
         return self._file
 
-    # !UPDATE
     @file.setter
     def file(self, value):
+        if self.file is not None:
+            self._file.associated_tab = None
         self._file = value
+        self.file.associated_tab = self
         self.update_widgets()
         if not self._file.is_good:
             self.run_info.check_valid()
