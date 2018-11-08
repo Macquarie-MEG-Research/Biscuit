@@ -26,6 +26,7 @@ class KITData(BIDSContainer):
 
     def initial_processing(self):
         self.load_data()
+        self._ensure_no_multiple_emptyrooms()
         self.autodetect_emptyroom()
 
     def load_data(self):
@@ -212,6 +213,22 @@ class KITData(BIDSContainer):
         super(KITData, self)._apply_settings()
         for job in self.jobs:
             job._apply_settings()
+
+    def _ensure_no_multiple_emptyrooms(self):
+        """ Detect if there are multiple empty room files and revert the
+        state if they are. This will *only* be called when data is loaded
+        initially and is to catch the case of multiple files in the same
+        project having `emptyroom` in their file name
+
+        """
+        if self.loaded:
+            emptyroom_files = []
+            for job in self.jobs:
+                if job.is_empty_room.get():
+                    emptyroom_files.append(job)
+            if len(emptyroom_files) > 1:
+                for job in emptyroom_files:
+                    job.is_empty_room.set(False)
 
     def autodetect_emptyroom(self):
         """ Autodetect whether or not an empty room file is contained within
