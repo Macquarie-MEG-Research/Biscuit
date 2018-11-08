@@ -91,7 +91,10 @@ class BIDSFile(FileInfo):
 
         """
         if self.container is not None:
-            self.container.autodetect_emptyroom()
+            emptyroom_set = self.container.autodetect_emptyroom()
+            if not emptyroom_set:
+                self.is_empty_room.set(False)
+                self.associated_tab.is_emptyroom_info.value = self.is_empty_room  # noqa
 
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()

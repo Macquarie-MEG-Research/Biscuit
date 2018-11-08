@@ -189,10 +189,10 @@ class FIFData(BIDSContainer, BIDSFile):
         this file has 'is empty room' as True.
 
         """
-        if not self.loaded_from_save:
+        if self.loaded:
             er_date = self.info.get('Measurement date', '')
             # first, get all the files in the same folder that have been
-            # loaded
+            # loaded (and have the same recording date)
             siblings = []
             parent_sid = self.parent.file_treeview.parent(self.ID)
             for sid in self.parent.file_treeview.get_children(parent_sid):
@@ -201,18 +201,27 @@ class FIFData(BIDSContainer, BIDSFile):
                         # don't add self
                         obj = self.parent.preloaded_data[sid]
                         if isinstance(obj, FIFData):
-                            siblings.append(obj)
+                            if obj.info.get(
+                                    'Measurement date', None) == er_date:
+                                if obj.is_empty_room.get():
+                                    # we can only have one empty room file.
+                                    # Raise an error message
+                                    messagebox.showerror(
+                                        "Warning",
+                                        "You may only select one empty room "
+                                        "file at a time within a project "
+                                        "folder. Please deselect the other "
+                                        "empty room file to continue.")
+                                    return False
+                                siblings.append(obj)
             if self.is_empty_room.get():
-                # next, iterate over these and check for the empty room
-                # property
+                # now we can set the state
                 for obj in siblings:
-                    if obj.info.get('Measurement date', None) == er_date:
-                        obj.has_empty_room.set(True)
+                    obj.has_empty_room.set(True)
             else:
                 for obj in siblings:
                     obj.has_empty_room.set(False)
-                
-        
+        return True
 
     def _apply_settings(self):
         """ Check the current settings and add any new channels from them """

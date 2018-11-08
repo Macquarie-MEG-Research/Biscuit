@@ -1,3 +1,5 @@
+from tkinter import messagebox
+
 from .BIDSContainer import BIDSContainer
 from Management import OptionsVar
 from utils.utils import get_object_class
@@ -24,6 +26,7 @@ class KITData(BIDSContainer):
 
     def initial_processing(self):
         self.load_data()
+        self.autodetect_emptyroom()
 
     def load_data(self):
         """
@@ -121,11 +124,8 @@ class KITData(BIDSContainer):
                 pass
 
             self.validate()
-            # autodetect any empty room changes
-            self.autodetect_emptyroom()
-
-        self.contained_files = files
-        self.loaded = True
+            self.contained_files = files
+            self.loaded = True
 
     def prepare(self):
         super(KITData, self).prepare()
@@ -221,21 +221,32 @@ class KITData(BIDSContainer):
         files with the same date will automatically have their 'has empty room'
         property set as true
         """
-        if not self.loaded_from_save:
+        if self.loaded:
             emptryroom_job = None
             for job in self.jobs:
                 if job.is_empty_room.get():
-                    emptryroom_job = job
-                    break
+                    if emptryroom_job is None:
+                        emptryroom_job = job
+                    else:
+                        # we can only have one empty room file.
+                        # Raise an error message
+                        messagebox.showerror(
+                            "Warning",
+                            "You may only select one empty room file at a time"
+                            " within a project folder. Please deselect the "
+                            "other empty room file to continue.")
+                        return False
+
             if emptryroom_job:
-                er_date = emptryroom_job.info['Measurement date']
+                er_date = emptryroom_job.info.get('Measurement date', '')
                 for job in self.jobs:
                     if job != emptryroom_job:
-                        if job.info['Measurement date'] == er_date:
+                        if job.info.get('Measurement date', None) == er_date:
                             job.has_empty_room.set(True)
             else:
                 for job in self.jobs:
                     job.has_empty_room.set(False)
+        return True
 
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):

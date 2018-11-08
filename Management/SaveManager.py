@@ -85,7 +85,6 @@ class SaveManager():
                 load_time.strftime("%Y-%m-%d %H:%M:%S")))
             for file in self._load_gen():
                 try:
-                    file.loaded_from_save = True
                     if isinstance(file, con_file):
                         # set the file's id from the treeview
                         sid = self.get_file_id(file.file)
@@ -97,6 +96,7 @@ class SaveManager():
                     elif isinstance(file, KITData):
                         containers_to_load.append(file)
                     elif isinstance(file, FIFData):
+                        file.loaded_from_save = True
                         sid = self.get_file_id(file.file)
                         file.ID = sid
                         file.parent = self.parent
@@ -152,6 +152,10 @@ class SaveManager():
                         obj.validate()
                 except FileNotFoundError:
                     pass
+
+            # autodetect any empty room changes
+            for file in containers_to_load:
+                file.autodetect_emptyroom()
 
     def get_file_id(self, path_):
         """
