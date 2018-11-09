@@ -1,4 +1,5 @@
 from .FileInfo import FileInfo
+from Management import OptionsVar
 from tkinter import StringVar, BooleanVar
 
 
@@ -26,8 +27,8 @@ class BIDSFile(FileInfo):
         FileInfo._create_vars(self)
         self.run = StringVar(value='1')
         self.run.trace("w", self.validate)
-        self.task = StringVar()
-        self.task.trace("w", self.validate)
+        self.task = OptionsVar()
+        self.task.trace("w", self._update_tasks)
         self.is_junk = BooleanVar()
         self.is_empty_room = BooleanVar()
         self.is_empty_room.trace("w", self.propagate_emptyroom_data)
@@ -74,7 +75,6 @@ class BIDSFile(FileInfo):
         # if empty room or junk we consider them good
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
-        is_valid &= self.task.get() != ''
         is_valid &= self.run.get() != ''
         is_valid &= (self.hpi != [])
         return is_valid
@@ -95,6 +95,11 @@ class BIDSFile(FileInfo):
             if not emptyroom_set:
                 self.is_empty_room.set(False)
                 self.associated_tab.is_emptyroom_info.value = self.is_empty_room  # noqa
+
+    def _update_tasks(self, *args):
+        """Update the EntryChoice that contains the task options"""
+        if self.associated_tab is not None:
+            self.associated_tab.task_info.value = self.task
 
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()

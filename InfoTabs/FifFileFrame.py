@@ -105,9 +105,7 @@ class FifFileFrame(Frame):
             "be a number,\neg. 1, however a string may be used to be more "
             "descriptive.")
         self.require_verification.append(self.sess_id_entry)
-        self.task_info = InfoEntry(self, 'Task', StringVar(),
-                                   bad_values=[''], force_dtype='alnum')
-        self.require_verification.append(self.task_info)
+        self.task_info = InfoChoice(self, 'Task', OptionsVar())
         self.task_info.label.grid(column=0, row=10, sticky='ew', pady=2,
                                   padx=2)
         self.task_info.value.grid(column=1, row=10, sticky='ew', pady=2,

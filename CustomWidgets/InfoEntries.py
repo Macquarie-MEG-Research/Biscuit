@@ -64,6 +64,25 @@ class ValidatedEntry(tkEntry):
     """
     An entry widget that will have a certain background colour
     if the value entered is not valid.
+
+    Parameters
+    ----------
+    master : instance of Widget
+        Master widget this belongs to.
+    bad_values : list
+        List of values which are recognised as "bad". If the value in the entry
+        is in this list the background colour is set to the `bad_colour`.
+    good_colour : str
+        Colour to set the background when the entered value is not "bad".
+    bad_colour : str
+        Colour to set the background when the entered value is "bad".
+    validate_cmd : function
+        Function used as a callback. This is called when the value changes.
+    force_dtype : str | one of ('int', 'alnum')
+        The data type to force entry to.
+        If 'int' then only numeric values can be entered.
+        If 'alnum' then only alphanumeric characters can be entered
+        ([a-zA-Z0-9])
     """
     def __init__(self, master, bad_values=[], good_colour="White",
                  bad_colour="Red", validate_cmd=None, force_dtype=None,

@@ -39,20 +39,12 @@ def convert(container, settings, parent=None):
 
     with redirect_stdout(progress):
         for job in container.jobs:
-            task = job.task.get()
-            if task == '':
-                task = 'n/a'
-            run = job.run.get()
-            if run == '':
-                run = 'n/a'
-            job_name.set("Task: {0}, Run: {1}".format(task, run))
             if not job.is_junk.get():
                 target_folder = path.join(bids_folder_path,
                                           container.proj_name.get())
 
                 # get the variables for the raw_to_bids conversion function:
                 subject_id = container.subject_ID.get()
-                #task_name = self.task_name.get()
                 sess_id = container.session_ID.get()
 
                 extra_data = job.extra_data
@@ -84,11 +76,21 @@ def convert(container, settings, parent=None):
 
                 if job.is_empty_room.get():
                     emptyroom = True
+                    task = 'noise'
+                    run = None
                 else:
+                    task = job.task.get()
+                    if task == 'None':
+                        task = 'n/a'
+                    run = job.run.get()
+                    if run == '':
+                        run = 'n/a'
                     if emptyroom_path != '':
                         emptyroom = emptyroom_path
                     else:
                         emptyroom = False
+
+                job_name.set("Task: {0}, Run: {1}".format(task, run))
 
                 mrks = None
                 # process the list of mrks:
@@ -114,10 +116,10 @@ def convert(container, settings, parent=None):
                             for _ in range(mrks.count(None)):
                                 mrks.remove(None)
 
-                raw_to_bids(subject_id=subject_id, task=job.task.get(),
+                raw_to_bids(subject_id=subject_id, task=task,
                             raw_file=job.raw, output_path=target_folder,
                             session_id=sess_id, kind='meg', event_id=event_ids,
-                            hpi=mrks, run=job.run.get(),
+                            hpi=mrks, run=run,
                             emptyroom=emptyroom, extra_data=extra_data,
                             subject_group=subject_group,
                             readme_text=container.readme, verbose=True,

@@ -137,7 +137,6 @@ class FIFData(BIDSContainer, BIDSFile):
             return is_valid
         is_valid &= self.proj_name.get() != ''
         is_valid &= self.subject_ID.get() != ''
-        is_valid &= self.task.get() != ''
         is_valid &= self.run.get() != ''
         return is_valid
 

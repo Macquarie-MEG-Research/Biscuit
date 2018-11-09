@@ -1,6 +1,8 @@
-from tkinter import StringVar, BooleanVar, IntVar
+from tkinter import BooleanVar, IntVar
 from tkinter.ttk import Frame, Label, Separator
-from CustomWidgets.InfoEntries import InfoEntry, InfoLabel, InfoCheck, InfoList
+from CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
+                                       InfoList, InfoChoice)
+from Management import OptionsVar
 
 
 class ConFileFrame(Frame):
@@ -46,8 +48,7 @@ class ConFileFrame(Frame):
         Label(self, text="Required Information:").grid(column=0, row=9,
                                                        columnspan=2)
 
-        self.task_info = InfoEntry(self, 'Task', StringVar(),
-                                   bad_values=[''], force_dtype='alnum')
+        self.task_info = InfoChoice(self, 'Task', OptionsVar())
         self.task_info.label.grid(column=0, row=10, pady=2)
         self.task_info.value.grid(column=1, row=10, pady=2)
         self.run_info = InfoEntry(self, 'Run number', IntVar(),
@@ -121,4 +122,3 @@ class ConFileFrame(Frame):
         self.update_widgets()
         if not self._file.is_good:
             self.run_info.check_valid()
-            self.task_info.check_valid()
