@@ -39,20 +39,12 @@ def convert(container, settings, parent=None):
 
     with redirect_stdout(progress):
         for job in container.jobs:
-            task = job.task.get()
-            if task == 'None':
-                task = 'n/a'
-            run = job.run.get()
-            if run == '':
-                run = 'n/a'
-            job_name.set("Task: {0}, Run: {1}".format(task, run))
             if not job.is_junk.get():
                 target_folder = path.join(bids_folder_path,
                                           container.proj_name.get())
 
                 # get the variables for the raw_to_bids conversion function:
                 subject_id = container.subject_ID.get()
-                #task_name = self.task_name.get()
                 sess_id = container.session_ID.get()
 
                 extra_data = job.extra_data
@@ -88,11 +80,17 @@ def convert(container, settings, parent=None):
                     run = None
                 else:
                     task = job.task.get()
+                    if task == 'None':
+                        task = 'n/a'
                     run = job.run.get()
+                    if run == '':
+                        run = 'n/a'
                     if emptyroom_path != '':
                         emptyroom = emptyroom_path
                     else:
                         emptyroom = False
+
+                job_name.set("Task: {0}, Run: {1}".format(task, run))
 
                 mrks = None
                 # process the list of mrks:

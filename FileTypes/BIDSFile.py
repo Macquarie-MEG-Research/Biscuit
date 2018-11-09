@@ -75,7 +75,6 @@ class BIDSFile(FileInfo):
         # if empty room or junk we consider them good
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
-        is_valid &= self.task.get() != ''
         is_valid &= self.run.get() != ''
         is_valid &= (self.hpi != [])
         return is_valid
