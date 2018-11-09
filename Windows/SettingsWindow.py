@@ -83,7 +83,8 @@ class SettingsWindow(Toplevel):
 
     @staticmethod
     def settings_view(settings):
-        # returns a condensed view version fo the project settings to be passed
+        # TODO: make this much nicer...
+        # returns a condensed view version of the project settings to be passed
         # to the WidgetTable as the intial values
         dt = settings.get('DefaultTriggers', None)
         if dt is not None:
@@ -96,7 +97,7 @@ class SettingsWindow(Toplevel):
                         settings.get('ProjectTitle', 'None'),
                         ','.join([str(i[0]) for i in dt]), None]
         else:
-            return ['', '']
+            return ['', '', '', None]
 
     def _add_project_row(self):
         proj_settings = dict()
@@ -115,6 +116,7 @@ class SettingsWindow(Toplevel):
     def _edit_project_row(self, idx):
         curr_row = idx
         proj_settings = self.proj_settings[curr_row]
+        # TODO: figure out why there is this weird asymmetry...
         if os_name() == 'Windows':
             ProjectSettingsWindow(self.master, proj_settings)
         else:
@@ -131,6 +133,7 @@ class SettingsWindow(Toplevel):
         self.exit()
 
     def exit(self):
+        # TODO: popup window notifying that any unsaved changes will be lost?
         self.withdraw()
         self.update_idletasks()
         self.master.focus_set()

@@ -145,10 +145,6 @@ class KITData(BIDSContainer):
                 con_file.load_data()
 
             if con_file.is_junk.get() is False:
-                # TODO: empty room stuff will be updated
-                if con_file.is_empty_room.get():
-                    con_file.run.set('emptyroom')
-                    con_file.task.set('noise')
                 trigger_channels, descriptions = con_file.get_event_data()
                 con_file.event_info = dict(
                     zip(descriptions, [int(i) for i in trigger_channels]))

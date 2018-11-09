@@ -110,7 +110,11 @@ class BIDSContainer(FileInfo):
         # otherwise we already have the dictionary of settings correctly
         groups = flatten(self.settings.get('Groups', ['Participant',
                                                       'Control']))
+        tasks = flatten(self.settings.get('Tasks', ['None']))
         self.subject_group.options = groups
+        for job in self.jobs:
+            job.task.options = tasks
+            job._update_tasks()
         self._update_groups()
 
     def _update_groups(self, *args):

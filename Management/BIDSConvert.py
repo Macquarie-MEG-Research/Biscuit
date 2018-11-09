@@ -40,7 +40,7 @@ def convert(container, settings, parent=None):
     with redirect_stdout(progress):
         for job in container.jobs:
             task = job.task.get()
-            if task == '':
+            if task == 'None':
                 task = 'n/a'
             run = job.run.get()
             if run == '':
@@ -84,7 +84,11 @@ def convert(container, settings, parent=None):
 
                 if job.is_empty_room.get():
                     emptyroom = True
+                    task = 'noise'
+                    run = None
                 else:
+                    task = job.task.get()
+                    run = job.run.get()
                     if emptyroom_path != '':
                         emptyroom = emptyroom_path
                     else:
@@ -114,10 +118,10 @@ def convert(container, settings, parent=None):
                             for _ in range(mrks.count(None)):
                                 mrks.remove(None)
 
-                raw_to_bids(subject_id=subject_id, task=job.task.get(),
+                raw_to_bids(subject_id=subject_id, task=task,
                             raw_file=job.raw, output_path=target_folder,
                             session_id=sess_id, kind='meg', event_id=event_ids,
-                            hpi=mrks, run=job.run.get(),
+                            hpi=mrks, run=run,
                             emptyroom=emptyroom, extra_data=extra_data,
                             subject_group=subject_group,
                             readme_text=container.readme, verbose=True,

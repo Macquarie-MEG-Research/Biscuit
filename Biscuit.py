@@ -423,14 +423,6 @@ class main(Frame):
                 dtypes.append(
                     self.file_treeview.item(sid)['values'][0].upper())
             self.context.set(dtypes)
-            """
-            if len(dtypes) == 1:
-                # get the only data type selected to indicate all are the same
-                self.context.add(dtypes.pop().upper())
-            else:
-                # this indicates we have a mixed set of data types
-                self.context = {"GROUP", "MIXED"}
-            """
         elif len(self.selected_files) == 1:
             # only a single file is selected. Determine the data type if any
             dtype = self.file_treeview.item(

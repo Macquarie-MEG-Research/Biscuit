@@ -43,6 +43,7 @@ class ProjectSettingsWindow(Toplevel):
         self.frame = Frame(self)
         self.frame.grid(sticky='nsew')
 
+        # Top entry area
         self.pt_entry = InfoEntry(self.frame, "Project Title",
                                   self.project_title)
         self.pt_entry.label.grid(column=0, row=0, pady=2, padx=2)
@@ -61,12 +62,17 @@ class ProjectSettingsWindow(Toplevel):
         self.ed_entry = DateEntry(
             self.frame, text=self.settings.get('EndDate', ['', '', '']))
         self.ed_entry.grid(column=3, row=1, pady=2, padx=2)
+
+        # project description area
         Label(self.frame, text="Project description:").grid(
             column=0, row=2, padx=2, pady=2)
         self.desc_entry = ScrolledText(self.frame, wrap=WORD, height=14)
-        self.desc_entry.grid(column=0, columnspan=4, row=3, rowspan=5,
+        self.desc_entry.grid(column=0, columnspan=6, row=3, rowspan=5,
                              sticky='nsew')
         self.desc_entry.insert(END, self.settings.get('Description', ''))
+
+        # bottom area for tables
+        # Trigger table
         Label(self.frame, text="Default Triggers:").grid(column=0, row=8,
                                                          columnspan=2)
         self.channels_table = WidgetTable(
@@ -78,6 +84,8 @@ class ProjectSettingsWindow(Toplevel):
             data_array=self.settings.get('DefaultTriggers', []),
             sort_column=0)
         self.channels_table.grid(column=0, columnspan=2, row=9, sticky='nsew')
+
+        # Groups table
         Label(self.frame, text="Default Groups:").grid(column=2, row=8,
                                                        columnspan=2)
         self.groups_table = WidgetTable(
@@ -88,8 +96,20 @@ class ProjectSettingsWindow(Toplevel):
             data_array=self.settings.get('Groups', []))
         self.groups_table.grid(column=2, columnspan=2, row=9, sticky='nsew')
 
+        # Tasks table
+        Label(self.frame, text="Default Tasks:").grid(column=4, row=8,
+                                                      columnspan=2)
+        self.tasks_table = WidgetTable(
+            self.frame, headings=["Task"],
+            pattern=[StringVar],
+            widgets_pattern=[lambda x: ValidatedEntry(x, force_dtype='alnum')],
+            add_options=None,
+            data_array=self.settings.get('Tasks', []))
+        self.tasks_table.grid(column=4, columnspan=2, row=9, sticky='nsew')
+
+        # Frame at bottom for buttons
         self.button_frame = Frame(self.frame)
-        self.button_frame.grid(row=10, column=0, columnspan=4)
+        self.button_frame.grid(row=10, column=0, columnspan=6)
 
         self.save_btn = Button(self.button_frame, text="Save and Exit",
                                command=self._write_settings)
@@ -98,11 +118,17 @@ class ProjectSettingsWindow(Toplevel):
                                command=self.cancel)
         self.exit_btn.grid(column=1, row=0, sticky='e', padx=5)
 
+        # configure resizing of widgets
+        # weight = 0 => don't rescale
+        # weight = 1 => rescale/stretch
         self.frame.grid_columnconfigure(0, weight=1)
         self.frame.grid_columnconfigure(1, weight=1)
         self.frame.grid_columnconfigure(2, weight=1)
         self.frame.grid_columnconfigure(3, weight=1)
-        self.frame.grid_columnconfigure(4, weight=0)
+        self.frame.grid_columnconfigure(4, weight=1)
+        self.frame.grid_columnconfigure(5, weight=1)
+        # final column has weight = 0 to keep it stuck to RHS of frame
+        self.frame.grid_columnconfigure(6, weight=0)
         self.frame.grid_rowconfigure(0, weight=0)
         self.frame.grid_rowconfigure(1, weight=0)
         self.frame.grid_rowconfigure(2, weight=0)
@@ -125,6 +151,7 @@ class ProjectSettingsWindow(Toplevel):
         self.settings['EndDate'] = self.ed_entry.get()
         self.settings['Description'] = self.desc_entry.get("1.0", "end-1c")
         self.settings['DefaultTriggers'] = self.channels_table.get()
+        self.settings['Tasks'] = self.tasks_table.get()
         self.settings['Groups'] = self.groups_table.get()
 
     def cancel(self):
