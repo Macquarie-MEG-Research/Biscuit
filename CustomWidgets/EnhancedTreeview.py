@@ -339,6 +339,14 @@ class EnhancedTreeview(Treeview):
             # one more than the total length of the list
             return index + 1
 
+    def get_text(self, sid):
+        """ Return the text corresponding to the provided sid """
+        return self.item(sid)['text']
+    
+    def get_filepath(self, sid):
+        """ Return the file path corresponding to the provided sid """
+        return self.item(sid)['values'][1]
+
 
 class EntryPopup(tkEntry):
 

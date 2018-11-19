@@ -4,10 +4,12 @@ from os import walk, makedirs, rename, scandir
 import os.path as path
 import pandas as pd
 
-from shutil import copy
+#from shutil import copy
 
+from utils.utils import threaded
+from utils.copyutils import copy
 
-svr_path = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
+SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
 
 PROCESSMAP = {'participants.tsv': 'participants',
               'scans.tsv': 'scans',
@@ -23,7 +25,9 @@ PROCESSMAP = {'participants.tsv': 'participants',
               'headshape.hsp': 'hsp'}
 
 
-def merge_proj(left, right, overwrite=False):
+@threaded
+def merge_proj(left, right, overwrite=False, file_name_tracker=None,
+               file_num_tracker=None, file_prog_tracker=None):
     """ combine two bids-compatible folders
 
     Parameters
@@ -38,6 +42,20 @@ def merge_proj(left, right, overwrite=False):
     overwrite : bool
         Whether or not to overwrite the currently existing data
         Defaults to False.
+    file_name_tracker : Instance of StringVar
+        An instance of a tkinter.StringVar which has the filename of the
+        current file being transfer. This is for tracking purposes in the
+        Windows.SendFilesWindow window.
+    file_num_tracker : Instance of IntVar
+        An instance of a tkinter.IntVar which is incremented after each file
+        has been transferred. This is for tracking purposes in the
+        Windows.SendFilesWindow window.
+    file_prog_tracker : Instance of IntVar
+        An instance of a tkinter.IntVar which is used to track the transfer
+        progress on a file-by-file basis. This is passed to the modified copy
+        function from shutil to track  the rate at whic the indiviual files
+        themselves are being transferred. This is for tracking purposes in the
+        Windows.SendFilesWindow window.
 
     """
     left_map = map_folder(left)
@@ -83,8 +101,12 @@ def merge_proj(left, right, overwrite=False):
             makedirs(base)
         src = path.join(left, fpath)
         dst = path.join(right, fpath)
-        copy(src, dst)
-        print('copied file to {0}'.format(dst))
+        # set the name *before* copying
+        if file_name_tracker is not None:
+            file_name_tracker.set(path.basename(src))
+        copy(src, dst, tracker=file_prog_tracker)
+        if file_num_tracker is not None:
+            file_num_tracker.set(file_num_tracker.get() + 1)
 
     # merge the participants files:
     part_left = left_map.get('participants', [])
@@ -137,71 +159,13 @@ def rename_copied(fpath):
     rename(fpath, "{0}_copied".format(fpath))
 
 
-left = ('C:\\Users\\MQ20184158\\Documents\\MEG data\\'
-        'rs_test_data_for_matt\\BIDS-2018-21')
+if __name__ == "__main__":
 
-right = path.join(svr_path, 'BIDS')
+    left = ('C:\\Users\\MQ20184158\\Documents\\MEG data\\'
+            'rs_test_data_for_matt\\BIDS-2018-21')
 
-proj_list = get_projects(left)
-for proj_path in proj_list:
-    merge_proj(path.join(left, proj_path), path.join(right, proj_path))
+    right = path.join(SVR_PATH, 'BIDS')
 
-# TODO: write custom version fo shutil.copy to track progress
-
-""" some code from shutil:
-
-def copyfileobj(fsrc, fdst, length=16*1024):
-    #copy data from file-like object fsrc to file-like object fdst
-    while 1:
-        buf = fsrc.read(length)
-        if not buf:
-            break
-        fdst.write(buf)
-
-def copyfile(src, dst, *, follow_symlinks=True):
-    #Copy data from src to dst.
-
-    #If follow_symlinks is not set and src is a symbolic link, a new
-    #symlink will be created instead of copying the file it points to.
-
-    if _samefile(src, dst):
-        raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
-
-    for fn in [src, dst]:
-        try:
-            st = os.stat(fn)
-        except OSError:
-            # File most likely does not exist
-            pass
-        else:
-            # XXX What about other special files? (sockets, devices...)
-            if stat.S_ISFIFO(st.st_mode):
-                raise SpecialFileError("`%s` is a named pipe" % fn)
-
-    if not follow_symlinks and os.path.islink(src):
-        os.symlink(os.readlink(src), dst)
-    else:
-        with open(src, 'rb') as fsrc:
-            with open(dst, 'wb') as fdst:
-                copyfileobj(fsrc, fdst)
-    return dst
-
-
-def copy(src, dst, *, follow_symlinks=True):
-    #Copy data and mode bits ("cp src dst"). Return the file's destination.
-
-    #The destination may be a directory.
-
-    #If follow_symlinks is false, symlinks won't be followed. This
-    #resembles GNU's "cp -P src dst".
-
-    #If source and destination are the same file, a SameFileError will be
-    #raised.
-
-    if os.path.isdir(dst):
-        dst = os.path.join(dst, os.path.basename(src))
-    copyfile(src, dst, follow_symlinks=follow_symlinks)
-    copymode(src, dst, follow_symlinks=follow_symlinks)
-    return dst
-
-"""
+    proj_list = get_projects(left)
+    for proj_path in proj_list:
+        merge_proj(path.join(left, proj_path), path.join(right, proj_path))

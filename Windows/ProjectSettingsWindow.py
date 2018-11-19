@@ -155,6 +155,7 @@ class ProjectSettingsWindow(Toplevel):
         self.settings['Groups'] = self.groups_table.get()
 
     def cancel(self):
+        # TODO: This will overwrite current settings???
         # set the settings as blank and leave
         self.settings = dict()
         #self.initial_focus = None

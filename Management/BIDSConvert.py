@@ -8,6 +8,8 @@ from Windows import ProgressPopup
 from contextlib import redirect_stdout
 from time import sleep
 
+from utils.timeutils import get_fortnight, get_year
+
 
 @threaded
 def convert(container, settings, parent=None):
@@ -20,23 +22,43 @@ def convert(container, settings, parent=None):
     # first, make sure that the container obejct is ready for conversion
     container.prepare()
 
-    bids_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
-    if not path.exists(bids_folder_path):
-        makedirs(bids_folder_path)
-        bids_folder_sid = parent.file_treeview.ordered_insert(
-            '', text='BIDS', values=('', bids_folder_path))
+    # Construct a name for storing 2 weeks worth of BIDS formatted data.
+    # We chunk into 2 week blocks for ease of uploading to the MEG_RAW archive.
+    subfolder_name = 'BIDS-{0}-{1}'.format(get_year(), get_fortnight())
+
+    # Find the SID of the BIDS folder.
+    bids_root_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
+    bids_folder_path = path.join(bids_root_folder_path, subfolder_name)
+    if not path.exists(bids_root_folder_path):
+        makedirs(bids_root_folder_path)
+        bids_root_folder_sid = parent.file_treeview.ordered_insert(
+            '', text='BIDS', values=('', bids_root_folder_path))
     else:
         for sid in parent.file_treeview.get_children():
             if parent.file_treeview.item(sid)['text'] == 'BIDS':
+                bids_root_folder_sid = sid
+                break
+    # Find the SID of the BIDS sub-folder for the current fortnight
+    if not path.exists(bids_folder_path):
+        bids_folder_sid = parent.file_treeview.ordered_insert(
+            bids_root_folder_sid, text=subfolder_name,
+            values=('', bids_folder_path))
+    else:
+        for sid in parent.file_treeview.get_children(bids_root_folder_sid):
+            if parent.file_treeview.item(sid)['text'] == subfolder_name:
                 bids_folder_sid = sid
                 break
 
+    # Create variables for the dynamic displaying of the process.
+    # We unfortunately cannot get particularly granular or precise progress
+    # tracking due to the fact that the conversion is done externally.
     progress = StreamedVar(['Writing', 'Conversion done'],
                            {'Writing': _shorten_path})
     job_name = StringVar()
 
     p = ProgressPopup(parent, progress, job_name)
 
+    # redict the stout to the StreamedVar as a way of capturing progress
     with redirect_stdout(progress):
         for job in container.jobs:
             if not job.is_junk.get():

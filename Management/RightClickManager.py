@@ -1,8 +1,10 @@
 from tkinter import Menu, StringVar, messagebox, simpledialog
 import os.path as path
+import re
 
 from FileTypes import con_file
 from utils.utils import create_folder
+from Windows.SendFilesWindow import SendFilesWindow
 
 """
 TODO:
@@ -15,6 +17,11 @@ Need to pack the logic for checking if the ids are in the same folder a single
 function to make it less messy.
 This can probably be added to the enhanced treeview widget as a method.
 """
+
+# pattern to match with folder names to determine if the folder is the result
+# of the export process.
+# This is to allow the right-click context to upload the data to the archive.
+BIDS_PATTERN = re.compile("BIDS-[0-9]{4}-[0-9]{2}")
 
 
 class RightClick():
@@ -77,6 +84,11 @@ class RightClick():
                                         command=self._ignore_cons)
             self.popup_menu.add_command(label="Include files",
                                         command=self._include_cons)
+        if len(self.curr_selection) == 1:
+            fname = self.parent.file_treeview.get_text(self.curr_selection[0])
+            if BIDS_PATTERN.match(fname):
+                self.popup_menu.add_command(label="Upload to archive",
+                                            command=self._upload)
 
     def _ignore_cons(self):
         """
@@ -267,6 +279,12 @@ class RightClick():
                     self.parent.set_treeview_mode("NORMAL")
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
+
+    def _upload(self):
+        """ Upload the selected file to the MEG_RAW archive """
+        SendFilesWindow(
+            self.parent,
+            self.parent.file_treeview.get_filepath(self.curr_selection[0]))
 
     def popup(self, event):
         self._add_options()

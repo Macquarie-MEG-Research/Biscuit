@@ -1,4 +1,4 @@
-from tkinter import Variable, StringVar
+from tkinter import Variable, StringVar, IntVar
 
 
 class OptionsVar(Variable):
@@ -144,10 +144,50 @@ class StreamedVar(StringVar):
         return self._curr_value
 
 
+class RangeVar(IntVar):
+    def __init__(self, master=None, value=None, name=None, max_val=0,
+                 max_val_callback=None):
+        self._max = max_val
+        self._max_val_callback = max_val_callback
+
+        Variable.__init__(self, master, value, name)
+
+    def set(self, value):
+        """
+        Set the variable to VALUE
+        If there are options, then the set value must be in the available
+        options.
+        If there are no options the current value will be set to VALUE and it
+        will be added to the list of possible values.
+        """
+        if value > self.max:
+            self._tk.globalsetvar(self._name, self.max)
+        else:
+            self._tk.globalsetvar(self._name, value)
+
+    @property
+    def max(self):
+        return self._max
+
+    @max.setter
+    def max(self, value):
+        self._max = value
+        if self._max_val_callback is not None:
+            self._max_val_callback()
+
+
 if __name__ == "__main__":
     from tkinter import Tk
     Tk()
 
+    a = RangeVar(max_val=100)
+    a.set(10)
+    print(a.get())
+    print(a.max)
+    a.max = 200
+    print(a.max)
+
+    """
     m = OptionsVar(options=["hi", "there", "what"])
     print(m.options)
     m.set("hi")
@@ -159,3 +199,4 @@ if __name__ == "__main__":
     print(m.options)
     n = OptionsVar(options=['huh'])
     print(n.options)
+    """
