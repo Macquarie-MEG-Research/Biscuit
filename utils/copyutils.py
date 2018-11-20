@@ -4,6 +4,7 @@ of file transfer
 
 import os
 import stat
+from hashlib import md5
 
 
 class SameFileError(OSError):
@@ -23,11 +24,29 @@ def _samefile(src, dst):
             os.path.normcase(os.path.abspath(dst)))
 
 
-def copyfileobj(fsrc, fdst, length=16 * 1024, tracker=None):
-    #copy data from file-like object fsrc to file-like object fdst
+def copyfileobj(fsrc, fdst, length=1024 * 1024, tracker=None, verify=False):
+    """ copy data from the file-like object fsrc to the file-like object fdst
+
+    Parameters
+    ----------
+    fsrc : file-like object
+        The source file
+    fdst : file-like object
+        The destination file
+    length : int
+        Size of the chunks to copy at a time.
+    tracker : Instance of tkinter.IntVar
+        A Variable which is used to track the transfer progress
+    verify : bool
+        Whether or not to verify the data is copied correctly.
+        If True this returns the hash object (md5)
+
+    """
     if tracker is not None:
         tracker.set(0)
         curr_block = 0
+    if verify:
+        contents_hash = md5()
     while 1:
         buf = fsrc.read(length)
         if not buf:
@@ -35,12 +54,16 @@ def copyfileobj(fsrc, fdst, length=16 * 1024, tracker=None):
                 tracker.set(tracker.max)
             break
         fdst.write(buf)
+        if verify:
+            contents_hash.update(buf)
         if tracker is not None:
             curr_block += 1
             tracker.set(length * curr_block)
+    if verify:
+        return contents_hash
 
 
-def copyfile(src, dst, *, follow_symlinks=True, tracker=None):
+def copyfile(src, dst, *, follow_symlinks=True, tracker=None, verify=False):
     #Copy data from src to dst.
 
     #If follow_symlinks is not set and src is a symbolic link, a new
@@ -63,8 +86,12 @@ def copyfile(src, dst, *, follow_symlinks=True, tracker=None):
             with open(dst, 'wb') as fdst:
                 if tracker is not None:
                     tracker.max = os.stat(src).st_size
-                copyfileobj(fsrc, fdst, tracker=tracker)
-    return dst
+                file_hash = copyfileobj(fsrc, fdst, tracker=tracker,
+                                        verify=verify)
+    if verify:
+        return dst, file_hash
+    else:
+        return dst
 
 
 def copymode(src, dst, *, follow_symlinks=True):
@@ -89,7 +116,7 @@ def copymode(src, dst, *, follow_symlinks=True):
     chmod_func(dst, stat.S_IMODE(st.st_mode))
 
 
-def copy(src, dst, *, follow_symlinks=True, tracker=None):
+def copy(src, dst, *, follow_symlinks=True, tracker=None, verify=False):
     #Copy data and mode bits ("cp src dst"). Return the file's destination.
 
     #The destination may be a directory.
@@ -102,6 +129,10 @@ def copy(src, dst, *, follow_symlinks=True, tracker=None):
 
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
-    copyfile(src, dst, follow_symlinks=follow_symlinks, tracker=tracker)
+    _, file_hash = copyfile(src, dst, follow_symlinks=follow_symlinks,
+                            tracker=tracker, verify=verify)
     copymode(src, dst, follow_symlinks=follow_symlinks)
-    return dst
+    if verify:
+        return dst, file_hash
+    else:
+        return dst

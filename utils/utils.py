@@ -1,6 +1,7 @@
 from functools import wraps
 import os.path as path
 from os import makedirs
+from math import log
 
 
 def create_folder(location):
@@ -113,6 +114,20 @@ def generate_readme(data):
             out_str += '{0}:\t{1}\n'.format(trigger[0], trigger[1])
 
     return out_str
+
+
+def get_fsize(size):
+    """
+    Return the size formatted with it's most appropriate file size suffix
+    """
+    SUFFIXES = {0: 'b',
+                1: 'Kb',
+                2: 'Mb',
+                3: 'Gb',
+                4: 'Tb',
+                5: 'Yb'}    # shouldn't need more...
+    power = int(log(size, 1024))
+    return '{0:.3f}{1}'.format(size / (1024 ** power), SUFFIXES[power])
 
 
 if __name__ == "__main__":

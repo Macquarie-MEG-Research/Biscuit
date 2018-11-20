@@ -3,13 +3,12 @@
 from os import walk, makedirs, rename, scandir
 import os.path as path
 import pandas as pd
+from hashlib import md5
 
-#from shutil import copy
-
-from utils.utils import threaded
 from utils.copyutils import copy
 
 SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
+BUFFER_SIZE = 1024 * 1024     # 1Mb
 
 PROCESSMAP = {'participants.tsv': 'participants',
               'scans.tsv': 'scans',
@@ -25,7 +24,6 @@ PROCESSMAP = {'participants.tsv': 'participants',
               'headshape.hsp': 'hsp'}
 
 
-@threaded
 def merge_proj(left, right, overwrite=False, file_name_tracker=None,
                file_num_tracker=None, file_prog_tracker=None):
     """ combine two bids-compatible folders
@@ -83,8 +81,7 @@ def merge_proj(left, right, overwrite=False, file_name_tracker=None,
 
     # check for conflicts
     if not overwrite and len(conflicting_keys) != 0:
-        # TODO: make better...
-        raise ValueError("Some values already exist!!!")
+        raise FileExistsError("Some values already exist!!!")
 
     # add the description and readme to the diff:
     desc = left_map.get('description', None)
@@ -104,7 +101,9 @@ def merge_proj(left, right, overwrite=False, file_name_tracker=None,
         # set the name *before* copying
         if file_name_tracker is not None:
             file_name_tracker.set(path.basename(src))
-        copy(src, dst, tracker=file_prog_tracker)
+        _, file_hash = copy(src, dst, tracker=file_prog_tracker, verify=True)
+        if file_hash.hexdigest() != md5hash(dst).hexdigest():
+            raise ValueError("Copied file is different to source file.")
         if file_num_tracker is not None:
             file_num_tracker.set(file_num_tracker.get() + 1)
 
@@ -112,6 +111,8 @@ def merge_proj(left, right, overwrite=False, file_name_tracker=None,
     part_left = left_map.get('participants', [])
     part_right = right_map.get('participants', [])
     if len(part_left) == len(part_right) == 1:
+        if file_name_tracker is not None:
+            file_name_tracker.set(part_left[0])
         part_left = path.join(left, part_left[0])
         part_right = path.join(right, part_right[0])
         df_l = pd.read_csv(part_left, sep='\t')
@@ -121,6 +122,7 @@ def merge_proj(left, right, overwrite=False, file_name_tracker=None,
                              inplace=True)
         df_r = df_r.sort_values(by='participant_id')
         df_r.to_csv(part_right, sep='\t', index=False, na_rep='n/a')
+    file_name_tracker.set("Complete!")
 
 
 def map_folder(fpath):
@@ -157,6 +159,18 @@ def get_projects(fpath):
 def rename_copied(fpath):
     """ rename the folder to have `_copied` appended to the name """
     rename(fpath, "{0}_copied".format(fpath))
+
+
+def md5hash(src):
+    """ Gets the md5 hash of a file in chunks """
+    contents_hash = md5()
+    with open(src, 'rb') as fsrc:
+        while True:
+            data = fsrc.read(BUFFER_SIZE)
+            if not data:
+                break
+            contents_hash.update(data)
+    return contents_hash
 
 
 if __name__ == "__main__":

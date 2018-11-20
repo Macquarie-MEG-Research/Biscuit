@@ -121,8 +121,7 @@ class RightClick():
         # get the current root depth
         if self.context != set():        # maybe??
             dir_ = path.dirname(
-                self.parent.file_treeview.item(
-                    self.parent.selected_files[0])['values'][1])
+                self.parent.file_treeview.get_filepath(self.curr_selection[0]))
         else:
             dir_ = self.parent.settings['DATA_PATH']
         # ask the user for the folder name:
