@@ -154,7 +154,7 @@ def convert(container, settings, parent=None):
         sleep(1)
         p._exit()
 
-    parent._fill_file_tree(bids_folder_sid, bids_folder_path)
+    parent.file_treeview.generate(bids_folder_sid, bids_folder_path)
 
     # This is essentially useless but it suppresses pylint:E1111
     return True
