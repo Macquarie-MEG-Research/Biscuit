@@ -1,14 +1,15 @@
-from tkinter import Toplevel, IntVar, StringVar
-from tkinter.ttk import Frame, Label, Button, Progressbar
+from tkinter import Toplevel, IntVar, StringVar, BooleanVar, messagebox
+from tkinter.ttk import Frame, Label, Button, Progressbar, Checkbutton
 import os
 import os.path as path
-from Windows.AuthPopup import AuthPopup
-from Management import RangeVar
+from subprocess import check_call, CalledProcessError
 
+from Windows.AuthPopup import AuthPopup
+from Management import RangeVar, ToolTipManager
 from utils.BIDSMerge import get_projects, merge_proj
 from utils.utils import get_fsize, threaded
 
-from subprocess import check_call, CalledProcessError
+ttm = ToolTipManager()
 
 MEG_RAW_PATH = "\\\\file.cogsci.mq.edu.au\\MEG_RAW"
 SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
@@ -32,6 +33,7 @@ class SendFilesWindow(Toplevel):
 
         # define some variables we need
         self.has_access = False
+        self.force_override = BooleanVar(value=False)
         # total number of files to transfer
         self.file_count_var = StringVar(value="Number of files: {0}")
         self.total_file_size = StringVar(value="Total file size: {0}")
@@ -94,11 +96,18 @@ class SendFilesWindow(Toplevel):
 
         # buttons
         btn_frame = Frame(frame)
+        force_check = Checkbutton(btn_frame, text="Force",
+                                  variable=self.force_override)
+        force_check.grid(column=0, row=0, sticky='e')
+        ttm.register(force_check,
+                     ("Whether to force the overwriting of current data.\n"
+                      "This should only be done if there was an error and the "
+                      "data needs to be re-sent."))
         btn_frame.grid(column=0, row=4, columnspan=2)
         btn_start = Button(btn_frame, text="Begin", command=self._transfer)
-        btn_start.grid(column=0, row=0, sticky='e')
+        btn_start.grid(column=1, row=0, sticky='e')
         btn_exit = Button(btn_frame, text="Exit", command=self._exit)
-        btn_exit.grid(column=1, row=0, sticky='w')
+        btn_exit.grid(column=2, row=0, sticky='w')
 
     def _check_write_access(self):
         """ Check whether or not the user is authenicated to write to the
@@ -141,12 +150,20 @@ class SendFilesWindow(Toplevel):
             try:
                 merge_proj(path.join(self.fpath, proj_path),
                            path.join(right, proj_path),
+                           overwrite=self.force_override.get(),
                            file_name_tracker=self.curr_file,
                            file_num_tracker=self.transferred_count,
                            file_prog_tracker=self.curr_file_progress)
             except FileExistsError:
                 # create a popup to indicate an error then continue??
                 noerrors = False
+                messagebox.showerror(
+                    "Error!",
+                    ("The project '{0}' on the archive already contains files "
+                     "that are to be copied. If you are sure you want to "
+                     "overwrite the data on the archive with the current data "
+                     "on the host machine select 'Force'.".format(proj_path)),
+                    parent=self)
                 pass
 
         # if all has gone well we can rename the src folder to indicate that
@@ -156,15 +173,14 @@ class SendFilesWindow(Toplevel):
 
     def _rename_complete(self):
         """ rename the folder to have `_copied` appended to the name """
-        os.rename(self.fpath, "{0}_copied".format(self.fpath))
-        # also rename the branch in the filetree
-        fname = path.basename(self.fpath)
+        if not self.fpath.endswith('_copied'):
+            os.rename(self.fpath, "{0}_copied".format(self.fpath))
+            # also rename the branch in the filetree
+            fname = path.basename(self.fpath)
 
-        sid = self.master.file_treeview.get_sid_from_text(fname)
-        print(sid[0])
-        print(self.master.file_treeview.item(sid[0])['text'])
-        self.master.file_treeview.item(sid[0], text="{0}_copied".format(fname))
-        print(self.master.file_treeview.item(sid[0])['text'])
+            sid = self.master.file_treeview.get_sid_from_text(fname)
+            self.master.file_treeview.item(sid[0],
+                                           text="{0}_copied".format(fname))
 
     def _update_file_progress(self):
         self.file_prog.config(maximum=self.curr_file_progress.max)

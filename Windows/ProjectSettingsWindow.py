@@ -142,7 +142,7 @@ class ProjectSettingsWindow(Toplevel):
 
     def get_settings(self):
         """
-        Retreive all the information from all the various fields and
+        Retrieve all the information from all the various fields and
         write to the settings dictionary
         """
         self.settings['ProjectID'] = self.project_id.get()
