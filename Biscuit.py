@@ -16,7 +16,7 @@ from webbrowser import open_new as open_hyperlink
 
 from FileTypes import generic_file, Folder, KITData, BIDSFile, BIDSContainer
 
-from CustomWidgets import EnhancedTreeview
+from CustomWidgets import FileTreeview
 
 from Management import ClickContext
 from Management.RightClickManager import RightClick
@@ -87,7 +87,7 @@ class main(Frame):
         self._drag_mode = None
         self.progress_popup = None
 
-        self._fill_file_tree('')
+        self.file_treeview.generate('', self.settings["DATA_PATH"])
 
         # This dictionary will consist of keys which are the file paths to the
         # .con files, and the values will be a list of associated .mrk files.
@@ -121,60 +121,6 @@ class main(Frame):
         screen_dimensions = "{0}x{1}+20+20".format(screen_width - 200,
                                                    screen_height - 200)
         root.geometry(screen_dimensions)
-
-    def _fill_file_tree(self, parent, directory=None):
-        """
-        Iterate over the folder structure and list all the files in the
-        treeview
-
-        parent is the parent entry in the treeview ('' if the root)
-
-        This function will need to be improved so that when multiple
-        acquisitions are in a single folder it doesn't create multiple folders
-        """
-        if directory is None:
-            # in this case we are at the root
-            dir_ = self.settings["DATA_PATH"]
-        else:
-            dir_ = directory
-
-        # If not directory is specified exit this function. Elsewhere we will
-        # set the panel on the right hand side to have a message that no folder
-        # has been selected as the base one and give details on how to set it.
-        if dir_ == "":
-            return
-
-        # create a mapping of full paths to id's
-        curr_children = self.file_treeview.get_children(parent)
-        file_list = dict(
-            zip([self.file_treeview.item(child)['values'][1] for child in
-                 curr_children], curr_children))
-
-        # we want to put folders above files (it looks nicer!!)
-        try:
-            for file in listdir(dir_):
-                fullpath = path.join(dir_, file)
-
-                # need to check to see whether or not the file/folder already
-                # exists in the tree:
-                exists_id = file_list.get(fullpath, None)
-                if path.isdir(fullpath):
-                    if exists_id is None:
-                        exists_id = self.file_treeview.ordered_insert(
-                            parent, values=['', fullpath], text=file,
-                            open=False)
-                    self._fill_file_tree(exists_id, directory=fullpath)
-                else:
-                    fname, ext = path.splitext(file)
-                    if exists_id is None:
-                        self.file_treeview.insert(parent, 'end',
-                                                  values=[ext, fullpath],
-                                                  text=fname, open=False,
-                                                  tags=(ext))
-        except PermissionError:
-            # user doesn't have sufficient permissions to open folder so it
-            # won't be included
-            pass
 
     def _load_settings(self):
         """
@@ -256,7 +202,7 @@ class main(Frame):
         self.master.config(menu=self.menu_bar)
 
     def _create_widgets(self):
-        # create all the visual elements required
+        """ create all the visual elements required """
 
         # middle frame section
         main_frame = Frame(self.master)
@@ -264,10 +210,10 @@ class main(Frame):
                                 sashrelief=RIDGE, sashpad=1, sashwidth=4)
         # frame for the treeview
         treeview_frame = Frame(self.pw)
-        self.file_treeview = EnhancedTreeview(treeview_frame,
-                                              columns=["dtype", "filepath"],
-                                              selectmode='extended',
-                                              displaycolumns=["dtype"])
+        self.file_treeview = FileTreeview(treeview_frame,
+                                          columns=["dtype", "filepath"],
+                                          selectmode='extended',
+                                          displaycolumns=["dtype"])
         self.file_treeview.enhance(allow_dnd=False,
                                    scrollbars=['y', 'x'],
                                    sortable=True,
@@ -300,8 +246,16 @@ class main(Frame):
         self.pw.grid(column=0, row=0, sticky="nsew")
         main_frame.grid(column=0, row=0, sticky="nsew")
 
-        buttonFrame = Frame(main_frame)
-        buttonFrame.grid(column=0, row=1, columnspan=2)
+        # frame at the bottom to place all the buttons in
+        bottomFrame = Frame(main_frame)
+        bottomFrame.grid(column=0, row=1, sticky='nsew')
+
+        self.refreshButton = Button(bottomFrame, text="Refresh",
+                                    command=self._refresh_filetree)
+        self.refreshButton.grid(column=0, row=0, sticky='w', padx=50)
+
+        buttonFrame = Frame(bottomFrame)
+        buttonFrame.grid(column=1, row=0, sticky='w')
 
         self.save_label = Label(buttonFrame,
                                 textvar=self.save_handler.saved_time)
@@ -318,6 +272,9 @@ class main(Frame):
         self.master.rowconfigure(0, weight=1)
         main_frame.rowconfigure(0, weight=1)
         main_frame.columnconfigure(0, weight=1)
+
+        bottomFrame.columnconfigure(0, weight=1)
+        bottomFrame.columnconfigure(1, weight=1)
 
     def _right_click_treeview_entry(self, event):
         # have a separate function to wrap the call to the RightClick .popup
@@ -533,7 +490,7 @@ class main(Frame):
             self._get_data_location_initial()
             # but now we want to re-draw the treeview after clearing it
             self.file_treeview.delete(*self.file_treeview.get_children())
-            self._fill_file_tree('')
+            self.file_treeview.generate('', self.settings["DATA_PATH"])
 
     def _get_matlab_location(self):
         self.settings["MATLAB_PATH"] = filedialog.askopenfilename(
@@ -572,6 +529,9 @@ class main(Frame):
             # TODO: this is broken but we might not even want to call it from
             # here anyway...?
             self.progress_popup = ProgressPopup(self, progress, None)
+
+    def _refresh_filetree(self):
+        print('refresh')
 
     def _check_exit(self):
         """
