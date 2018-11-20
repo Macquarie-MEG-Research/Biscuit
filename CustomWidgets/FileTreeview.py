@@ -68,8 +68,8 @@ class FileTreeview(EnhancedTreeview):
             pass
 
     def refresh(self):
+        """ Refresh the treeview to include any newly found files """
         new_files = self._find_new_files()
-        print(new_files)
         # sort by length to ensure that any new folders are generated first
         new_files.sort(key=lambda x: len(x))
         for fullpath in new_files:
@@ -97,10 +97,12 @@ class FileTreeview(EnhancedTreeview):
         """
         new_files = []
         for root, dirs, files in os.walk(self.root_path):
+            # add all the new files
             for file in files:
                 fpath = path.join(root, file)
                 if self.index_cache.get(fpath, None) is None:
                     new_files.append(fpath)
+            # add all the new folders
             for dir_ in dirs:
                 fpath = path.join(root, dir_)
                 if self.index_cache.get(fpath, None) is None:
