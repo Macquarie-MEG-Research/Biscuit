@@ -65,3 +65,31 @@ class FileTreeview(EnhancedTreeview):
 
     def refresh(self):
         pass
+
+    def get_text(self, sid):
+        """ Return the text corresponding to the provided sid """
+        return self.item(sid)['text']
+
+    def get_filepath(self, sid):
+        """ Return the file path corresponding to the provided sid """
+        return self.item(sid)['values'][1]
+
+    def get_sid_from_text(self, text, _all=False):
+        """ Return the sid(s) in the treeview with the given text
+
+        Parameters
+        ----------
+        text : str
+            text value to match.
+        _all : bool
+            Whether or not to return all the results or just the first
+
+        """
+        rtn_list = []
+        for sid in self.all_children():
+            if self.item(sid)['text'] == text:
+                if _all:
+                    rtn_list.append(sid)
+                else:
+                    return [sid]
+        return rtn_list
