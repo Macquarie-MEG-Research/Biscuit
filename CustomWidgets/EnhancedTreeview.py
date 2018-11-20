@@ -190,7 +190,6 @@ class EnhancedTreeview(Treeview):
 
     def _close_entry(self, event):
         """ un-draw an open entry if there is one """
-        print('popup', self.entryPopup)
         if self.entryPopup is not None:
             try:
                 self.entryPopup.onExit(event)
@@ -338,6 +337,34 @@ class EnhancedTreeview(Treeview):
         else:
             # one more than the total length of the list
             return index + 1
+
+    def get_text(self, sid):
+        """ Return the text corresponding to the provided sid """
+        return self.item(sid)['text']
+
+    def get_filepath(self, sid):
+        """ Return the file path corresponding to the provided sid """
+        return self.item(sid)['values'][1]
+
+    def get_sid_from_text(self, text, _all=False):
+        """ Return the sid(s) in the treeview with the given text
+
+        Parameters
+        ----------
+        text : str
+            text value to match.
+        _all : bool
+            Whether or not to return all the results or just the first
+
+        """
+        rtn_list = []
+        for sid in self.all_children():
+            if self.item(sid)['text'] == text:
+                if _all:
+                    rtn_list.append(sid)
+                else:
+                    return [sid]
+        return rtn_list
 
 
 class EntryPopup(tkEntry):

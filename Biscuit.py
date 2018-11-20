@@ -128,9 +128,6 @@ class main(Frame):
         treeview
 
         parent is the parent entry in the treeview ('' if the root)
-
-        This function will need to be improved so that when multiple
-        acquisitions are in a single folder it doesn't create multiple folders
         """
         if directory is None:
             # in this case we are at the root
