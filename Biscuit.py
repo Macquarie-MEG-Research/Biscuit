@@ -9,7 +9,7 @@ from tkinter.ttk import Frame, Style, Button, Label
 from copy import deepcopy
 import pickle
 import os.path as path
-from os import listdir, makedirs
+from os import makedirs
 
 import webbrowser
 from webbrowser import open_new as open_hyperlink
@@ -88,6 +88,7 @@ class main(Frame):
         self.progress_popup = None
 
         self.file_treeview.generate('', self.settings["DATA_PATH"])
+        self.file_treeview.index()
 
         # This dictionary will consist of keys which are the file paths to the
         # .con files, and the values will be a list of associated .mrk files.
@@ -211,6 +212,7 @@ class main(Frame):
         # frame for the treeview
         treeview_frame = Frame(self.pw)
         self.file_treeview = FileTreeview(treeview_frame,
+                                          self.settings["DATA_PATH"],
                                           columns=["dtype", "filepath"],
                                           selectmode='extended',
                                           displaycolumns=["dtype"])
@@ -232,8 +234,6 @@ class main(Frame):
         self.file_treeview.pack(side=LEFT, fill=BOTH, expand=1)
         treeview_frame.grid(column=0, row=0, sticky="nsew")
         self.pw.add(treeview_frame)
-
-        self.file_treeview.root_path = self.settings["DATA_PATH"]
 
         # frame for the notebook panel
         notebook_frame = Frame(self.pw)
@@ -491,6 +491,7 @@ class main(Frame):
             # but now we want to re-draw the treeview after clearing it
             self.file_treeview.delete(*self.file_treeview.get_children())
             self.file_treeview.generate('', self.settings["DATA_PATH"])
+            self.file_treeview.index()
 
     def _get_matlab_location(self):
         self.settings["MATLAB_PATH"] = filedialog.askopenfilename(
@@ -531,7 +532,7 @@ class main(Frame):
             self.progress_popup = ProgressPopup(self, progress, None)
 
     def _refresh_filetree(self):
-        print('refresh')
+        self.file_treeview.refresh()
 
     def _check_exit(self):
         """

@@ -1,13 +1,17 @@
 import os.path as path
-from os import listdir
+import os
 
 from CustomWidgets import EnhancedTreeview
 
 
 class FileTreeview(EnhancedTreeview):
-    def __init__(self, master, *args, **kwargs):
+    def __init__(self, master, directory, *args, **kwargs):
         self.master = master
         super(FileTreeview, self).__init__(self.master, *args, **kwargs)
+
+        self.root_path = directory
+
+        self.index_cache = dict()
 
     def generate(self, parent, directory=""):
         """
@@ -38,7 +42,7 @@ class FileTreeview(EnhancedTreeview):
 
         # we want to put folders above files (it looks nicer!!)
         try:
-            for file in listdir(dir_):
+            for file in os.listdir(dir_):
                 fullpath = path.join(dir_, file)
 
                 # need to check to see whether or not the file/folder already
@@ -64,7 +68,46 @@ class FileTreeview(EnhancedTreeview):
             pass
 
     def refresh(self):
-        pass
+        """ Refresh the treeview to include any newly found files """
+        new_files = self._find_new_files()
+        # sort by length to ensure that any new folders are generated first
+        new_files.sort(key=lambda x: len(x))
+        for fullpath in new_files:
+            base, file = path.split(fullpath)
+            parent = self.sid_from_filepath(base)
+            fname, ext = path.splitext(file)
+            sid = self.ordered_insert(parent,
+                                      values=[ext, fullpath],
+                                      text=fname, open=False,
+                                      tags=(ext))
+            self.index_cache[fullpath] = sid
+
+    def index(self):
+        """ Create a cache of the file information in a flattened way to allow
+        fast comparison of existing and new data """
+        for sid in self.all_children():
+            if sid != '':
+                self.index_cache[self.item(sid)['values'][1]] = sid
+            else:
+                self.index_cache[self.root_path] = ''
+
+    def _find_new_files(self):
+        """ Return a list of all files paths in the folder that don't currently
+        exist in the current file treeview
+        """
+        new_files = []
+        for root, dirs, files in os.walk(self.root_path):
+            # add all the new files
+            for file in files:
+                fpath = path.join(root, file)
+                if self.index_cache.get(fpath, None) is None:
+                    new_files.append(fpath)
+            # add all the new folders
+            for dir_ in dirs:
+                fpath = path.join(root, dir_)
+                if self.index_cache.get(fpath, None) is None:
+                    new_files.append(fpath)
+        return new_files
 
     def get_text(self, sid):
         """ Return the text corresponding to the provided sid """
@@ -74,6 +117,7 @@ class FileTreeview(EnhancedTreeview):
         """ Return the file path corresponding to the provided sid """
         return self.item(sid)['values'][1]
 
+    # TODO: rename to `sid_from_text` once merged into MQ_master
     def get_sid_from_text(self, text, _all=False):
         """ Return the sid(s) in the treeview with the given text
 
@@ -93,3 +137,14 @@ class FileTreeview(EnhancedTreeview):
                 else:
                     return [sid]
         return rtn_list
+
+    def sid_from_filepath(self, fpath):
+        """ Return the sid in the treeview with the given filepath
+
+        Parameters
+        ----------
+        fpath : str
+            Filepath to match
+
+        """
+        return self.index_cache[fpath]
