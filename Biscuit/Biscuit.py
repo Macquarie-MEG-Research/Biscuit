@@ -54,7 +54,6 @@ class BiscuitGUI(Frame):
         self.settings_file = path.join(OSCONST.USRDIR, 'settings.pkl')
 
         # sort out some styling
-        
         style = Style()
         style.configure("Treeview", font=("TkTextFont",
                                           self.treeview_text_size))

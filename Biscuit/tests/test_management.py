@@ -9,9 +9,10 @@ from Biscuit.Management.CustomVars import StreamedVar, OptionsVar
 def test_ClickContext():
     a = ClickContext()
     a.set('foo')
-    assert a.get() == 'hi'
+    assert a.get() == {'foo'}
+    assert 'foo' in a
     a.set('bar')
-    assert a.get() == 'bar'
+    assert a == 'bar'
     assert a.changed
     a.set(['foo', 'bar'])
     assert a.is_mixed
@@ -25,7 +26,7 @@ def test_StreamedVar():
         from tkinter import Tk
         Tk()
 
-    s = StreamedVar()
+        s = StreamedVar()
 
 
 def test_OptionsVar():
@@ -33,10 +34,10 @@ def test_OptionsVar():
         from tkinter import Tk
         Tk()
 
-    m = OptionsVar(options=['foo', 'bar'])
-    assert m.options == ['foo', 'bar']
-    m.set('foo')
-    assert m.get() == 'foo'
-    assert len(m) == 2
-    with pytest.raises(ValueError):
-        m.set('spam')
+        m = OptionsVar(options=['foo', 'bar'])
+        assert m.options == ['foo', 'bar']
+        m.set('foo')
+        assert m.get() == 'foo'
+        assert len(m) == 2
+        with pytest.raises(ValueError):
+            m.set('spam')
