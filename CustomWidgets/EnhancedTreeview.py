@@ -18,7 +18,6 @@ class EnhancedTreeview(Treeview):
         self.columns = ['#0'] + kwargs.get('displaycolumns', [])
         self.editable_columns = []
 
-        self.root_path = ""
         self.entryPopup = None
 
     def enhance(self, *args, **kwargs):
@@ -130,6 +129,7 @@ class EnhancedTreeview(Treeview):
         # this will currently get the previously selected entry
         return self.selection()
 
+    # TODO: move to FileTreeview??
     def get_dnd_drop(self, source, selection, event):
         destination_id = self.identify_row(event.y)
 

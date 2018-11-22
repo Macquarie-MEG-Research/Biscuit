@@ -262,7 +262,11 @@ class InfoManager(Notebook):
         Other race condition occurs when performing syntax highlighting of
         text data drawn in the ScrolledTextInfoFrame
         """
-        if self.parent.file_treeview.selection()[0] == new_data[0].ID:
-            if new_data != self._data:
-                self._data = new_data
-                self.determine_tabs()
+        if new_data != []:
+            if self.parent.file_treeview.selection()[0] == new_data[0].ID:
+                if new_data != self._data:
+                    self._data = new_data
+                    self.determine_tabs()
+        else:
+            self._data = None
+            self.determine_tabs()
