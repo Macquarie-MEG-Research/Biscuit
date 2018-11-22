@@ -68,11 +68,15 @@ class FileTreeview(EnhancedTreeview):
             pass
 
     def refresh(self):
-        """ Refresh the treeview to include any newly found files """
-        new_files = self._find_new_files()
+        """ Refresh the treeview to include any newly added or removed files"""
+        curr_selection = self.focus()
+        added_files, removed_files = self._find_folder_diff()
         # sort by length to ensure that any new folders are generated first
-        new_files.sort(key=lambda x: len(x))
-        for fullpath in new_files:
+        added_files.sort(key=lambda x: len(x))
+        # reverse sort the removed files to go from the ends of the branches
+        removed_files.sort(key=lambda x: len(x), reverse=True)
+        # add any new files to the file tree
+        for fullpath in added_files:
             base, file = path.split(fullpath)
             parent = self.sid_from_filepath(base)
             fname, ext = path.splitext(file)
@@ -81,6 +85,14 @@ class FileTreeview(EnhancedTreeview):
                                       text=fname, open=False,
                                       tags=(ext))
             self.index_cache[fullpath] = sid
+        # remove any removed files from the filetree
+        for fpath in removed_files:
+            sid = self.index_cache[fpath]
+            self.delete(sid)
+            del self.index_cache[fpath]
+            # TODO: remove from main.preloaded_data somehow??
+        if curr_selection not in self.index_cache.values():
+            self.selection_set([''])
 
     def index(self):
         """ Create a cache of the file information in a flattened way to allow
@@ -91,7 +103,29 @@ class FileTreeview(EnhancedTreeview):
             else:
                 self.index_cache[self.root_path] = ''
 
-    def _find_new_files(self):
+    def _find_folder_diff(self):
+        """ Create a list of all the files and folders contained within
+        self.root_path
+
+        Returns:
+        (List of added files/folders, List of removed files/folders)
+        """
+        contained_files = set()
+        for root, dirs, files in os.walk(self.root_path):
+            # add all the new files
+            for file in files:
+                fpath = path.join(root, file)
+                contained_files.add(fpath)
+            # add all the new folders
+            for dir_ in dirs:
+                fpath = path.join(root, dir_)
+                contained_files.add(fpath)
+        prev_files = set(self.index_cache.keys())
+        removed_files = (prev_files - contained_files) - set([self.root_path])
+        added_files = contained_files - prev_files
+        return (list(added_files), list(removed_files))
+
+    def _find_added_files(self):
         """ Return a list of all files paths in the folder that don't currently
         exist in the current file treeview
         """

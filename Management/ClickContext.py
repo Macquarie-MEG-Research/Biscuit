@@ -113,22 +113,3 @@ class ClickContext():
     def __str__(self):
         return 'Current value: {0}\nPrevious value: {1}'.format(self._current,
                                                                 self._previous)
-
-
-if __name__ == "__main__":
-    a = ClickContext()
-    a.set("hi")
-    print(a.get())
-    a.set("there")
-    print(a.get())
-    a.set(['what', 's'])
-    print(a.get())
-    print(a.is_mixed)
-    a.set(['hi', 'hi', 'hi'])
-    print(a.get())
-    print(a.group_size)
-    print(a.is_mixed)
-    print(a == 'hi')
-    a.set('hi')
-    print(a)
-    print(a == 'hi')
