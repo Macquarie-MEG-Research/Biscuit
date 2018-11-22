@@ -99,6 +99,12 @@ class OptionsVar(Variable):
 
 class StreamedVar(StringVar):
     """
+    A custom Variable which can be used to capture redirected stdout's.
+    This Variable will only update when the contents end with a newline
+    character (indicating that the data has changed).
+    Patterns can be provided to essentially filter the contents to only allow
+    specific data to be set.
+
     Parameters
     ----------
     pattern : str | list of str
@@ -142,20 +148,3 @@ class StreamedVar(StringVar):
     @property
     def curr_value(self):
         return self._curr_value
-
-
-if __name__ == "__main__":
-    from tkinter import Tk
-    Tk()
-
-    m = OptionsVar(options=["hi", "there", "what"])
-    print(m.options)
-    m.set("hi")
-    print(m.get())
-    print(len(m))
-    m.set("wow!!")
-    print(m.get())
-    print(len(m))
-    print(m.options)
-    n = OptionsVar(options=['huh'])
-    print(n.options)
