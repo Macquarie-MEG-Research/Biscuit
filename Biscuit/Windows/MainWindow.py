@@ -14,24 +14,25 @@ from os import makedirs
 import webbrowser
 from webbrowser import open_new as open_hyperlink
 
-from .FileTypes import generic_file, Folder, KITData, BIDSFile, BIDSContainer
+from Biscuit.FileTypes import (generic_file, Folder, KITData, BIDSFile,
+                               BIDSContainer)
 
-from .CustomWidgets import FileTreeview
+from Biscuit.CustomWidgets import FileTreeview
 
-from .Management import ClickContext
-from .Management.RightClickManager import RightClick
-from .Management.InfoManager import InfoManager
-from .Management.SaveManager import SaveManager
-from .Windows import (SettingsWindow, ProgressPopup, CheckSavePopup,
-                      CreditsPopup)
-from .utils.utils import threaded, get_object_class
-from .utils.constants import OSCONST
+from Biscuit.Management import ClickContext
+from Biscuit.Management.RightClickManager import RightClick
+from Biscuit.Management.InfoManager import InfoManager
+from Biscuit.Management.SaveManager import SaveManager
+from Biscuit.Windows import (SettingsWindow, ProgressPopup, CheckSavePopup,
+                             CreditsPopup)
+from Biscuit.utils.utils import threaded, get_object_class
+from Biscuit.utils.constants import OSCONST
 
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True}
 
 
-class BiscuitGUI(Frame):
+class MainWindow(Frame):
     def __init__(self, master):
         self.master = master
 

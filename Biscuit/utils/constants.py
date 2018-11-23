@@ -66,9 +66,9 @@ OSCONST.USRDIR_MAC = os.path.join(os.path.expanduser('~'), 'Library',
 OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
 
 # biscuit icon file
-OSCONST.ICON = 'Biscuit/assets/bisc.png'
-OSCONST.ICON_GIF = 'Biscuit/assets/bisc.gif'
-OSCONST.ICON_REMOVE = "Biscuit/assets/remove.png"
+OSCONST.ICON = 'assets/bisc.png'
+OSCONST.ICON_GIF = 'assets/bisc.gif'
+OSCONST.ICON_REMOVE = "assets/remove.png"
 
 # ttk.treeview text size
 OSCONST.TREEVIEW_TEXT_SIZE_WIN = 10
