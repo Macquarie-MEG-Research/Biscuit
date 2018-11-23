@@ -1,6 +1,6 @@
 # Biscuit
 
-![biscuit](assets/bisc.png)
+![biscuit](Biscuit/assets/bisc.png)
 
 ## Convert your MEG data to a BIDS compliant format
 Biscuit is a simple graphical application that facilitates the reformatting of raw KIT and Elekta MEG data to comply with the international [BIDS Standard](http://bids.neuroimaging.io/).
