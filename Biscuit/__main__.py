@@ -1,12 +1,12 @@
 def main():
-    # Whatever your execution code is
+    # main entry point to run the Biscuit GUI
     from tkinter import Tk
     import os
     from os.path import dirname
     os.chdir(dirname(__file__))
 
     if __name__ == "__main__":
-        from Windows import MainWindow
+        from Windows import MainWindow  # pylint: disable=E0401
     else:
         from .Windows import MainWindow
 

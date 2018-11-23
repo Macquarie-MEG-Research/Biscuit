@@ -12,7 +12,7 @@ setuptools.setup(
     version=VERSION,
     author="Matt Sanderson",
     author_email="matt.sanderson@mq.edu.au",
-    description="A small example package",
+    description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     long_description_content_type="text/markdown",
     url=URL,

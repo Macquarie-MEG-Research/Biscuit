@@ -66,6 +66,7 @@ OSCONST.USRDIR_MAC = os.path.join(os.path.expanduser('~'), 'Library',
 OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
 
 # biscuit icon file
+# these file paths are relative to the `__main__.py` file
 OSCONST.ICON = 'assets/bisc.png'
 OSCONST.ICON_GIF = 'assets/bisc.gif'
 OSCONST.ICON_REMOVE = "assets/remove.png"
