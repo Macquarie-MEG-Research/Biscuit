@@ -5,10 +5,7 @@ def main():
     from os.path import dirname
     os.chdir(dirname(__file__))
 
-    if __name__ == "__main__":
-        from Windows import MainWindow  # pylint: disable=E0401
-    else:
-        from .Windows import MainWindow
+    from .Windows import MainWindow
 
     root = Tk()
 

@@ -141,7 +141,7 @@ class ProjectSettingsWindow(Toplevel):
 
     def get_settings(self):
         """
-        Retreive all the information from all the various fields and
+        Retrieve all the information from all the various fields and
         write to the settings dictionary
         """
         self.settings['ProjectID'] = self.project_id.get()
@@ -154,6 +154,7 @@ class ProjectSettingsWindow(Toplevel):
         self.settings['Groups'] = self.groups_table.get()
 
     def cancel(self):
+        # TODO: This will overwrite current settings???
         # set the settings as blank and leave
         self.settings = dict()
         #self.initial_focus = None

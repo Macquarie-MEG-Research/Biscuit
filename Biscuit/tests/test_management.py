@@ -41,3 +41,16 @@ def test_OptionsVar():
         assert len(m) == 2
         with pytest.raises(ValueError):
             m.set('spam')
+
+
+def test_RangeVar():
+    if __name__ == "__main__":
+        from tkinter import Tk
+        Tk()
+
+        a = RangeVar(max_val=100)
+        a.set(10)
+        print(a.get())
+        print(a.max)
+        a.max = 200
+        print(a.max)

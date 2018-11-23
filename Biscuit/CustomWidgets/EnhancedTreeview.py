@@ -189,7 +189,6 @@ class EnhancedTreeview(Treeview):
 
     def _close_entry(self, event):
         """ un-draw an open entry if there is one """
-        print('popup', self.entryPopup)
         if self.entryPopup is not None:
             try:
                 self.entryPopup.onExit(event)
