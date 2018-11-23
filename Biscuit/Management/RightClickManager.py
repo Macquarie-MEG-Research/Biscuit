@@ -1,10 +1,11 @@
-from tkinter import Menu, StringVar, messagebox, simpledialog
+from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
 from Biscuit.FileTypes import con_file
 from Biscuit.utils.utils import create_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
+from Biscuit.utils.constants import OSCONST
 
 """
 TODO:
@@ -86,9 +87,20 @@ class RightClick():
                                         command=self._include_cons)
         if len(self.curr_selection) == 1:
             fname = self.parent.file_treeview.get_text(self.curr_selection[0])
+            # if the folder is a BIDS folder allow it to be uploaded to the
+            # archive
             if BIDS_PATTERN.match(fname):
-                self.popup_menu.add_command(label="Upload to archive",
-                                            command=self._upload)
+                self.popup_menu.add_command(
+                    label="Upload to archive",
+                    command=lambda: self._upload(fname))
+            # allow any folder to be sent to another location using the
+            # BIDSMERGE functionality
+            fpath = self.parent.file_treeview.get_filepath(
+                self.curr_selection[0])
+            if path.isdir(fpath):
+                self.popup_menu.add_command(
+                    label="Send to...",
+                    command=lambda: self._send_to(fpath))
 
     def _ignore_cons(self):
         """
@@ -279,11 +291,21 @@ class RightClick():
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
 
-    def _upload(self):
+    def _upload(self, src):
         """ Upload the selected file to the MEG_RAW archive """
         SendFilesWindow(
             self.parent,
-            self.parent.file_treeview.get_filepath(self.curr_selection[0]))
+            self.parent.file_treeview.get_filepath(self.curr_selection[0]),
+            OSCONST.SVR_PATH,
+            set_copied=True)
+
+    def _send_to(self, src):
+        """ Send the selected folder to another selected location """
+        dst = filedialog.askdirectory(title="Select BIDS folder")
+        SendFilesWindow(
+            self.parent,
+            self.parent.file_treeview.get_filepath(self.curr_selection[0]),
+            dst)
 
     def popup(self, event):
         self._add_options()

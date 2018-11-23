@@ -8,28 +8,40 @@ from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
 from Biscuit.utils.BIDSMerge import get_projects, merge_proj
 from Biscuit.utils.utils import get_fsize, threaded
+from Biscuit.utils.constants import OSCONST
 
 ttm = ToolTipManager()
-
-MEG_RAW_PATH = "\\\\file.cogsci.mq.edu.au\\MEG_RAW"
-SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
-
-ACCESS_CMD = 'NET USE "{unc_path}" "{pword}" /USER:"MQAUTH\\{uname}"'
 
 
 class SendFilesWindow(Toplevel):
     """
     A popup window to show the progress of the transfer to the server
+
+    Parameters
+    ----------
+    master : instance of tkinter.Widget
+        Parent widget for this Toplevel widget
+    src : string
+        Source folder to send.
+    dst : string
+        Destination folder or location on server.
+    set_copied : bool
+        Change the name of the source directory to have `_copied` appended
+        to indicate that the data has been transferred successfully.
+
     """
-    def __init__(self, master, fpath):
+    def __init__(self, master, src, dst, set_copied=False):
         self.master = master
-        self.fpath = fpath
+        self.src = src
+        self.dst = dst
+        self.set_copied = set_copied
         Toplevel.__init__(self, self.master)
         self.withdraw()
         if master.winfo_viewable():
             self.transient(master)
 
-        self.title('Transfer file to MEG_RAW')
+        # TODO: make dynamic??
+        self.title('Transfer files')
 
         # define some variables we need
         self.has_access = False
@@ -39,7 +51,7 @@ class SendFilesWindow(Toplevel):
         self.total_file_size = StringVar(value="Total file size: {0}")
         self.file_count = 0
         total_file_size = 0
-        for root, _, files in os.walk(self.fpath):
+        for root, _, files in os.walk(self.src):
             self.file_count += len(files)
             for file in files:
                 fpath = path.join(root, file)
@@ -74,6 +86,8 @@ class SendFilesWindow(Toplevel):
     def _create_widgets(self):
         frame = Frame(self)
         frame.grid(sticky='nsew')
+
+        # TODO: add line to show destination for data? maybe source too...
 
         # number of files being transferred and total size
         lbl_file_count = Label(frame, textvariable=self.file_count_var)
@@ -113,16 +127,17 @@ class SendFilesWindow(Toplevel):
         """ Check whether or not the user is authenicated to write to the
         archive
         """
-        # TODO: fix up more
+        # TODO: make more generic?
         auth = dict()
-        if not os.access(MEG_RAW_PATH, os.W_OK):
+        if not os.access(OSCONST.MEG_RAW_PATH, os.W_OK):
             # create a popup to get the username and password
             AuthPopup(self, auth)
 
             if auth.get('uname', None) and auth.get('pword', None):
-                auth_cmd = ACCESS_CMD.format(unc_path=MEG_RAW_PATH,
-                                             uname=auth.get('uname', ''),
-                                             pword=auth.get('pword', ''))
+                auth_cmd = OSCONST.ACCESS_CMD.format(
+                    unc_path=OSCONST.MEG_RAW_PATH,
+                    uname=auth.get('uname', ''),
+                    pword=auth.get('pword', ''))
                 del auth
                 try:
                     check_call(auth_cmd)
@@ -141,15 +156,23 @@ class SendFilesWindow(Toplevel):
 
     @threaded
     def _transfer(self):
-        """ Transfer all the files in self.fpath to the server """
-        right = path.join(SVR_PATH, 'BIDS')
+        """ Transfer all the files in self.src to the server """
         noerrors = True
 
-        proj_list = get_projects(self.fpath)
+        # if we are transferring an entire BIDS folder we need to determine
+        # all of the projects within it.
+        # if we are sending just project folders we obviously don't need to do
+        # this
+        # TODO: make smarter (like the `get_projects` function...)
+        if 'BIDS' in path.basename(self.src):
+            proj_list = get_projects(self.src)
+        else:
+            #we are just sending a single folder...
+            proj_list = [self.src]
         for proj_path in proj_list:
             try:
-                merge_proj(path.join(self.fpath, proj_path),
-                           path.join(right, proj_path),
+                merge_proj(proj_path,
+                           path.join(self.dst, path.basename(proj_path)),
                            overwrite=self.force_override.get(),
                            file_name_tracker=self.curr_file,
                            file_num_tracker=self.transferred_count,
@@ -169,16 +192,17 @@ class SendFilesWindow(Toplevel):
         # if all has gone well we can rename the src folder to indicate that
         # it has been copied over fine
         if noerrors:
-            self._rename_complete()
+            if self.set_copied:
+                self._rename_complete()
 
     def _rename_complete(self):
         """ rename the folder to have `_copied` appended to the name """
-        if not self.fpath.endswith('_copied'):
-            os.rename(self.fpath, "{0}_copied".format(self.fpath))
+        if not self.src.endswith('_copied'):
+            os.rename(self.src, "{0}_copied".format(self.src))
             # also rename the branch in the filetree
-            fname = path.basename(self.fpath)
+            fname = path.basename(self.src)
 
-            sid = self.master.file_treeview.get_sid_from_text(fname)
+            sid = self.master.file_treeview.sid_from_text(fname)
             self.master.file_treeview.item(sid[0],
                                            text="{0}_copied".format(fname))
 
