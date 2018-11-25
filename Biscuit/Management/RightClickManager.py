@@ -302,10 +302,11 @@ class RightClick():
     def _send_to(self, src):
         """ Send the selected folder to another selected location """
         dst = filedialog.askdirectory(title="Select BIDS folder")
-        SendFilesWindow(
-            self.parent,
-            self.parent.file_treeview.get_filepath(self.curr_selection[0]),
-            dst)
+        if dst != '':
+            SendFilesWindow(
+                self.parent,
+                self.parent.file_treeview.get_filepath(self.curr_selection[0]),
+                dst)
 
     def popup(self, event):
         self._add_options()
