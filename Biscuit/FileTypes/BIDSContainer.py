@@ -40,7 +40,7 @@ class BIDSContainer(FileInfo):
         # self.subject_age format [DD, MM, YYYY]
         self.subject_age = [StringVar(), StringVar(), StringVar()]
         self.subject_gender = OptionsVar(options=['M', 'F', 'U'])
-        self.subject_group = OptionsVar()
+        self.subject_group = OptionsVar(options=['Participant', 'Control'])
         self.subject_group.trace("w", self._update_groups)
 
         self.contains_required_files = True

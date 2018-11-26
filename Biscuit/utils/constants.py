@@ -70,6 +70,7 @@ OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
 OSCONST.ICON = 'assets/bisc.png'
 OSCONST.ICON_GIF = 'assets/bisc.gif'
 OSCONST.ICON_REMOVE = "assets/remove.png"
+OSCONST.ICON_LOCK = "assets/lock.png"
 
 # ttk.treeview text size
 OSCONST.TREEVIEW_TEXT_SIZE_WIN = 10

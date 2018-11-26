@@ -5,7 +5,6 @@ import re
 from Biscuit.FileTypes import con_file
 from Biscuit.utils.utils import create_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
-from Biscuit.utils.constants import OSCONST
 
 """
 TODO:
@@ -87,16 +86,16 @@ class RightClick():
                                         command=self._include_cons)
         if len(self.curr_selection) == 1:
             fname = self.parent.file_treeview.get_text(self.curr_selection[0])
+            fpath = self.parent.file_treeview.get_filepath(
+                self.curr_selection[0])
             # if the folder is a BIDS folder allow it to be uploaded to the
             # archive
             if BIDS_PATTERN.match(fname):
                 self.popup_menu.add_command(
                     label="Upload to archive",
-                    command=lambda: self._upload(fname))
+                    command=lambda: self._upload(fpath))
             # allow any folder to be sent to another location using the
             # BIDSMERGE functionality
-            fpath = self.parent.file_treeview.get_filepath(
-                self.curr_selection[0])
             if path.isdir(fpath):
                 self.popup_menu.add_command(
                     label="Send to...",
@@ -293,20 +292,15 @@ class RightClick():
 
     def _upload(self, src):
         """ Upload the selected file to the MEG_RAW archive """
-        SendFilesWindow(
-            self.parent,
-            self.parent.file_treeview.get_filepath(self.curr_selection[0]),
-            OSCONST.SVR_PATH,
-            set_copied=True)
+        dst = self.parent.settings.get("ARCHIVE_PATH", None)
+        if dst is not None:
+            SendFilesWindow(self.parent, src, dst, set_copied=True)
 
     def _send_to(self, src):
         """ Send the selected folder to another selected location """
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
-            SendFilesWindow(
-                self.parent,
-                self.parent.file_treeview.get_filepath(self.curr_selection[0]),
-                dst)
+            SendFilesWindow(self.parent, src, dst)
 
     def popup(self, event):
         self._add_options()
