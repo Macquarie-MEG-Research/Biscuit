@@ -1,6 +1,6 @@
 import setuptools
 
-VERSION = "1.0.0dev0"
+VERSION = "0.9.0-b1"
 
 DESCRIPTION = "GUI for converting MEG data to BIDS format"
 URL = "https://macquarie-meg-research.github.io/Biscuit/"
