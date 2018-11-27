@@ -1,4 +1,4 @@
-from tkinter import Menu, StringVar, messagebox, simpledialog
+from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
@@ -86,9 +86,20 @@ class RightClick():
                                         command=self._include_cons)
         if len(self.curr_selection) == 1:
             fname = self.parent.file_treeview.get_text(self.curr_selection[0])
+            fpath = self.parent.file_treeview.get_filepath(
+                self.curr_selection[0])
+            # if the folder is a BIDS folder allow it to be uploaded to the
+            # archive
             if BIDS_PATTERN.match(fname):
-                self.popup_menu.add_command(label="Upload to archive",
-                                            command=self._upload)
+                self.popup_menu.add_command(
+                    label="Upload to archive",
+                    command=lambda: self._upload(fpath))
+            # allow any folder to be sent to another location using the
+            # BIDSMERGE functionality
+            if path.isdir(fpath):
+                self.popup_menu.add_command(
+                    label="Send to...",
+                    command=lambda: self._send_to(fpath))
 
     def _ignore_cons(self):
         """
@@ -174,19 +185,25 @@ class RightClick():
                                       "associated with any .con file"))
                         return
                     else:
-                        messagebox.showinfo(
-                            "Select", ("Please select the .con file(s) "
-                                       "associated with this file.\nOnce you "
-                                       "have selected all required files, "
-                                       "right click and press 'associate' "
-                                       "again"))
+                        if self.parent.settings.get(
+                                'SHOW_ASSOC_MESSAGE', True):
+                            messagebox.showinfo(
+                                "Select",
+                                ("Please select the .con file(s) "
+                                 "associated with this file.\nOnce you "
+                                 "have selected all required files, "
+                                 "right click and press 'associate' "
+                                 "again"))
                         self.parent.set_treeview_mode("ASSOCIATE-CON")
                 elif '.CON' in self.context and not self.context.is_mixed:
-                    messagebox.showinfo(
-                        "Select", ("Please select the .mrk file(s) associated "
-                                   "with this file.\nOnce you have selected "
-                                   "all required files, right click and press "
-                                   "'associate' again"))
+                    if self.parent.settings.get(
+                            'SHOW_ASSOC_MESSAGE', True):
+                        messagebox.showinfo(
+                            "Select",
+                            ("Please select the .mrk file(s) associated "
+                             "with this file.\nOnce you have selected "
+                             "all required files, right click and press "
+                             "'associate' again"))
                     self.parent.set_treeview_mode("ASSOCIATE-MRK")
                 else:
                     messagebox.showerror("Error", "Invalid file selection")
@@ -279,11 +296,17 @@ class RightClick():
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
 
-    def _upload(self):
+    def _upload(self, src):
         """ Upload the selected file to the MEG_RAW archive """
-        SendFilesWindow(
-            self.parent,
-            self.parent.file_treeview.get_filepath(self.curr_selection[0]))
+        dst = self.parent.settings.get("ARCHIVE_PATH", None)
+        if dst is not None:
+            SendFilesWindow(self.parent, src, dst, set_copied=True)
+
+    def _send_to(self, src):
+        """ Send the selected folder to another selected location """
+        dst = filedialog.askdirectory(title="Select BIDS folder")
+        if dst != '':
+            SendFilesWindow(self.parent, src, dst)
 
     def popup(self, event):
         self._add_options()

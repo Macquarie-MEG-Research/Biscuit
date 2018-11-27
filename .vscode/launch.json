@@ -11,6 +11,12 @@
             "program": "${file}"
         },
         {
+            "name": "Python: Biscuit",
+            "type": "python",
+            "request": "launch",
+            "program": "C:\\Users\\MQ20184158\\Documents\\Biscuit\\run_biscuit_dev.py"
+        },
+        {
             "name": "Python: Attach",
             "type": "python",
             "request": "attach",

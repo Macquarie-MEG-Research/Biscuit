@@ -151,8 +151,7 @@ class FileTreeview(EnhancedTreeview):
         """ Return the file path corresponding to the provided sid """
         return self.item(sid)['values'][1]
 
-    # TODO: rename to `sid_from_text` once merged into MQ_master
-    def get_sid_from_text(self, text, _all=False):
+    def sid_from_text(self, text, _all=False):
         """ Return the sid(s) in the treeview with the given text
 
         Parameters

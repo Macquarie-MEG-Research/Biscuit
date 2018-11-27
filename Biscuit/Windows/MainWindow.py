@@ -23,13 +23,16 @@ from Biscuit.Management import ClickContext
 from Biscuit.Management.RightClickManager import RightClick
 from Biscuit.Management.InfoManager import InfoManager
 from Biscuit.Management.SaveManager import SaveManager
-from Biscuit.Windows import (SettingsWindow, ProgressPopup, CheckSavePopup,
-                             CreditsPopup)
+from Biscuit.Windows import (ProjectListWindow, ProgressPopup, CheckSavePopup,
+                             CreditsPopup, SettingsWindow)
 from Biscuit.utils.utils import threaded, get_object_class
 from Biscuit.utils.constants import OSCONST
 
+# TODO: move into the SettingsWindow
 DEFAULTSETTINGS = {"DATA_PATH": "",
-                   "SHOW_ASSOC_MESSAGE": True}
+                   "SHOW_ASSOC_MESSAGE": True,
+                   "ARCHIVE_PATH": OSCONST.SVR_PATH,
+                   "CHUNK_FREQ": 2}
 
 
 class MainWindow(Frame):
@@ -184,6 +187,8 @@ class MainWindow(Frame):
         #                              command=self._get_matlab_location)
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
+        self.options_menu.add_command(label="Settings",
+                                      command=self._open_settings)
 
         # info menu
         self.info_menu = Menu(self.menu_bar, tearoff=0)
@@ -194,7 +199,7 @@ class MainWindow(Frame):
         self.info_menu.add_command(label="Help",
                                    command=self._load_help_link)
         self.info_menu.add_command(label="Open Settings Folder",
-                                   command=self._open_settings)
+                                   command=self._open_settings_folder)
 
         # finally, tell the GUI to include the menu bar
         self.master.config(menu=self.menu_bar)
@@ -497,8 +502,8 @@ class MainWindow(Frame):
 
     def _display_defaults_popup(self):
         proj_settings = deepcopy(self.proj_settings)
-        self.options_popup = SettingsWindow(self, self.settings,
-                                            self.proj_settings)
+        self.options_popup = ProjectListWindow(self, self.settings,
+                                               self.proj_settings)
         if proj_settings != self.proj_settings:
             for obj in self.preloaded_data.values():
                 if isinstance(obj, BIDSContainer):
@@ -511,6 +516,10 @@ class MainWindow(Frame):
         open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
 
     def _open_settings(self):
+        # this will modify self.settings with any changed values
+        SettingsWindow(self, self.settings)
+
+    def _open_settings_folder(self):
         webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
 
     def get_selection_info(self):

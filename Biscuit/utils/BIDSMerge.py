@@ -8,7 +8,6 @@ import logging
 
 from Biscuit.utils.copyutils import copy
 
-SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
 BUFFER_SIZE = 1024 * 1024     # 1Mb
 
 PROCESSMAP = {'participants.tsv': 'participants',
@@ -166,10 +165,11 @@ def update_or_add(d, key, value):
 
 def get_projects(fpath):
     """ Get a list of all projects within the specified bids folder """
+    # TODO: make smarter??
     projects = []
     for f in scandir(fpath):
         if f.is_dir():
-            projects.append(f.name)
+            projects.append(path.join(fpath, f.name))
     return projects
 
 
@@ -191,6 +191,7 @@ def md5hash(src):
 
 
 if __name__ == "__main__":
+    SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158"
 
     left = ('C:\\Users\\MQ20184158\\Documents\\MEG data\\'
             'rs_test_data_for_matt\\BIDS-2018-21')

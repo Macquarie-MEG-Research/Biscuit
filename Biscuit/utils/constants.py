@@ -70,8 +70,21 @@ OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
 OSCONST.ICON = 'assets/bisc.png'
 OSCONST.ICON_GIF = 'assets/bisc.gif'
 OSCONST.ICON_REMOVE = "assets/remove.png"
+OSCONST.ICON_LOCK = "assets/lock.png"
 
 # ttk.treeview text size
 OSCONST.TREEVIEW_TEXT_SIZE_WIN = 10
 OSCONST.TREEVIEW_TEXT_SIZE_MAC = 13
 OSCONST.TREEVIEW_TEXT_SIZE_LNX = 12
+
+# server file paths (!TEMPORARY!)
+# TODO: rename the SVR_PATH with the value in MEG_RAW_PATH.
+# (current value is for testing purposes)
+# TODO: add 'BIDS' folder to server and change path to point to it
+OSCONST.MEG_RAW_PATH = "\\\\file.cogsci.mq.edu.au\\MEG_RAW"
+OSCONST.SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158\\BIDS"
+
+# TODO: Not needed/won't work on a mac...
+OSCONST.ACCESS_CMD = 'NET USE "{unc_path}" "{pword}" /USER:"MQAUTH\\{uname}"'
+
+OSCONST.VERSION = '0.9.0-b1'

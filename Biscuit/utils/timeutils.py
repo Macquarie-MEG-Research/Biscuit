@@ -3,17 +3,17 @@
 from datetime import date
 
 
-def day_num():
+def day_num(curr_date):
     """ Returns the day number in the year."""
-    year = date.today().year
-    return (date.today() - date(year, 1, 1)).days + 1
+    year = curr_date.year
+    return (curr_date - date(year, 1, 1)).days + 1
 
 
-def get_fortnight():
-    """ Returns the fortnight number. This will be left padded with 0."""
-    return "{:0>2}".format(day_num() // 14 + 1)
+def get_chunk_num(curr_date, num):
+    """ Returns the chunk number. This will be left padded with 0."""
+    return "{:0>2}".format(day_num(curr_date) // 2 * num + 1)
 
 
-def get_year():
+def get_year(curr_date):
     """ Returns the current year."""
-    return date.today().year
+    return curr_date.year
