@@ -1,7 +1,7 @@
 import pytest
 
 from Biscuit.Management import ClickContext
-from Biscuit.Management.CustomVars import StreamedVar, OptionsVar
+from Biscuit.Management.CustomVars import StreamedVar, OptionsVar, RangeVar
 
 # TODO: actually make these work...
 

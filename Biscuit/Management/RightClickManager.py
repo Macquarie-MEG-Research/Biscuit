@@ -185,19 +185,25 @@ class RightClick():
                                       "associated with any .con file"))
                         return
                     else:
-                        messagebox.showinfo(
-                            "Select", ("Please select the .con file(s) "
-                                       "associated with this file.\nOnce you "
-                                       "have selected all required files, "
-                                       "right click and press 'associate' "
-                                       "again"))
+                        if self.parent.settings.get(
+                                'SHOW_ASSOC_MESSAGE', True):
+                            messagebox.showinfo(
+                                "Select",
+                                ("Please select the .con file(s) "
+                                 "associated with this file.\nOnce you "
+                                 "have selected all required files, "
+                                 "right click and press 'associate' "
+                                 "again"))
                         self.parent.set_treeview_mode("ASSOCIATE-CON")
                 elif '.CON' in self.context and not self.context.is_mixed:
-                    messagebox.showinfo(
-                        "Select", ("Please select the .mrk file(s) associated "
-                                   "with this file.\nOnce you have selected "
-                                   "all required files, right click and press "
-                                   "'associate' again"))
+                    if self.parent.settings.get(
+                            'SHOW_ASSOC_MESSAGE', True):
+                        messagebox.showinfo(
+                            "Select",
+                            ("Please select the .mrk file(s) associated "
+                             "with this file.\nOnce you have selected "
+                             "all required files, right click and press "
+                             "'associate' again"))
                     self.parent.set_treeview_mode("ASSOCIATE-MRK")
                 else:
                     messagebox.showerror("Error", "Invalid file selection")

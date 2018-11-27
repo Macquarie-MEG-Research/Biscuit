@@ -3,13 +3,14 @@ from time import sleep
 import os.path as path
 from os import makedirs
 from tkinter import StringVar
+from datetime import date
 
 from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.Windows import ProgressPopup
 from Biscuit.utils.utils import threaded
 
-from Biscuit.utils.timeutils import get_fortnight, get_year
+from Biscuit.utils.timeutils import get_chunk_num, get_year
 
 
 @threaded
@@ -25,7 +26,13 @@ def convert(container, settings, parent=None):
 
     # Construct a name for storing 2 weeks worth of BIDS formatted data.
     # We chunk into 2 week blocks for ease of uploading to the MEG_RAW archive.
-    subfolder_name = 'BIDS-{0}-{1}'.format(get_year(), get_fortnight())
+    chunk_length = settings.get('CHUNK_FREQ', 2)
+    if chunk_length == 0:
+        subfolder_name = ''
+    else:
+        curr_date = date.today()
+        subfolder_name = 'BIDS-{0}-{1}'.format(
+            get_year(curr_date), get_chunk_num(curr_date, chunk_length))
 
     # Find the SID of the BIDS folder.
     bids_root_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
@@ -39,16 +46,19 @@ def convert(container, settings, parent=None):
             if parent.file_treeview.item(sid)['text'] == 'BIDS':
                 bids_root_folder_sid = sid
                 break
-    # Find the SID of the BIDS sub-folder for the current fortnight
-    if not path.exists(bids_folder_path):
-        bids_folder_sid = parent.file_treeview.ordered_insert(
-            bids_root_folder_sid, text=subfolder_name,
-            values=('', bids_folder_path))
+    if chunk_length != 0:
+        # Find the SID of the BIDS sub-folder for the current chunk
+        if not path.exists(bids_folder_path):
+            bids_folder_sid = parent.file_treeview.ordered_insert(
+                bids_root_folder_sid, text=subfolder_name,
+                values=('', bids_folder_path))
+        else:
+            for sid in parent.file_treeview.get_children(bids_root_folder_sid):
+                if parent.file_treeview.item(sid)['text'] == subfolder_name:
+                    bids_folder_sid = sid
+                    break
     else:
-        for sid in parent.file_treeview.get_children(bids_root_folder_sid):
-            if parent.file_treeview.item(sid)['text'] == subfolder_name:
-                bids_folder_sid = sid
-                break
+        bids_folder_sid = bids_root_folder_sid
 
     # Create variables for the dynamic displaying of the process.
     # We unfortunately cannot get particularly granular or precise progress
@@ -91,11 +101,11 @@ def convert(container, settings, parent=None):
                     # creation of the con file
                     date_vals = job.info['Measurement date'].split('/')
                     date_vals.reverse()
-                    date = ''.join(date_vals)
+                    rec_date = ''.join(date_vals)
                     # TODO: make this more robust?
                     emptyroom_path = ('sub-emptyroom/ses-{0}/meg/'
                                       'sub-emptyroom_ses-{0}_task-'
-                                      'noise_meg.con'.format(date))
+                                      'noise_meg.con'.format(rec_date))
 
                 if job.is_empty_room.get():
                     emptyroom = True

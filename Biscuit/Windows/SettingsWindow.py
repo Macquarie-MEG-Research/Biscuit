@@ -1,11 +1,16 @@
-from tkinter import Toplevel, StringVar, BooleanVar, IntVar, DISABLED, NORMAL
+from tkinter import (Toplevel, StringVar, BooleanVar, IntVar, DISABLED, NORMAL,
+                     Entry)
 from tkinter import Button as tkButton
-from tkinter.ttk import Frame, Label, Button, Checkbutton, Entry
+from tkinter.ttk import Frame, Label, Button, Checkbutton
 import os.path as path
 import pickle
 from PIL import Image, ImageTk
 
 from Biscuit.utils.constants import OSCONST
+from Biscuit.CustomWidgets.InfoEntries import ValidatedEntry
+from Biscuit.Management.wckToolTips import ToolTipManager
+
+ttm = ToolTipManager()
 
 
 class SettingsWindow(Toplevel):
@@ -55,39 +60,57 @@ class SettingsWindow(Toplevel):
 
         assoc_lbl = Label(frame, text="Show association message:")
         assoc_lbl.grid(column=0, row=0, sticky='ew')
+        ttm.register(assoc_lbl,
+                     "Whether or not to show a message with details on how "
+                     "to associate .mrk and .con files.")
         assoc_chk = Checkbutton(frame, variable=self.show_assoc)
-        assoc_chk.grid(column=1, row=0, sticky='ew')
+        assoc_chk.grid(column=1, row=0, columnspan=2, sticky='w', padx=2)
 
-        locked_frame = Frame(frame)
-        locked_frame.grid(row=1, column=0, columnspan=2)
-
-        archive_lbl = Label(locked_frame, text="Archive path:")
-        archive_lbl.grid(column=0, row=0, sticky='ew')
-        self.archive_entry = Entry(locked_frame,
+        archive_lbl = Label(frame, text="Archive path:")
+        archive_lbl.grid(column=0, row=1, sticky='ew')
+        ttm.register(archive_lbl,
+                     "Path to upload data for storage.")
+        self.archive_entry = Entry(frame,
                                    textvariable=self.archive_path,
-                                   state=DISABLED)
-        self.archive_entry.grid(column=1, row=0, sticky='ew')
+                                   state=DISABLED,
+                                   width=50)
+        self.archive_entry.grid(column=1, row=1, columnspan=2, sticky='ew',
+                                padx=2)
 
-        chunk_lbl = Label(locked_frame, text="Chunking frequency:")
-        chunk_lbl.grid(column=0, row=1, sticky='ew')
-        self.chunk_entry = Entry(locked_frame, textvariable=self.chunk_freq,
-                                 state=DISABLED)
-        self.chunk_entry.grid(column=1, row=1, sticky='ew')
+        chunk_lbl = Label(frame, text="Chunking frequency:")
+        chunk_lbl.grid(column=0, row=2, sticky='ew')
+        ttm.register(chunk_lbl,
+                     "How often to create a new BIDS folder locally.\n"
+                     "For personal use this should be 0, indicating no "
+                     "chunking.\nFor use in a lab this should be set the "
+                     "frequency at which\nthe data is expected to be "
+                     "backed up to an external archive if that occurs.\n"
+                     "WARNING! This should be set up when first setting up"
+                     "Biscuit.\nChanging wid-way through a year can have"
+                     "unintended side-effects.")
+        self.chunk_entry = ValidatedEntry(frame,
+                                          textvariable=self.chunk_freq,
+                                          state=DISABLED,
+                                          force_dtype='int')
+        self.chunk_entry.grid(column=1, row=2, padx=2, sticky='ew')
+        week_lbl = Label(frame, text="(weeks)")
+        week_lbl.grid(column=2, row=2, sticky='e')
 
         unlock_archive_btn = tkButton(frame, relief='flat', borderwidth=0,
                                       highlightthickness=0, takefocus=0,
                                       command=self._unlock_settings)
         unlock_archive_btn.config(image=self.lock_icon)
-        unlock_archive_btn.grid(column=2, row=0, rowspan=2, padx=2,
-                                sticky='ns')
+        unlock_archive_btn.grid(column=3, row=1, rowspan=2, padx=2,
+                                sticky='nsew')
 
         exit_btn = Button(frame, text="Save and Exit",
                           command=self.save_and_exit)
-        exit_btn.grid(column=0, row=2)
+        exit_btn.grid(column=0, row=3)
 
-        locked_frame.grid_columnconfigure(0, weight=0)
-        locked_frame.grid_columnconfigure(1, weight=1)
-        locked_frame.grid_columnconfigure(2, weight=0)
+        frame.grid_columnconfigure(0, weight=0)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_columnconfigure(2, weight=0)
+        frame.grid_columnconfigure(3, weight=0)
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(0, weight=1)
@@ -108,6 +131,9 @@ class SettingsWindow(Toplevel):
         self.destroy()
 
     def _write_settings(self):
+        self.settings['SHOW_ASSOC_MESSAGE'] = self.show_assoc.get()
+        self.settings['ARCHIVE_PATH'] = self.archive_path.get()
+        self.settings['CHUNK_FREQ'] = self.chunk_freq.get()
         with open(self.settings_file, 'wb') as settings:
             print('writing settings')
             pickle.dump(self.settings, settings)

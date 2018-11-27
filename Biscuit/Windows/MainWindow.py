@@ -516,6 +516,7 @@ class MainWindow(Frame):
         open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
 
     def _open_settings(self):
+        # this will modify self.settings with any changed values
         SettingsWindow(self, self.settings)
 
     def _open_settings_folder(self):
