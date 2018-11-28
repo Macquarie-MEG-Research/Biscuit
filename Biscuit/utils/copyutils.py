@@ -64,10 +64,10 @@ def copyfileobj(fsrc, fdst, length=1024 * 1024, tracker=None, verify=False):
 
 
 def copyfile(src, dst, *, follow_symlinks=True, tracker=None, verify=False):
-    #Copy data from src to dst.
+    # Copy data from src to dst.
 
-    #If follow_symlinks is not set and src is a symbolic link, a new
-    #symlink will be created instead of copying the file it points to.
+    # If follow_symlinks is not set and src is a symbolic link, a new
+    # symlink will be created instead of copying the file it points to.
 
     if _samefile(src, dst):
         raise SameFileError("{!r} and {!r} are the same file".format(src, dst))
@@ -117,15 +117,17 @@ def copymode(src, dst, *, follow_symlinks=True):
 
 
 def copy(src, dst, *, follow_symlinks=True, tracker=None, verify=False):
-    #Copy data and mode bits ("cp src dst"). Return the file's destination.
+    """
+    Copy data and mode bits ("cp src dst"). Return the file's destination.
 
-    #The destination may be a directory.
+    The destination may be a directory.
 
-    #If follow_symlinks is false, symlinks won't be followed. This
-    #resembles GNU's "cp -P src dst".
+    If follow_symlinks is false, symlinks won't be followed. This
+    resembles GNU's "cp -P src dst".
 
-    #If source and destination are the same file, a SameFileError will be
-    #raised.
+    If source and destination are the same file, a SameFileError will be
+    raised.
+    """
 
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
