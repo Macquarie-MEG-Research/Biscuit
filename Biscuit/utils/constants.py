@@ -87,4 +87,4 @@ OSCONST.SVR_PATH = "\\\\file.cogsci.mq.edu.au\\Homes\\mq20184158\\BIDS"
 # TODO: Not needed/won't work on a mac...
 OSCONST.ACCESS_CMD = 'NET USE "{unc_path}" "{pword}" /USER:"MQAUTH\\{uname}"'
 
-OSCONST.VERSION = '0.9.0-b1'
+OSCONST.VERSION = 'v0.9.0-b1'
