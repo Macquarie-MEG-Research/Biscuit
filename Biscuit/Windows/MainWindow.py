@@ -520,6 +520,7 @@ class MainWindow(Frame):
         SettingsWindow(self, self.settings)
 
     def _open_settings_folder(self):
+        # TODO: doesn't work on linux...
         webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
 
     def get_selection_info(self):

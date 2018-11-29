@@ -135,5 +135,4 @@ class SettingsWindow(Toplevel):
         self.settings['ARCHIVE_PATH'] = self.archive_path.get()
         self.settings['CHUNK_FREQ'] = self.chunk_freq.get()
         with open(self.settings_file, 'wb') as settings:
-            print('writing settings')
             pickle.dump(self.settings, settings)
