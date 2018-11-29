@@ -19,6 +19,9 @@ setuptools.setup(
     include_package_data=True,
     download_url=DOWNLOAD_URL,
     packages=setuptools.find_packages(),
+    # TODO: may not work on linux?
+    install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'Pygments',
+                      'Pillow', 'mne', 'requests'],
     license="MIT",
     platform="any",
     classifiers=[

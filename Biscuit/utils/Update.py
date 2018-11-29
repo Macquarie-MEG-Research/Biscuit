@@ -1,5 +1,6 @@
 import sys
 import subprocess
+
 import requests
 
 # TODO: figure out how to run as admin/only allow when run by admin??
@@ -22,6 +23,7 @@ def do_update(data):
     if asset is not None:
         whl_url = asset['browser_download_url']
 
+    # get the current version of python running
     python_path = sys.executable
 
     subprocess.run([python_path, '-m', 'pip', 'install', '-U', whl_url])

@@ -4,6 +4,7 @@ from webbrowser import open_new as open_hyperlink
 
 from Biscuit.utils.constants import OSCONST
 from Biscuit.utils.Update import get_latest_release, do_update
+from Biscuit.utils.version import Version
 from Biscuit.Management.tkHyperlinkManager import HyperlinkManager
 
 
@@ -62,9 +63,15 @@ class CreditsPopup(Toplevel):
 
     def _check_for_updates(self):
         latest_release = get_latest_release()
-        latest_version = latest_release['tag_name']
-        if latest_version != OSCONST.VERSION:
-            do_update(latest_release)
+        latest_version = latest_release.get('tag_name', 'v0.0.0.0')
+        latest_version = Version.from_repr(latest_version)
+        if latest_version > Version.from_repr(OSCONST.VERSION):
+            if messagebox.askyesno("Update Biscuit",
+                                   "Would you like to update Biscuit to the "
+                                   "most recent version? "
+                                   "({0})".format(str(latest_version)),
+                                   parent=self):
+                do_update(latest_release)
             # TODO: will need to have biscuit close and re-open to apply update
         else:
             messagebox.showinfo("Up to date!", "Biscuit is up to date.",
