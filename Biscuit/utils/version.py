@@ -22,16 +22,19 @@ class Version():
     def __gt__(self, other):
         if self.major > other.major:
             return True
-        if self.minor > other.minor:
-            return True
-        if self.revision > other.revision:
-            return True
-        if self.build > other.build:
-            return True
+        elif self.major == other.major:
+            if self.minor > other.minor:
+                return True
+            elif self.minor == other.minor:
+                if self.revision > other.revision:
+                    return True
+                elif self.revision == other.revision:
+                    if self.build > other.build:
+                        return True
         return False
 
     def __lt__(self, other):
-        return not (other > self)
+        return not (self > other)
 
     def __ge__(self, other):
         return (self == other) & (self > other)

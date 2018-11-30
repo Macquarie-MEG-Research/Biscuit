@@ -36,7 +36,7 @@ class OSConstMap():
 
 OSCONST = OSConstMap()
 
-OSCONST.VERSION = 'v0.9.0-b2'
+OSCONST.VERSION = 'v0.9.1'
 
 # tkinter.canvas background colour
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')
