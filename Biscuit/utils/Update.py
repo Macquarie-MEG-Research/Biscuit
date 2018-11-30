@@ -1,9 +1,8 @@
 import sys
 import subprocess
+from platform import system as os_name
 
 import requests
-
-# TODO: figure out how to run as admin/only allow when run by admin??
 
 git_api = 'https://api.github.com'
 owner = 'Macquarie-MEG-Research'
@@ -26,4 +25,22 @@ def do_update(data):
     # get the current version of python running
     python_path = sys.executable
 
-    subprocess.run([python_path, '-m', 'pip', 'install', '-U', whl_url])
+    update_args = ['-m', 'pip', 'install', '-U', whl_url]
+
+    if os_name() == 'Windows':
+        # code c/o Martin De la Fuente from Stackoverflow:
+        # https://stackoverflow.com/a/41930586
+        # we want to elevate the privileges:
+        import ctypes
+
+        def is_admin():
+            return ctypes.windll.shell32.IsUserAnAdmin()
+
+        if is_admin():
+            subprocess.run([python_path] + update_args)
+        else:
+            ctypes.windll.shell32.ShellExecuteW(
+                None, 'runas', python_path, ' '.join(update_args), None, 1)
+    else:
+        # TODO: figure out for linux and mac?
+        subprocess.run([python_path] + update_args)
