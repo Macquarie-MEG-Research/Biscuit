@@ -161,7 +161,7 @@ class MainWindow(Frame):
             # get the user to enter a new path
             self._get_data_location_initial()
 
-        #if not path.exists(self.settings["MATLAB_PATH"]):
+        # if not path.exists(self.settings["MATLAB_PATH"]):
         #    self._get_matlab_location()
 
     def _write_settings(self):
@@ -183,7 +183,7 @@ class MainWindow(Frame):
         # add options to the options menu:
         self.options_menu.add_command(label="Set data directory",
                                       command=self._get_data_location)
-        #self.options_menu.add_command(label="Matlab path",
+        # self.options_menu.add_command(label="Matlab path",
         #                              command=self._get_matlab_location)
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
@@ -230,8 +230,8 @@ class MainWindow(Frame):
         self.file_treeview.column("dtype", width=50, minwidth=35,
                                   stretch=False)
 
-        #self.file_treeview.bind('<ButtonPress-1>', self.column_check)
-        #self.file_treeview.bind("<B1-Motion>", self.column_drag, add='+')
+        # self.file_treeview.bind('<ButtonPress-1>', self.column_check)
+        # self.file_treeview.bind("<B1-Motion>", self.column_drag, add='+')
 
         self.file_treeview.pack(side=LEFT, fill=BOTH, expand=1)
         treeview_frame.grid(column=0, row=0, sticky="nsew")
@@ -333,8 +333,8 @@ class MainWindow(Frame):
         tag_list = ['ASSOC_FILES']
         for tag in tag_list:
             for sid in self.file_treeview.tag_has(tag):
-                #tags = self.file_treeview.item(sid)['tags']
-                #tags.remove(tag)
+                # tags = self.file_treeview.item(sid)['tags']
+                # tags.remove(tag)
                 self.file_treeview.item(sid, tags=[])
 
     # might want to make this function a bit more general to apply and remove
@@ -520,6 +520,7 @@ class MainWindow(Frame):
         SettingsWindow(self, self.settings)
 
     def _open_settings_folder(self):
+        # TODO: doesn't work on linux...
         webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
 
     def get_selection_info(self):

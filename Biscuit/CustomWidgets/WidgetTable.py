@@ -68,8 +68,8 @@ class WidgetTable(Frame):
                  remove_script=None, sort_column=None, *args, **kwargs):
         self.master = master
 
-        #s = Style(self.master)
-        #s.configure('proper.TEntry', background='green')
+        # s = Style(self.master)
+        # s.configure('proper.TEntry', background='green')
 
         super(WidgetTable, self).__init__(self.master, *args, **kwargs)
 
@@ -405,31 +405,31 @@ class WidgetTable(Frame):
                 if issubclass(w, Label):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             textvariable=var['var'],
                             **var.get('configs', dict()))
                     else:
-                        apply = lambda wgt, var: wgt.configure(
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             textvariable=var)
                 if issubclass(w, tkEntry):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             textvariable=var['var'], **self.entry_config,
                             **var.get('configs', dict()))
                     else:
-                        apply = lambda wgt, var: wgt.configure(
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             textvariable=var, **self.entry_config)
                 if issubclass(w, Checkbutton):
                     # check underlying data type to provide correct function
                     if isinstance(self.pattern[column], dict):
-                        apply = lambda wgt, var: wgt.configure(
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             variable=var['var'], command=var.get('func', None),
                             **var.get('configs', dict()))
                     else:
-                        apply = lambda wgt, var: wgt.configure(variable=var)
+                        apply = lambda wgt, var: wgt.configure(variable=var)  # noqa: E731,E501
                 elif issubclass(w, Button):
-                    apply = lambda wgt, var: wgt.configure(text=var['text'],
+                    apply = lambda wgt, var: wgt.configure(text=var['text'],  # noqa: E731,E501
                                                            command=var['func'])
                 elif issubclass(w, Combobox):
                     # we will be assuming that the underlying data type is an
@@ -438,7 +438,7 @@ class WidgetTable(Frame):
                         wgt.configure(values=var.options, state='readonly')
                         wgt.set(var.get())
                         # set the selection binding
-                        select_value = lambda e, w=wgt: var.set(wgt.get())
+                        select_value = lambda e, w=wgt: var.set(wgt.get())  # noqa: E731,E501
                         wgt.bind("<<ComboboxSelected>>", select_value)
             except TypeError:
                 print('unsupported Widget Type??')

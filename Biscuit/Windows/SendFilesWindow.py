@@ -40,7 +40,6 @@ class SendFilesWindow(Toplevel):
         if master.winfo_viewable():
             self.transient(master)
 
-        # TODO: make dynamic??
         self.title('Transfer files')
 
         # define some variables we need
@@ -127,7 +126,7 @@ class SendFilesWindow(Toplevel):
         """ Check whether or not the user is authenicated to write to the
         archive
         """
-        # TODO: make more generic?
+        # TODO: make more generic? (and check if this even works???)
         auth = dict()
         if not os.access(OSCONST.MEG_RAW_PATH, os.W_OK):
             # create a popup to get the username and password
