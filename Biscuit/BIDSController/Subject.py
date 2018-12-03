@@ -5,6 +5,7 @@ import pandas as pd
 
 from Biscuit.BIDSController.BIDSErrors import IDError, MappingError
 from Biscuit.BIDSController.Session import Session
+from Biscuit.BIDSController.Scan import Scan
 
 
 class Subject():
@@ -12,8 +13,8 @@ class Subject():
         self.path = fpath
         self._id = self._get_id(fpath)
         self.project = project
-        # list of contained sessions
-        self._sessions = []
+        # Contained sessions
+        self._sessions = dict()
 
         self.age = 'n/a'
         self.sex = 'n/a'
@@ -29,11 +30,16 @@ class Subject():
         for file in listdir(self.path):
             full_path = op.join(self.path, file)
             if op.isdir(full_path) and 'ses' in file:
-                self._sessions.append(Session(full_path, self))
+                s = Session(full_path, self)
+                self._sessions[s._id] = s
 
     @property
     def sessions(self):
-        return self._sessions
+        return list(self._sessions.values())
+
+    @sessions.setter
+    def sessions(self, other):
+        self.add(other)
 
     @property
     def ID(self):
@@ -53,6 +59,18 @@ class Subject():
                 break
         pass
 
+    def add(self, other, do_copy=True):
+        """Add another Session or Scan to this object."""
+        if isinstance(other, Session):
+            if (self._id == other.subject._id and
+                    self.project._id == other.project._id):
+                self._sessions[other._id] = other
+        elif isinstance(other, Scan):
+            if (self._id == other.subject._id and
+                    self.project._id == other.project._id and
+                    other.session._id in self._sessions):
+                self._sessions[other.session._id].add(other, do_copy)
+
     def _check(self):
         if len(self._sessions) == 0:
             raise MappingError
@@ -67,11 +85,7 @@ class Subject():
         return '\n'.join(output)
 
     def __iter__(self):
-        return iter(self._sessions)
-
-    @classmethod
-    def from_path(cls, fpath):
-        pass
+        return iter(self._sessions.values())
 
     @staticmethod
     def _get_id(identifier):

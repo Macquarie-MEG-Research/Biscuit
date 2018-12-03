@@ -1,4 +1,5 @@
 from os.path import splitext
+import pandas as pd
 
 
 def get_bids_params(fname):
@@ -26,6 +27,15 @@ def bids_params_are_subsets(params1, params2):
                 return False
         return True
     return False
+
+
+def merge_tsv(tsv1, tsv2):
+    # TODO: make much better...
+    """Merge tsv2 into tsv1."""
+    df1 = pd.read_csv(tsv1, sep='\t')
+    df2 = pd.read_csv(tsv2, sep='\t')
+    df = df1.append(df2)
+    df.to_csv(tsv1, sep='\t', index=False, na_rep='n/a', encoding='utf-8')
 
 
 if __name__ == "__main__":

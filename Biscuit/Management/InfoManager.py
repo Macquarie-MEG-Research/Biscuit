@@ -121,6 +121,7 @@ class InfoManager(Notebook):
             self.display_tabs(T_MRK)
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
+
             if hasattr(self.data[0], 'contains_required_files'):
                 if self.data[0].contains_required_files:
                     # only update the session info tab if the data is valid

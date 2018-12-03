@@ -6,6 +6,7 @@ from Biscuit.FileTypes import con_file, Folder
 from Biscuit.utils.utils import create_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 from Biscuit.BIDSController.BIDSController import find_projects
+from Biscuit.BIDSController.BIDSFolder import BIDSFolder
 
 """
 TODO:
@@ -321,9 +322,9 @@ class RightClick():
         BIDSController.Project object. If this isn't possible an error will be
         raised stating this.
         """
-        contained_projs = find_projects(
+        bids_folder = BIDSFolder(
             self.parent.file_treeview.get_filepath(self.curr_selection[0]))
-        if contained_projs == []:
+        if bids_folder.projects == []:
             # Ie. no valid data
             messagebox.showerror(
                 "Not valid",
@@ -331,10 +332,8 @@ class RightClick():
                 "data.\nPlease select a folder containing BIDS-formatted "
                 "data.")
         else:
-            self.parent.info_notebook.display_tabs('bids_tab')
-            self.parent.info_notebook.bids_tab.set_text("Valid!!")
             # now we need to assign all the data to the filetree...
-            for project in contained_projs:
+            for project in bids_folder:
                 sid = self.parent.file_treeview.sid_from_filepath(
                     project.path)
                 self.parent.preloaded_data[sid] = project
@@ -347,7 +346,8 @@ class RightClick():
                             session.path)
                         self.parent.preloaded_data[sid] = session
             # finally modify the Folder object to be specified as a BIDS folder
-            self.parent.preloaded_data[self.curr_selection[0]].is_bids = True
+            self.parent.preloaded_data[self.curr_selection[0]] = bids_folder
+            self.parent.info_notebook.data = [bids_folder]
 
     def popup(self, event):
         self._add_options()

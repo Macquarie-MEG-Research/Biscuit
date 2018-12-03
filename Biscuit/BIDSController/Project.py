@@ -2,14 +2,18 @@ import os.path as op
 from os import listdir
 
 from Biscuit.BIDSController.Subject import Subject
+from Biscuit.BIDSController.Session import Session
+from Biscuit.BIDSController.Scan import Scan
 from Biscuit.BIDSController.BIDSErrors import (NoSubjectError, IDError,
                                                MappingError)
+from Biscuit.BIDSController.utils import merge_tsv
 
 
 class Project():
     def __init__(self, fpath):
         self._id = op.basename(fpath)
         self.path = fpath
+        self.participants_tsv = None
         self._subjects = dict()
         self.subject_ids = []
         self.description = 'None'
@@ -40,6 +44,27 @@ class Project():
     @property
     def subjects(self):
         return list(self._subjects.values())
+
+    @subjects.setter
+    def subjects(self, other):
+        self.add(other)
+
+    def add(self, other, do_copy=True):
+        """Add another Subject, Session or Scan to this object."""
+        if isinstance(other, Subject):
+            if (self._id == other.project._id):
+                self._subjects[other.subject._id] = other
+                # TODO: get subject info and write into the participants.tsv
+        if isinstance(other, Session):
+            if (self._id == other.project._id and
+                    other.subject._id in self._subjects):
+                self._subjects[other.subject._id].add(other, do_copy)
+        elif isinstance(other, Scan):
+            if (self._id == other.project._id and
+                    other.subject._id in self._subjects and
+                    other.session._id in
+                    self._subjects[other.subject._id]._sessions):
+                self._subjects[other.subject._id]._sessions.add(other, do_copy)
 
     def _check(self):
         """Check that there aren't no subjects."""
