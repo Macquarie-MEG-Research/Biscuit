@@ -2,9 +2,10 @@ from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
-from Biscuit.FileTypes import con_file
+from Biscuit.FileTypes import con_file, Folder
 from Biscuit.utils.utils import create_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
+from Biscuit.BIDSController.BIDSController import find_projects
 
 """
 TODO:
@@ -100,6 +101,11 @@ class RightClick():
                 self.popup_menu.add_command(
                     label="Send to...",
                     command=lambda: self._send_to(fpath))
+                if isinstance(self.parent.preloaded_data.get(
+                        self.curr_selection[0], None), Folder):
+                    self.popup_menu.add_command(
+                        label="Assign as BIDS folder",
+                        command=self._toggle_bids_folder)
 
     def _ignore_cons(self):
         """
@@ -297,16 +303,51 @@ class RightClick():
                     self.parent.set_treeview_mode("NORMAL")
 
     def _upload(self, src):
-        """ Upload the selected file to the MEG_RAW archive """
+        """Upload the selected file to the MEG_RAW archive."""
         dst = self.parent.settings.get("ARCHIVE_PATH", None)
         if dst is not None:
             SendFilesWindow(self.parent, src, dst, set_copied=True)
 
     def _send_to(self, src):
-        """ Send the selected folder to another selected location """
+        """Send the selected folder to another selected location."""
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
             SendFilesWindow(self.parent, src, dst)
+
+    def _toggle_bids_folder(self):
+        """Assign the selected folder as a BIDS-formatted folder.
+
+        This will attempt to load the selected folder into a
+        BIDSController.Project object. If this isn't possible an error will be
+        raised stating this.
+        """
+        contained_projs = find_projects(
+            self.parent.file_treeview.get_filepath(self.curr_selection[0]))
+        if contained_projs == []:
+            # Ie. no valid data
+            messagebox.showerror(
+                "Not valid",
+                "The folder you selected is does not contain valid BIDS "
+                "data.\nPlease select a folder containing BIDS-formatted "
+                "data.")
+        else:
+            self.parent.info_notebook.display_tabs('bids_tab')
+            self.parent.info_notebook.bids_tab.set_text("Valid!!")
+            # now we need to assign all the data to the filetree...
+            for project in contained_projs:
+                sid = self.parent.file_treeview.sid_from_filepath(
+                    project.path)
+                self.parent.preloaded_data[sid] = project
+                for subject in project:
+                    sid = self.parent.file_treeview.sid_from_filepath(
+                        subject.path)
+                    self.parent.preloaded_data[sid] = subject
+                    for session in subject:
+                        sid = self.parent.file_treeview.sid_from_filepath(
+                            session.path)
+                        self.parent.preloaded_data[sid] = session
+            # finally modify the Folder object to be specified as a BIDS folder
+            self.parent.preloaded_data[self.curr_selection[0]].is_bids = True
 
     def popup(self, event):
         self._add_options()

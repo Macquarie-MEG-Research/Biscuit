@@ -240,7 +240,7 @@ class MainWindow(Frame):
         # frame for the notebook panel
         notebook_frame = Frame(self.pw)
         self.info_notebook = InfoManager(notebook_frame, self, self.context)
-        self.info_notebook.determine_tabs()     # maybe wrap??
+        self.info_notebook.determine_tabs()
         self.info_notebook.pack(side=LEFT, fill=BOTH, expand=1)
         notebook_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -406,11 +406,9 @@ class MainWindow(Frame):
         for id_ in sids:
             data = self.preloaded_data.get(id_, None)
             if data is not None:
-                if not data.loaded:
-                    data.load_data()
-                else:
-                    # data is already preloaded. Move onto the next id
-                    continue
+                if hasattr(data, 'loaded'):
+                    if not data.loaded:
+                        data.load_data()
             else:
                 ext, path_ = self.file_treeview.item(id_)['values']
                 if path.isdir(path_):

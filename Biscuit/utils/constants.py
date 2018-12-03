@@ -36,7 +36,8 @@ class OSConstMap():
 
 OSCONST = OSConstMap()
 
-OSCONST.VERSION = 'v0.9.1'
+# TODO: replace this with just Biscuit.__version__??
+OSCONST.VERSION = 'v0.9.2'
 
 # tkinter.canvas background colour
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')

@@ -1,5 +1,17 @@
 class Version():
-    """ Version object to allow for accurate comparisons of version numbers"""
+    """ Version object to allow for accurate comparisons of version numbers
+    
+    Parameters
+    ----------
+    major : int
+        Major version number.
+    minor : int
+        Minor version number.
+    revision : int
+        Revision number.
+    build : int
+        Build number. (Generally not needed)
+    """
     def __init__(self, major=0, minor=0, revision=0, build=0):
         self.major = major
         self.minor = minor
