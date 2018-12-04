@@ -38,5 +38,10 @@ def merge_tsv(tsv1, tsv2):
     df.to_csv(tsv1, sep='\t', index=False, na_rep='n/a', encoding='utf-8')
 
 
+def copyfiles(src_files, dst):
+    print(src_files)
+    print(dst)
+
+
 if __name__ == "__main__":
     print(get_bids_params('sub-1111_ses-aab_scans'))

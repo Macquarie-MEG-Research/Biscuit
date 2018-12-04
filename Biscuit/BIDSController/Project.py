@@ -1,18 +1,20 @@
 import os.path as op
 from os import listdir
+from collections import OrderedDict
+
+import pandas as pd
 
 from Biscuit.BIDSController.Subject import Subject
 from Biscuit.BIDSController.Session import Session
 from Biscuit.BIDSController.Scan import Scan
-from Biscuit.BIDSController.BIDSErrors import (NoSubjectError, IDError,
-                                               MappingError)
-from Biscuit.BIDSController.utils import merge_tsv
+from Biscuit.BIDSController.BIDSErrors import NoSubjectError, MappingError
+from Biscuit.BIDSController.utils import copyfiles
 
 
 class Project():
-    def __init__(self, fpath):
-        self._id = op.basename(fpath)
-        self.path = fpath
+    def __init__(self, id_, bids_folder):
+        self.ID = id_
+        self.bids_folder = bids_folder
         self.participants_tsv = None
         self._subjects = dict()
         self.subject_ids = []
@@ -22,24 +24,75 @@ class Project():
 
         self._check()
 
+#region public methods
+
+    def add(self, other, mode='copy', copier=copyfiles):
+        """Add another Subject, Session or Scan to this object."""
+        # !IMPORTANT! file copying MUST occur before instantiation of the
+        # new object
+        if isinstance(other, Subject):
+            if self.ID == other.project.ID:
+                # add the other subject to the list of subjects.
+                if mode == 'copy':
+                    subject = other.copy(self)
+                else:
+                    other.project = self
+                    subject = other
+                self._subjects[other.subject.ID] = subject
+                # merge the subject data into the participants.tsv file.
+                df = pd.read_csv(self.participants_tsv, sep='\t')
+                other_sub_df = pd.DataFrame(
+                    OrderedDict([
+                        ('participant_id', other.ID),
+                        ('age', other.age),
+                        ('sex', other.sex),
+                        ('group', other.group)]),
+                    columns=['participant_id', 'age', 'sex', 'group'])
+                df = df.append(other_sub_df)
+                df.to_csv(self.participants_tsv, sep='\t', index=False,
+                          na_rep='n/a', encoding='utf-8')
+        if isinstance(other, Session):
+            if (self.ID == other.project.ID and
+                    other.subject.ID in self._subjects):
+                self._subjects[other.subject.ID].add(other, mode, copier)
+        elif isinstance(other, Scan):
+            if (self.ID == other.project.ID and
+                    other.subject.ID in self._subjects and
+                    other.session.ID in
+                    self._subjects[other.subject.ID]._sessions):
+                self._subjects[other.subject.ID]._sessions.add(other, mode,
+                                                               copier)
+
     def add_subjects(self):
-        """Add all the subjects with the folder to the Project."""
-        for f in listdir(self.path):
-            full_path = op.join(self.path, f)
-            if op.isdir(full_path) and 'sub-' in f:
-                sub_id = f.split('-')[1]
-                self._subjects[sub_id] = Subject(full_path, self)
+        """Add all the subjects in the folder to the Project."""
+        for fname in listdir(self.path):
+            full_path = op.join(self.path, fname)
+            # TODO: use utils.get_bids_params?
+            if op.isdir(full_path) and 'sub-' in fname:
+                sub_id = fname.split('-')[1]
+                self._subjects[sub_id] = Subject(sub_id, self)
+            elif fname == 'participants.tsv':
+                self.participants_tsv = full_path
 
     def subject(self, sid):
         try:
             self._subjects[sid]
         except KeyError:
             raise NoSubjectError("Subject {0} doesn't exist in "
-                                 "project {1}".format(sid, self._id))
+                                 "project {1}".format(sid, self.ID))
 
     def query(self, **kwargs):
         # return any data within the project that matches the kwargs given.
         pass
+
+#region private methods
+
+    def _check(self):
+        """Check that there aren't no subjects."""
+        if len(self._subjects) == 0:
+            raise MappingError
+
+#region properties
 
     @property
     def subjects(self):
@@ -49,38 +102,23 @@ class Project():
     def subjects(self, other):
         self.add(other)
 
-    def add(self, other, do_copy=True):
-        """Add another Subject, Session or Scan to this object."""
-        if isinstance(other, Subject):
-            if (self._id == other.project._id):
-                self._subjects[other.subject._id] = other
-                # TODO: get subject info and write into the participants.tsv
-        if isinstance(other, Session):
-            if (self._id == other.project._id and
-                    other.subject._id in self._subjects):
-                self._subjects[other.subject._id].add(other, do_copy)
-        elif isinstance(other, Scan):
-            if (self._id == other.project._id and
-                    other.subject._id in self._subjects and
-                    other.session._id in
-                    self._subjects[other.subject._id]._sessions):
-                self._subjects[other.subject._id]._sessions.add(other, do_copy)
+    @property
+    def path(self):
+        """Determine path location based on parent paths."""
+        return op.join(self.bids_folder.path, self.ID)
 
-    def _check(self):
-        """Check that there aren't no subjects."""
-        if len(self._subjects) == 0:
-            raise MappingError
+#region class methods
 
     def __repr__(self):
         output = []
-        output.append('ProjectID: {0}'.format(self._id))
-        output.append('Num subjects: {0}'.format(len(self.subjects)))
+        output.append('Project ID: {0}'.format(self.ID))
+        output.append('Number of subjects: {0}'.format(len(self.subjects)))
         return '\n'.join(output)
 
     def __contains__(self, other):
         """ other: instance of Subject """
         if isinstance(other, Subject):
-            sid = Subject.ID
+            sid = other.ID
             if sid in self.subject_ids:
                 return True
         else:
@@ -88,13 +126,3 @@ class Project():
 
     def __iter__(self):
         return iter(self._subjects.values())
-
-    @staticmethod
-    def _get_id(identifier):
-        """Get the ID from the file path."""
-        name = op.basename(identifier)
-        split_name = name.split('-')
-        if split_name[0] == 'sub':
-            return split_name[1]
-        else:
-            raise IDError

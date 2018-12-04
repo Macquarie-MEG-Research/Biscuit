@@ -14,6 +14,8 @@ class BIDSFolder():
         self._projects = []
         self.determine_content()
 
+#region public methods
+
     def determine_content(self):
         """ return a list of all the BIDS projects in the specified folder """
         proj_list = []
@@ -21,7 +23,7 @@ class BIDSFolder():
             for f in listdir(self.path):
                 full_path = os.path.join(self.path, f)
                 if os.path.isdir(full_path):
-                    proj_list.append(Project(full_path))
+                    proj_list.append(Project(f, self))
         except MappingError:
             self._projects = []
         self._projects = proj_list
@@ -47,9 +49,13 @@ class BIDSFolder():
         if isinstance(other, Scan):
             print('scan')
 
+#region properties
+
     @property
     def projects(self):
         return self._projects
+
+#region class methods
 
     def __repr__(self):
         return "BIDS folder containing {0} projects".format(len(self.projects))
