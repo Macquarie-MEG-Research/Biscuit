@@ -3,7 +3,7 @@ import os.path as op
 
 import pandas as pd
 
-from Biscuit.BIDSController.BIDSErrors import MappingError
+from Biscuit.BIDSController.BIDSErrors import MappingError, NoSessionError
 from Biscuit.BIDSController.Session import Session
 from Biscuit.BIDSController.Scan import Scan
 from Biscuit.BIDSController.utils import copyfiles
@@ -93,6 +93,22 @@ class Subject():
     def copy(self, project):
         """Return a new instance of this Subject with the new project."""
         return Subject(self.ID, project)
+
+    def contained_files(self):
+        """Get the list of contained files."""
+        file_list = set()
+        for session in self.sessions:
+            file_list.update(session.contained_files())
+        return file_list
+
+    def session(self, id_):
+        try:
+            return self._sessions[str(id_)]
+        except KeyError:
+            raise NoSessionError(
+                "Session {0} doesn't exist in projesubjectct {1}. "
+                "Possible sessions: {2}".format(id_, self.ID,
+                                                list(self._sessions.keys())))
 
 #region private methods
 

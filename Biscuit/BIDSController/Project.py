@@ -8,7 +8,7 @@ from Biscuit.BIDSController.Subject import Subject
 from Biscuit.BIDSController.Session import Session
 from Biscuit.BIDSController.Scan import Scan
 from Biscuit.BIDSController.BIDSErrors import NoSubjectError, MappingError
-from Biscuit.BIDSController.utils import copyfiles
+from Biscuit.BIDSController.utils import copyfiles, realize_paths
 
 
 class Project():
@@ -17,7 +17,6 @@ class Project():
         self.bids_folder = bids_folder
         self.participants_tsv = None
         self._subjects = dict()
-        self.subject_ids = []
         self.description = 'None'
 
         self.add_subjects()
@@ -32,6 +31,18 @@ class Project():
         # new object
         if isinstance(other, Subject):
             if self.ID == other.project.ID:
+                # merge the subject data into the participants.tsv file.
+                df = pd.read_csv(self.participants_tsv, sep='\t')
+                other_sub_df = pd.DataFrame(
+                    OrderedDict([
+                        ('participant_id', ['sub-{0}'.format(other.ID)]),
+                        ('age', [other.age]),
+                        ('sex', [other.sex]),
+                        ('group', [other.group])]),
+                    columns=['participant_id', 'age', 'sex', 'group'])
+                df = df.append(other_sub_df)
+                df.to_csv(self.participants_tsv, sep='\t', index=False,
+                          na_rep='n/a', encoding='utf-8')
                 # add the other subject to the list of subjects.
                 if mode == 'copy':
                     subject = other.copy(self)
@@ -39,18 +50,6 @@ class Project():
                     other.project = self
                     subject = other
                 self._subjects[other.subject.ID] = subject
-                # merge the subject data into the participants.tsv file.
-                df = pd.read_csv(self.participants_tsv, sep='\t')
-                other_sub_df = pd.DataFrame(
-                    OrderedDict([
-                        ('participant_id', other.ID),
-                        ('age', other.age),
-                        ('sex', other.sex),
-                        ('group', other.group)]),
-                    columns=['participant_id', 'age', 'sex', 'group'])
-                df = df.append(other_sub_df)
-                df.to_csv(self.participants_tsv, sep='\t', index=False,
-                          na_rep='n/a', encoding='utf-8')
         if isinstance(other, Session):
             if (self.ID == other.project.ID and
                     other.subject.ID in self._subjects):
@@ -72,18 +71,29 @@ class Project():
                 sub_id = fname.split('-')[1]
                 self._subjects[sub_id] = Subject(sub_id, self)
             elif fname == 'participants.tsv':
-                self.participants_tsv = full_path
+                self.participants_tsv = fname
 
-    def subject(self, sid):
+    def subject(self, id_):
         try:
-            self._subjects[sid]
+            return self._subjects[str(id_)]
         except KeyError:
-            raise NoSubjectError("Subject {0} doesn't exist in "
-                                 "project {1}".format(sid, self.ID))
+            raise NoSubjectError(
+                "Subject {0} doesn't exist in project {1}. "
+                "Possible subjects: {2}".format(id_, self.ID,
+                                                list(self._subjects.keys())))
 
     def query(self, **kwargs):
         # return any data within the project that matches the kwargs given.
         pass
+
+    def contained_files(self):
+        """Get the list of contained files."""
+        file_list = set()
+        # TODO: add readme and dataset_description.json
+        file_list.add(realize_paths(self, self.participants_tsv))
+        for subject in self.subjects:
+            file_list.update(subject.contained_files())
+        return file_list
 
 #region private methods
 
@@ -119,7 +129,7 @@ class Project():
         """ other: instance of Subject """
         if isinstance(other, Subject):
             sid = other.ID
-            if sid in self.subject_ids:
+            if sid in self._subjects.keys():
                 return True
         else:
             raise ValueError("Can only check whether a subject is contained")

@@ -1,8 +1,16 @@
+class NoProjectError(Exception):
+    pass
+
+
 class NoSubjectError(Exception):
     pass
 
 
 class NoSessionError(Exception):
+    pass
+
+
+class NoScanError(Exception):
     pass
 
 

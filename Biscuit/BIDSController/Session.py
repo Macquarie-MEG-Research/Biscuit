@@ -1,10 +1,13 @@
 from os import listdir
 import os.path as op
+from collections import OrderedDict
+from copy import copy
 
 import pandas as pd
 
-from Biscuit.BIDSController.utils import get_bids_params, merge_tsv, copyfiles
-from Biscuit.BIDSController.BIDSErrors import MappingError
+from Biscuit.BIDSController.utils import (get_bids_params, copyfiles,
+                                          realize_paths, combine_tsv)
+from Biscuit.BIDSController.BIDSErrors import MappingError, NoScanError
 from Biscuit.BIDSController.Scan import Scan
 
 
@@ -12,7 +15,7 @@ class Session():
     def __init__(self, id_, subject):
         self.ID = id_
         self.subject = subject
-        self.scans_tsv = None
+        self._scans_tsv = None
         self._scans = []
         self.recording_types = []
         self.determine_content()
@@ -34,12 +37,13 @@ class Session():
                 filename_data = get_bids_params(fname)
                 if filename_data.get('file', None) == 'scans':
                     # Store the path and extract the paths of the scans.
-                    self.scans_path = full_path
-                    scans = pd.read_csv(self.scans_path, sep='\t')
+                    self._scans_tsv = fname
+                    scans = pd.read_csv(realize_paths(self, self._scans_tsv),
+                                        sep='\t')
                     for i in range(len(scans)):
                         row = scans.iloc[i]
                         self._scans.append(
-                            Scan(op.join(self.path, row['filename']),
+                            Scan(row['filename'],
                                  row['acq_time'],
                                  self))
 
@@ -64,27 +68,37 @@ class Session():
             This will default to using utils.copyfiles which simply implements
             shutil.copy.
         """
-        # !IMPORTANT! file copying MUST occur before instantiation of the
-        # new object
         if isinstance(other, Scan):
             # TODO-LT: handle other modalities
             # we need to make sure that the scan is of the same person/session:
             if (self.ID == other.session.ID and
                     self.subject.ID == other.subject.ID and
                     self.project.ID == other.project.ID):
+                # also need to add the scan to the scans.tsv file
+                other_scan_df = pd.DataFrame(
+                    OrderedDict([
+                        ('filename', [other.raw_file_relative]),
+                        ('acq_time', [other.acq_time])]),
+                    columns=['filename', 'acq_time'])
+                # combine the new data into the original tsv
+                combine_tsv(self.scans_tsv, other_scan_df, 'filename')
+
+                file_list = (list(other.associated_files.values()) +
+                             [other.sidecar] + [other._raw_file])
+                # copy the files over
+                fl_left = realize_paths(other, file_list)
+                fl_right = []
+                for fpath in file_list:
+                    fl_right.append(op.join(self.path, other._path, fpath))
+                copier(fl_left, fl_right)
                 # add the scan object to our scans list
                 if mode == 'copy':
-                    scan = other.copy(self)
+                    scan = copy(other)
+                    scan.session = self
                 else:
                     other.session = self
                     scan = other
                 self._scans.append(scan)
-                # also need to add the scan to the scans.tsv file
-                merge_tsv(self.scans_tsv, other.scans_file)
-                # TODO: move files
-                copier(list(scan.associated_files.values()) +
-                       [scan.sidecar],
-                       op.join(self.path, scan.type))
             else:
                 # TODO: raise custom error?
                 raise ValueError("Scan doesn't exist within this branch")
@@ -96,6 +110,21 @@ class Session():
         """Return a new instance of this Session with the new subject."""
         return Session(self.ID, subject)
 
+    def contained_files(self):
+        """Get the list of contained files."""
+        file_list = set()
+        file_list.add(realize_paths(self, self._scans_tsv))
+        for scan in self.scans:
+            file_list.update(scan.contained_files())
+        return file_list
+
+    def scan(self, task=None, acq=None, run=None):
+        # TODO: allow this to return a list if mutliple scans match
+        # consider None a wildcard.
+        for scan in self.scans:
+            if (scan.task == task and scan.acq == acq and scan.run == run):
+                return scan
+        raise NoScanError
 
 #region private methods
 
@@ -125,6 +154,10 @@ class Session():
     @scans.setter
     def scans(self, other):
         self.add(other)
+
+    @property
+    def scans_tsv(self):
+        return realize_paths(self, self._scans_tsv)
 
 #region class methods
 

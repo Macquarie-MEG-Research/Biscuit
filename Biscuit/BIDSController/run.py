@@ -1,28 +1,15 @@
-from Biscuit.BIDSController.Project import Project
-from os import listdir
-import os.path
-
-root = "C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\BIDS\\BIDS-2018-20"  # noqa
+from Biscuit.BIDSController.BIDSFolder import BIDSFolder
 
 
-def find_projects(fpath):
-    """ return a list of all the BIDS projects in the specified folder """
-    proj_list = []
-    for f in listdir(fpath):
-        full_path = os.path.join(fpath, f)
-        if os.path.isdir(full_path):
-            proj_list.append(Project(full_path))
-    return proj_list
+root1 = "C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\BIDS\\test1"  # noqa
+root2 = "C:\\Users\\MQ20184158\\Documents\\MEG data\\rs_test_data_for_matt\\BIDS\\test2"  # noqa
 
+a = BIDSFolder(root1)
+b = BIDSFolder(root2)
+pa = a.project('WS001')
+pb = b.project('WS001')
+new_sub = pb.subject(4)
+print(pa)
+print(pb)
 
-a = find_projects(root)
-p = a[0]
-print(p)
-for subject in p:
-    print(subject)
-    for session in subject:
-        print(session)
-        for scan in session:
-            print(scan)
-            print(scan.associated_files)
-#print(a)
+pa.add(new_sub)
