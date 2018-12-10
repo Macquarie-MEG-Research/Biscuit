@@ -313,7 +313,7 @@ class RightClick():
         """Send the selected object to another selected location."""
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
-            SendFilesWindow(self.parent, src_obj, dst)
+            SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
 
     def _toggle_bids_folder(self):
         """Assign the selected folder as a BIDS-formatted folder.

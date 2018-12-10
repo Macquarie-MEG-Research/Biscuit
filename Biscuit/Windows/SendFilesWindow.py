@@ -30,13 +30,17 @@ class SendFilesWindow(Toplevel):
     set_copied : bool
         Change the name of the source directory to have `_copied` appended
         to indicate that the data has been transferred successfully.
+    opt_verify : bool
+        Whether to provide the option to verify data or not.
+        If the option is provided then it will be off by default.
 
     """
-    def __init__(self, master, src, dst, set_copied=False):
+    def __init__(self, master, src, dst, set_copied=False, opt_verify=False):
         self.master = master
         self.src = src
         self.dst = dst
         self.set_copied = set_copied
+        self.opt_verify = opt_verify
         Toplevel.__init__(self, self.master)
         self.withdraw()
         if master.winfo_viewable():
@@ -47,6 +51,10 @@ class SendFilesWindow(Toplevel):
         # define some variables we need
         self.has_access = False
         self.force_override = BooleanVar(value=False)
+        if opt_verify:
+            self.verify = BooleanVar(value=False)
+        else:
+            self.verify = BooleanVar(value=True)
         # total number of files to transfer
         self.file_count_var = StringVar(value="Number of files: {0}")
         self.total_file_size = StringVar(value="Total file size: {0}")
@@ -114,15 +122,19 @@ class SendFilesWindow(Toplevel):
         force_check = Checkbutton(btn_frame, text="Force",
                                   variable=self.force_override)
         force_check.grid(column=0, row=0, sticky='e')
+        verify_check = Checkbutton(btn_frame, text="Verify",
+                                   variable=self.verify)
+        if self.opt_verify:
+            verify_check.grid(column=1, row=0, sticky='e')
         ttm.register(force_check,
                      ("Whether to force the overwriting of current data.\n"
                       "This should only be done if there was an error and the "
                       "data needs to be re-sent."))
-        btn_frame.grid(column=0, row=4, columnspan=2)
         btn_start = Button(btn_frame, text="Begin", command=self._transfer)
-        btn_start.grid(column=1, row=0, sticky='e')
+        btn_start.grid(column=2, row=0, sticky='e')
         btn_exit = Button(btn_frame, text="Exit", command=self._exit)
-        btn_exit.grid(column=2, row=0, sticky='w')
+        btn_exit.grid(column=3, row=0, sticky='w')
+        btn_frame.grid(column=0, row=4, columnspan=2)
 
     def _check_write_access(self):
         """ Check whether or not the user is authenicated to write to the
@@ -166,6 +178,7 @@ class SendFilesWindow(Toplevel):
         # this
         # TODO: make smarter (like the `get_projects` function...)
         copy_func = BIDSCopy(overwrite=self.force_override.get(),
+                             verify=self.verify.get(),
                              file_name_tracker=self.curr_file,
                              file_num_tracker=self.transferred_count,
                              file_prog_tracker=self.curr_file_progress)
