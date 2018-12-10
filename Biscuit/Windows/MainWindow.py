@@ -419,7 +419,8 @@ class MainWindow(Frame):
                         folder = KITData(id_, path_, self.proj_settings, self)
                     else:
                         folder = Folder(id_, path_, self)
-                    folder.initial_processing()
+                    if hasattr(folder, 'initial_processing'):
+                        folder.initial_processing()
                     # then add it to the list of preloaded data
                     self.preloaded_data[id_] = folder
                 else:

@@ -3,10 +3,8 @@ import os.path as path
 import re
 
 from Biscuit.FileTypes import con_file, Folder
-from Biscuit.utils.utils import create_folder
+from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
-from Biscuit.BIDSController.BIDSController import find_projects
-from Biscuit.BIDSController.BIDSFolder import BIDSFolder
 
 """
 TODO:
@@ -90,18 +88,20 @@ class RightClick():
             fname = self.parent.file_treeview.get_text(self.curr_selection[0])
             fpath = self.parent.file_treeview.get_filepath(
                 self.curr_selection[0])
+            # the selected object
+            selected_obj = self.parent.preloaded_data[self.curr_selection[0]]
             # if the folder is a BIDS folder allow it to be uploaded to the
             # archive
             if BIDS_PATTERN.match(fname):
                 self.popup_menu.add_command(
                     label="Upload to archive",
-                    command=lambda: self._upload(fpath))
+                    command=lambda: self._upload(selected_obj))
             # allow any folder to be sent to another location using the
             # BIDSMERGE functionality
             if path.isdir(fpath):
                 self.popup_menu.add_command(
                     label="Send to...",
-                    command=lambda: self._send_to(fpath))
+                    command=lambda: self._send_to(selected_obj))
                 if isinstance(self.parent.preloaded_data.get(
                         self.curr_selection[0], None), Folder):
                     self.popup_menu.add_command(
@@ -303,17 +303,17 @@ class RightClick():
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
 
-    def _upload(self, src):
-        """Upload the selected file to the MEG_RAW archive."""
+    def _upload(self, src_obj):
+        """Upload the selected object to the MEG_RAW archive."""
         dst = self.parent.settings.get("ARCHIVE_PATH", None)
         if dst is not None:
-            SendFilesWindow(self.parent, src, dst, set_copied=True)
+            SendFilesWindow(self.parent, src_obj, dst, set_copied=True)
 
-    def _send_to(self, src):
-        """Send the selected folder to another selected location."""
+    def _send_to(self, src_obj):
+        """Send the selected object to another selected location."""
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
-            SendFilesWindow(self.parent, src, dst)
+            SendFilesWindow(self.parent, src_obj, dst)
 
     def _toggle_bids_folder(self):
         """Assign the selected folder as a BIDS-formatted folder.
@@ -322,32 +322,13 @@ class RightClick():
         BIDSController.Project object. If this isn't possible an error will be
         raised stating this.
         """
-        bids_folder = BIDSFolder(
-            self.parent.file_treeview.get_filepath(self.curr_selection[0]))
-        if bids_folder.projects == []:
-            # Ie. no valid data
-            messagebox.showerror(
-                "Not valid",
-                "The folder you selected is does not contain valid BIDS "
-                "data.\nPlease select a folder containing BIDS-formatted "
-                "data.")
-        else:
-            # now we need to assign all the data to the filetree...
-            for project in bids_folder:
-                sid = self.parent.file_treeview.sid_from_filepath(
-                    project.path)
-                self.parent.preloaded_data[sid] = project
-                for subject in project:
-                    sid = self.parent.file_treeview.sid_from_filepath(
-                        subject.path)
-                    self.parent.preloaded_data[sid] = subject
-                    for session in subject:
-                        sid = self.parent.file_treeview.sid_from_filepath(
-                            session.path)
-                        self.parent.preloaded_data[sid] = session
-            # finally modify the Folder object to be specified as a BIDS folder
-            self.parent.preloaded_data[self.curr_selection[0]] = bids_folder
-            self.parent.info_notebook.data = [bids_folder]
+        sid = self.curr_selection[0]
+        fpath = self.parent.file_treeview.get_filepath(sid)
+
+        bids_folder = assign_bids_folder(fpath, self.parent.file_treeview,
+                                         self.parent.preloaded_data)
+        self.parent.preloaded_data[sid] = bids_folder
+        self.parent.info_notebook.data = [bids_folder]
 
     def popup(self, event):
         self._add_options()

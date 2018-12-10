@@ -1,6 +1,6 @@
 class Version():
     """ Version object to allow for accurate comparisons of version numbers
-    
+
     Parameters
     ----------
     major : int

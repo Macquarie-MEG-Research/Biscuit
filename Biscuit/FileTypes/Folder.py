@@ -13,7 +13,8 @@ class Folder(FileInfo):
         for sid in self.parent.file_treeview.get_children(self._id):
             file = self.parent.preloaded_data.get(sid, None)
             if file is not None:
-                file.validate()
+                if hasattr(file, 'validate'):
+                    file.validate()
 
     def load_data(self):
         # we want nothing to be loaded

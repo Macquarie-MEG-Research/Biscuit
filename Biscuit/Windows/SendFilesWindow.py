@@ -1,14 +1,16 @@
-from tkinter import Toplevel, IntVar, StringVar, BooleanVar, messagebox
+from tkinter import Toplevel, IntVar, StringVar, BooleanVar
 from tkinter.ttk import Frame, Label, Button, Progressbar, Checkbutton
 import os
 import os.path as path
 from subprocess import check_call, CalledProcessError
 
+from BIDSHandler import BIDSFolder
+
 from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
-from Biscuit.utils.BIDSMerge import get_projects, merge_proj
 from Biscuit.utils.utils import get_fsize, threaded
 from Biscuit.utils.constants import OSCONST
+from Biscuit.utils.BIDSCopy import BIDSCopy
 
 ttm = ToolTipManager()
 
@@ -21,8 +23,8 @@ class SendFilesWindow(Toplevel):
     ----------
     master : instance of tkinter.Widget
         Parent widget for this Toplevel widget
-    src : string
-        Source folder to send.
+    src : Instance of BIDSHandler.[BIDSFolder, Project, Subject, Session]
+        Source object to copy over
     dst : string
         Destination folder or location on server.
     set_copied : bool
@@ -50,7 +52,7 @@ class SendFilesWindow(Toplevel):
         self.total_file_size = StringVar(value="Total file size: {0}")
         self.file_count = 0
         total_file_size = 0
-        for root, _, files in os.walk(self.src):
+        for root, _, files in os.walk(self.src.path):
             self.file_count += len(files)
             for file in files:
                 fpath = path.join(root, file)
@@ -96,7 +98,7 @@ class SendFilesWindow(Toplevel):
         # info about current file being transferred
         label2 = Label(frame, text="Current file being transferred:")
         label2.grid(column=0, row=1, columnspan=2, sticky='w')
-        lbl_curr_file = Label(frame, textvariable=self.curr_file, width=50)
+        lbl_curr_file = Label(frame, textvariable=self.curr_file, width=60)
         lbl_curr_file.grid(column=0, row=2)
         self.file_prog = Progressbar(frame, variable=self.curr_file_progress)
         self.file_prog.grid(column=1, row=2, pady=2)
@@ -163,41 +165,27 @@ class SendFilesWindow(Toplevel):
         # if we are sending just project folders we obviously don't need to do
         # this
         # TODO: make smarter (like the `get_projects` function...)
-        if 'BIDS' in path.basename(self.src):
-            proj_list = get_projects(self.src)
-        else:
-            #we are just sending a single folder...
-            proj_list = [self.src]
-        for proj_path in proj_list:
-            try:
-                merge_proj(proj_path,
-                           path.join(self.dst, path.basename(proj_path)),
-                           overwrite=self.force_override.get(),
-                           file_name_tracker=self.curr_file,
-                           file_num_tracker=self.transferred_count,
-                           file_prog_tracker=self.curr_file_progress)
-            except FileExistsError:
-                # create a popup to indicate an error then continue??
-                noerrors = False
-                messagebox.showerror(
-                    "Error!",
-                    ("The project '{0}' on the archive already contains files "
-                     "that are to be copied. If you are sure you want to "
-                     "overwrite the data on the archive with the current data "
-                     "on the host machine select 'Force'.".format(proj_path)),
-                    parent=self)
-                pass
-
-        # if all has gone well we can rename the src folder to indicate that
-        # it has been copied over fine
+        copy_func = BIDSCopy(overwrite=self.force_override.get(),
+                             file_name_tracker=self.curr_file,
+                             file_num_tracker=self.transferred_count,
+                             file_prog_tracker=self.curr_file_progress)
+        self.curr_file.set('Mapping destination BIDS structure...')
+        dst_folder = BIDSFolder(self.dst)
+        dst_folder.add(self.src, copier=copy_func.copy_files)
+        self.transferred_count.set(self.file_count)
+        self.curr_file.set('None')
         if noerrors:
             if self.set_copied:
                 self._rename_complete()
 
     def _rename_complete(self):
         """ rename the folder to have `_copied` appended to the name """
-        if not self.src.endswith('_copied'):
-            os.rename(self.src, "{0}_copied".format(self.src))
+        if not self.src.path.endswith('_copied'):
+            new_path = "{0}_copied".format(self.src)
+            os.rename(self.src.path, new_path)
+            # fix the path in the BIDSFolder object also
+            if isinstance(self.src, BIDSFolder):
+                self.src.path = new_path
             # also rename the branch in the filetree
             fname = path.basename(self.src)
 

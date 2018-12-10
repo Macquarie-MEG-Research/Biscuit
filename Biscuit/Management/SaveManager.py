@@ -4,8 +4,11 @@ from os import makedirs, replace, rename
 from tkinter import StringVar
 from datetime import datetime
 
+from BIDSHandler import BIDSFolder
+
 from Biscuit.FileTypes import FIFData, con_file, mrk_file, KITData
 from Biscuit.utils.constants import OSCONST
+from Biscuit.utils.utils import assign_bids_folder
 
 """ Save format specification/taken names:
     # FileInfo:
@@ -62,6 +65,18 @@ class SaveManager():
 
         self.treeview_ids = []
 
+#region public methods
+
+    def get_file_id(self, path_):
+        """
+        Returns the id of the entry in the treeview that has the specified
+        path.
+        """
+        try:
+            return self.parent.file_treeview.sid_from_filepath(path_)
+        except KeyError:
+            raise FileNotFoundError
+
     # TODO: clean this up a bit? Not sure what can be re-factored, but it
     # should be able to be made a bit nicer...
     def load(self):
@@ -111,6 +126,14 @@ class SaveManager():
                         sid = self.get_file_id(file.file)
                         file.ID = sid
                         _data[file.ID] = file
+                    elif isinstance(file, list):
+                        # In this case it is the BIDSFolder data
+                        # load all the info (I guess?)
+                        for fpath in file:
+                            bids_folder = assign_bids_folder(
+                                fpath, self.parent.file_treeview, _data)
+                            sid = self.get_file_id(fpath)
+                            _data[sid] = bids_folder
                 except FileNotFoundError:
                     pass
             # load containers after files to ensure the files are referenced in
@@ -156,16 +179,38 @@ class SaveManager():
             for file in containers_to_load:
                 file.autodetect_emptyroom()
 
-    def get_file_id(self, path_):
+    def save(self):
         """
-        Returns the id of the entry in the treeview that has the specified
-        path.
+        Saves all the entered user data.
         """
-        for sid in self.treeview_ids:
-            if self.parent.file_treeview.item(sid)['values'][1] == path_:
-                return sid
+        # first make sure the directory exists:
+        if not path.exists(self.save_path):
+            makedirs(self.save_path)
+        temp_save = self.save_file + '_temp'
+        BIDSFolder_paths = []
+        with open(temp_save, 'wb') as f:
+            for file in self.parent.preloaded_data.values():
+                if hasattr(file, 'requires_save'):
+                    if file.requires_save:
+                        try:
+                            pickle.dump(file, f)
+                        except (TypeError, AttributeError):
+                            print('error saving file: {0}'.format(file))
+                            raise
+                if isinstance(file, BIDSFolder):
+                    BIDSFolder_paths.append(file.path)
+            pickle.dump(BIDSFolder_paths, f)
+
+            savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            self.saved_time.set("Last saved:\t{0}".format(savetime))
+        # if we have reached here then the file was saved and we can
+        # replace the actual save data with the temp one
+        if path.exists(self.save_path):
+            replace(temp_save, self.save_file)
         else:
-            raise FileNotFoundError
+            rename(temp_save, self.save_file)
+
+#region private methods
 
     def _load_gen(self):
         """
@@ -181,28 +226,3 @@ class SaveManager():
                     yield pickle.load(f)
                 except EOFError:
                     break
-
-    def save(self):
-        """
-        Saves all the entered user data.
-        """
-        # first make sure the directory exists:
-        if not path.exists(self.save_path):
-            makedirs(self.save_path)
-        temp_save = self.save_file + '_temp'
-        with open(temp_save, 'wb') as f:
-            for file in self.parent.preloaded_data.values():
-                if file.requires_save:
-                    try:
-                        pickle.dump(file, f)
-                    except (TypeError, AttributeError):
-                        print('error saving file: {0}'.format(file))
-                        raise
-            savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            self.saved_time.set("Last saved:\t{0}".format(savetime))
-        # if we have reached here then the file was saved and we can
-        # replace the actual save data with the temp one
-        if path.exists(self.save_path):
-            replace(temp_save, self.save_file)
-        else:
-            rename(temp_save, self.save_file)
