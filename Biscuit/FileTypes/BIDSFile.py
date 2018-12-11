@@ -118,7 +118,9 @@ class BIDSFile(FileInfo):
     def __setstate__(self, state):
         super(BIDSFile, self).__setstate__(state)
         self.run.set(state.get('run', 0))
-        self.task.set(state.get('tsk', ''))
+        task = state.get('tsk', '')
+        self.task.options = [task]
+        self.task.set(task)
         # these will be just the file paths for now
         self.hpi = state.get('hpi', None)
         self.is_empty_room.set(state.get('ier', False))
