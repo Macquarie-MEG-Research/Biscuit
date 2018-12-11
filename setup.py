@@ -21,7 +21,10 @@ setuptools.setup(
     packages=setuptools.find_packages(),
     # TODO: may not work on linux?
     install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'Pygments',
-                      'Pillow', 'mne', 'requests'],
+                      'Pillow', 'mne', 'requests', 'BIDSHandler'],
+    dependency_links=[
+        'https://github.com/Macquarie-MEG-Research/BIDSHandler/releases/download/v0.1.0/BIDSHandler-0.1.0-py3-none-any.whl'  # noqa
+    ],
     license="MIT",
     platform="any",
     classifiers=[

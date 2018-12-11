@@ -2,7 +2,6 @@
 Custom copying function for copying and tracking the progress of BIDS data
 """
 
-import shutil
 import os
 import os.path as op
 from hashlib import md5
