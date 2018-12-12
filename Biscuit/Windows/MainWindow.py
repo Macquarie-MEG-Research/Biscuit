@@ -300,8 +300,17 @@ class MainWindow(Frame):
             self.file_treeview.focus(right_clicked_id)
 
         self.set_context()
-        self.r_click_menu.set_current_selected()
-        self.r_click_menu.popup(event)
+        if right_clicked_id in self.preloaded_data:
+            self.r_click_menu.set_current_selected()
+            self.r_click_menu.popup(event)
+        else:
+            # This will occur if the user does a right click *before* the data
+            # has finished being loaded.
+            messagebox.showwarning(
+                "Folder not loaded",
+                "The selected folder has not finished loading. Please wait "
+                "until this has completed before trying to right-click the "
+                "folder")
 
     def _select_single(self, event):
         sid = self.file_treeview.identify_row(event.y)

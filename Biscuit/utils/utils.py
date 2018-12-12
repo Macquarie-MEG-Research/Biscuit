@@ -145,6 +145,8 @@ def assign_bids_folder(fpath, treeview, data):
             "The folder you selected is does not contain valid BIDS "
             "data.\nPlease select a folder containing BIDS-formatted "
             "data.")
+        # Remove the bids folder just to be sure
+        del bids_folder
         return None
     else:
         # now we need to assign all the data to the filetree...

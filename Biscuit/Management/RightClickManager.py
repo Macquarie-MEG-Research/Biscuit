@@ -2,6 +2,8 @@ from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
+from BIDSHandler import BIDSFolder, Project, Subject, Session
+
 from Biscuit.FileTypes import con_file, Folder
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
@@ -97,10 +99,12 @@ class RightClick():
                     command=lambda: self._upload(selected_obj))
             # allow any folder to be sent to another location using the
             # BIDSMERGE functionality
-            if path.isdir(fpath):
+            if isinstance(selected_obj,
+                          (BIDSFolder, Project, Subject, Session)):
                 self.popup_menu.add_command(
                     label="Send to...",
                     command=lambda: self._send_to(selected_obj))
+            if path.isdir(fpath):
                 if isinstance(self.parent.preloaded_data.get(
                         self.curr_selection[0], None), Folder):
                     self.popup_menu.add_command(
