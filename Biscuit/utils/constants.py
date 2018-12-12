@@ -37,7 +37,7 @@ class OSConstMap():
 OSCONST = OSConstMap()
 
 # TODO: replace this with just Biscuit.__version__??
-OSCONST.VERSION = 'v0.9.3'
+OSCONST.VERSION = 'v0.9.4'
 
 # tkinter.canvas background colour
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')
@@ -49,15 +49,20 @@ OSCONST.TEXT_BG_WIN = '#F0F0F0'
 OSCONST.TEXT_BG_MAC = '#E9E9E9'
 OSCONST.TEXT_BG_LNX = '#D9D9D9'
 
-# tkinter.entry readonlybackground colour
+# tkinter.entry readonlybackground colour.
 OSCONST.TEXT_RONLY_BG_WIN = None
 OSCONST.TEXT_RONLY_BG_MAC = '#E0E0E0'
 OSCONST.TEXT_RONLY_BG_LNX = None
 
-# keyboard shortcut to add a new row in the widget table
+# Keyboard shortcut to add a new row in the widget table.
 OSCONST.ADDROW_WIN = '<Control-n>'
 OSCONST.ADDROW_MAC = '<Command-n>'
 OSCONST.ADDROW_LNX = '<Control-n>'
+
+# Right-click mouse button.
+OSCONST.RIGHTCLICK_WIN = '<Button-3>'
+OSCONST.RIGHTCLICK_MAC = '<Button-2>'
+OSCONST.RIGHTCLICK_LNX = '<Button-3>'
 
 # user directory
 try:

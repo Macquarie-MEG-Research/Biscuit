@@ -26,7 +26,7 @@ def convert(container, settings, parent=None):
 
     # Construct a name for storing 2 weeks worth of BIDS formatted data.
     # We chunk into 2 week blocks for ease of uploading to the MEG_RAW archive.
-    chunk_length = settings.get('CHUNK_FREQ', 2)
+    chunk_length = settings.get('CHUNK_FREQ', 14)
     if chunk_length == 0:
         subfolder_name = ''
     else:

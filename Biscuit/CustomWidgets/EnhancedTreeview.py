@@ -8,6 +8,8 @@ import shutil
 from platform import system as os_name
 from os.path import isdir, basename, join
 
+from Biscuit.utils.constants import OSCONST
+
 
 class EnhancedTreeview(Treeview):
     def __init__(self, master, *args, **kwargs):
@@ -216,12 +218,7 @@ class EnhancedTreeview(Treeview):
     @OnRightClick.setter
     def OnRightClick(self, func):
         # set the event to be processed when an entry is right-clicked
-        # we need to determine the operating system here and bind Button-2 is
-        # mac, and Button-3 if windows
-        if os_name() == 'Windows':
-            self.bind("<Button-3>", func, add='+')
-        else:
-            self.bind("<Button-2>", func, add='+')
+        self.bind(OSCONST.RIGHTCLICK, func, add='+')
 
     @property
     def OnLeftClick(self):

@@ -12,7 +12,6 @@ import os.path as path
 from os import makedirs
 
 import webbrowser
-from webbrowser import open_new as open_hyperlink
 
 from Biscuit.FileTypes import (generic_file, Folder, KITData, BIDSFile,
                                BIDSContainer)
@@ -32,7 +31,7 @@ from Biscuit.utils.constants import OSCONST
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True,
                    "ARCHIVE_PATH": OSCONST.SVR_PATH,
-                   "CHUNK_FREQ": 2}
+                   "CHUNK_FREQ": 14}
 
 
 class MainWindow(Frame):
@@ -512,7 +511,8 @@ class MainWindow(Frame):
         CreditsPopup(self)
 
     def _load_help_link(self):
-        open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
+        webbrowser.open_new(
+            "https://macquarie-meg-research.github.io/Biscuit/")
 
     def _open_settings(self):
         # this will modify self.settings with any changed values
