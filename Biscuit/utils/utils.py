@@ -2,6 +2,9 @@ from functools import wraps
 import os.path as path
 from os import makedirs
 from math import log
+from tkinter import messagebox
+
+from BIDSHandler import BIDSFolder
 
 
 def create_folder(location):
@@ -128,7 +131,37 @@ def get_fsize(size):
     return '{0:.3f}{1}'.format(size / (1024 ** power), SUFFIXES[power])
 
 
+def assign_bids_folder(fpath, treeview, data):
+    """
+    Assign the filepath as a BIDS folder and associate all children as the
+    required type.
+    """
+    bids_folder = BIDSFolder(fpath)
+    # TODO: check for BIDSHandler.MappingError?
+    if bids_folder.projects == []:
+        # Ie. no valid data
+        messagebox.showerror(
+            "Not valid",
+            "The folder you selected is does not contain valid BIDS "
+            "data.\nPlease select a folder containing BIDS-formatted "
+            "data.")
+        return None
+    else:
+        # now we need to assign all the data to the filetree...
+        for project in bids_folder:
+            sid = treeview.sid_from_filepath(project.path)
+            data[sid] = project
+            for subject in project:
+                sid = treeview.sid_from_filepath(subject.path)
+                data[sid] = subject
+                for session in subject:
+                    sid = treeview.sid_from_filepath(session.path)
+                    data[sid] = session
+        return bids_folder
+
+
 if __name__ == "__main__":
+    # TODO: move to tests
     a = [1, 2, 3]
     print(a)
     a = flatten(a)

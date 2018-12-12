@@ -11,7 +11,7 @@ def day_num(curr_date):
 
 def get_chunk_num(curr_date, num):
     """ Returns the chunk number. This will be left padded with 0."""
-    return "{:0>2}".format(day_num(curr_date) // 2 * num + 1)
+    return "{:0>2}".format(day_num(curr_date) // num + 1)
 
 
 def get_year(curr_date):

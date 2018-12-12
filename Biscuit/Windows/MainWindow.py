@@ -12,7 +12,6 @@ import os.path as path
 from os import makedirs
 
 import webbrowser
-from webbrowser import open_new as open_hyperlink
 
 from Biscuit.FileTypes import (generic_file, Folder, KITData, BIDSFile,
                                BIDSContainer)
@@ -32,7 +31,7 @@ from Biscuit.utils.constants import OSCONST
 DEFAULTSETTINGS = {"DATA_PATH": "",
                    "SHOW_ASSOC_MESSAGE": True,
                    "ARCHIVE_PATH": OSCONST.SVR_PATH,
-                   "CHUNK_FREQ": 2}
+                   "CHUNK_FREQ": 14}
 
 
 class MainWindow(Frame):
@@ -122,6 +121,11 @@ class MainWindow(Frame):
         screen_dimensions = "{0}x{1}+20+20".format(screen_width - 200,
                                                    screen_height - 200)
         self.master.geometry(screen_dimensions)
+
+        if OSCONST.os == 'LNX':
+            # For some reason the right click menu isn't un-drawn on linux
+            # like it is on windows and mac...
+            self.master.bind("<Button-1>", self.r_click_menu.undraw, add='+')
 
     def _load_settings(self):
         """
@@ -240,7 +244,7 @@ class MainWindow(Frame):
         # frame for the notebook panel
         notebook_frame = Frame(self.pw)
         self.info_notebook = InfoManager(notebook_frame, self, self.context)
-        self.info_notebook.determine_tabs()     # maybe wrap??
+        self.info_notebook.determine_tabs()
         self.info_notebook.pack(side=LEFT, fill=BOTH, expand=1)
         notebook_frame.grid(row=0, column=1, sticky="nsew")
 
@@ -406,11 +410,9 @@ class MainWindow(Frame):
         for id_ in sids:
             data = self.preloaded_data.get(id_, None)
             if data is not None:
-                if not data.loaded:
-                    data.load_data()
-                else:
-                    # data is already preloaded. Move onto the next id
-                    continue
+                if hasattr(data, 'loaded'):
+                    if not data.loaded:
+                        data.load_data()
             else:
                 ext, path_ = self.file_treeview.item(id_)['values']
                 if path.isdir(path_):
@@ -421,7 +423,8 @@ class MainWindow(Frame):
                         folder = KITData(id_, path_, self.proj_settings, self)
                     else:
                         folder = Folder(id_, path_, self)
-                    folder.initial_processing()
+                    if hasattr(folder, 'initial_processing'):
+                        folder.initial_processing()
                     # then add it to the list of preloaded data
                     self.preloaded_data[id_] = folder
                 else:
@@ -513,15 +516,20 @@ class MainWindow(Frame):
         CreditsPopup(self)
 
     def _load_help_link(self):
-        open_hyperlink("https://macquarie-meg-research.github.io/Biscuit/")
+        webbrowser.open_new(
+            "https://macquarie-meg-research.github.io/Biscuit/")
 
     def _open_settings(self):
         # this will modify self.settings with any changed values
         SettingsWindow(self, self.settings)
 
     def _open_settings_folder(self):
-        # TODO: doesn't work on linux...
-        webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
+        if OSCONST.os != 'LNX':
+            webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
+        else:
+            # only need this for linux
+            from subprocess import Popen
+            Popen(['xdg-open', OSCONST.USRDIR])
 
     def get_selection_info(self):
         data = []

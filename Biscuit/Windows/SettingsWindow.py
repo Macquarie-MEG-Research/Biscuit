@@ -42,7 +42,7 @@ class SettingsWindow(Toplevel):
             value=self.settings.get("SHOW_ASSOC_MESSAGE", True))
         self.archive_path = StringVar(
             value=self.settings.get("ARCHIVE_PATH", None))
-        self.chunk_freq = IntVar(value=self.settings.get("CHUNK_FREQ", 2))
+        self.chunk_freq = IntVar(value=self.settings.get("CHUNK_FREQ", 14))
 
         self._create_widgets()
 
@@ -93,7 +93,7 @@ class SettingsWindow(Toplevel):
                                           state=DISABLED,
                                           force_dtype='int')
         self.chunk_entry.grid(column=1, row=2, padx=2, sticky='ew')
-        week_lbl = Label(frame, text="(weeks)")
+        week_lbl = Label(frame, text="(days)")
         week_lbl.grid(column=2, row=2, sticky='e')
 
         unlock_archive_btn = tkButton(frame, relief='flat', borderwidth=0,

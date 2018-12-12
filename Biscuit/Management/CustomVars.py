@@ -71,7 +71,7 @@ class OptionsVar(Variable):
             self._options.append(StringVar(value=str(value)))
 
     def append(self, value):
-        """ Append the value to the options list """
+        """Append the value to the options list."""
         self._options.append(StringVar(value=str(value)))
 
     @property
@@ -80,7 +80,7 @@ class OptionsVar(Variable):
 
     @options.setter
     def options(self, value):
-        """ set the options anew """
+        """Set the list of options."""
         # let's get the current value first, so that if it is in the current
         # list it will stay selected.
         curr_value = self._tk.globalgetvar(self._name)

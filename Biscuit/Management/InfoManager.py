@@ -17,6 +17,7 @@ T_MISC = 'general_tab'
 T_FOLDER = 'session_tab'
 T_CHANNELS = 'channels_tab'
 T_SCROLLTEXT = 'scrolltext_tab'
+T_BIDS = 'bids_tab'
 
 
 class InfoManager(Notebook):
@@ -76,6 +77,11 @@ class InfoManager(Notebook):
         self.add(self.mrk_info_tab, text="File Info")
         self._tabs[T_MRK] = 7
 
+        # BIDS info frame
+        self.bids_tab = GenericInfoFrame(self)
+        self.add(self.bids_tab, text="BIDS")
+        self._tabs[T_BIDS] = 8
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
@@ -109,39 +115,36 @@ class InfoManager(Notebook):
             else:
                 self.info_tab.file = self.data[0]
                 self.display_tabs(T_MISC)
-                self.select(self._tabs[T_MISC])
         # If a .mrk file is selected then show the mrk tab
         elif self.context == '.MRK':
             self.mrk_info_tab.file = self.data[0]
             self.display_tabs(T_MRK)
-            self.select(self._tabs[T_MRK])
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
-            if self.data[0].contains_required_files:
-                # only update the session info tab if the data is valid
-                self.session_tab.file = self.data[0]
-                self.display_tabs(T_FOLDER)
-                self.select(self._tabs[T_FOLDER])
+
+            if hasattr(self.data[0], 'contains_required_files'):
+                if self.data[0].contains_required_files:
+                    # only update the session info tab if the data is valid
+                    self.session_tab.file = self.data[0]
+                    self.display_tabs(T_FOLDER)
+                else:
+                    self.display_tabs(T_MISC)
             else:
-                self.display_tabs(T_MISC)
-                self.select(self._tabs[T_MISC])
+                self.display_tabs(T_BIDS)
+                self.bids_tab.set_text(str(self.data[0]))
             self.channel_tab.is_loaded = False
         else:
             if self.data is None:
                 self.display_tabs(T_MISC)
-                self.select(self._tabs[T_MISC])
             else:
                 if self.data[0].display_raw:
                     try:
                         self.scrolltext_tab.file = self.data[0]
                         self.display_tabs(T_SCROLLTEXT)
-                        self.select(self._tabs[T_SCROLLTEXT])
                     except UnicodeDecodeError:
                         self.display_tabs(T_MISC)
-                        self.select(self._tabs[T_MISC])
                 else:
                     self.display_tabs(T_MISC)
-                    self.select(self._tabs[T_MISC])
             self.channel_tab.is_loaded = False
 
     """
@@ -246,8 +249,9 @@ class InfoManager(Notebook):
                     self._determine_misc_data()
             else:
                 self.tab(self._tabs[t], state=HIDDEN)
-        # TODO: make it so that if there is only one tab required to be
-        # displayed, select it automatically?
+        # If there is only one tab to be shown, select it.
+        if len(tabs) == 1:
+            self.select(self._tabs[tabs[0]])
 
     @property
     def data(self):
@@ -255,7 +259,8 @@ class InfoManager(Notebook):
 
     @data.setter
     def data(self, new_data):
-        """ Set replace the old data with the new data
+        """Replace the old data with the new data.
+
         To get around the race condition indtroduced by the _preload_data
         function being threaded which in turn causes this to be called in a
         separate thread, we will check that the id of the suggested new data
@@ -265,10 +270,14 @@ class InfoManager(Notebook):
         text data drawn in the ScrolledTextInfoFrame
         """
         if new_data != []:
-            if self.parent.file_treeview.selection()[0] == new_data[0].ID:
-                if new_data != self._data:
-                    self._data = new_data
-                    self.determine_tabs()
+            if isinstance(new_data[0], FileInfo):
+                if self.parent.file_treeview.selection()[0] == new_data[0].ID:
+                    if new_data != self._data:
+                        self._data = new_data
+                        self.determine_tabs()
+            else:
+                self._data = new_data
+                self.determine_tabs()
         else:
             self._data = None
             self.determine_tabs()

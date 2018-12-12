@@ -131,8 +131,11 @@ def copy(src, dst, *, follow_symlinks=True, tracker=None, verify=False):
 
     if os.path.isdir(dst):
         dst = os.path.join(dst, os.path.basename(src))
-    _, file_hash = copyfile(src, dst, follow_symlinks=follow_symlinks,
-                            tracker=tracker, verify=verify)
+    if verify:
+        _, file_hash = copyfile(src, dst, follow_symlinks=follow_symlinks,
+                                tracker=tracker, verify=verify)
+    else:
+        copyfile(src, dst, follow_symlinks=follow_symlinks, tracker=tracker)
     copymode(src, dst, follow_symlinks=follow_symlinks)
     if verify:
         return dst, file_hash

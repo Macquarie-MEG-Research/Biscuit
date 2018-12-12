@@ -1,9 +1,12 @@
 from tkinter import ALL
 # import this specifically like this because we can actually set the bg colour
 from tkinter import Entry as tkEntry
-from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
+from tkinter import Checkbutton as tkCheckbutton
+from tkinter.ttk import Label, Frame, Checkbutton, Combobox, Entry
+
 from Biscuit.utils.utils import clear_widget
 from Biscuit.Management import ToolTipManager
+from Biscuit.utils.constants import OSCONST
 
 ttm = ToolTipManager()
 
@@ -200,8 +203,12 @@ class InfoCheck(InfoMaster):
         super(InfoCheck, self).__init__(master, value, label, validate_cmd)
 
         #self._label = Label(self._master, text="{0}: ".format(data[0]))
-        self._value = Checkbutton(self._master, variable=value,
-                                  command=self._validate_cmd)
+        if OSCONST.os == 'LNX':
+            self._value = tkCheckbutton(self._master, variable=value,
+                                        command=self._validate_cmd)
+        else:
+            self._value = Checkbutton(self._master, variable=value,
+                                      command=self._validate_cmd)
 
     def _set_value(self, value):
         #super(InfoCheck, self)._set_value(value)

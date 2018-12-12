@@ -172,5 +172,9 @@ class BIDSContainer(FileInfo):
         self.subject_age[0].set(state.get('sja', ['', '', ''])[0])
         self.subject_age[1].set(state.get('sja', ['', '', ''])[1])
         self.subject_age[2].set(state.get('sja', ['', '', ''])[2])
-        self.subject_gender.set(state.get('sjs', 'M'))
-        self.subject_group.set(state.get('sjg', ''))        # TODO: make None?
+        gender = state.get('sjs', 'M')
+        self.subject_gender.options = [gender]
+        self.subject_gender.set(gender)
+        group = state.get('sjg', '')
+        self.subject_group.options = [group]
+        self.subject_group.set(group)
