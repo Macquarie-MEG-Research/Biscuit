@@ -69,9 +69,6 @@
 </li>
                                 </ul>
                             </li>
-                            <li >
-                                <a href="../workshop/">Workshop</a>
-                            </li>
                         </ul>
 
                     <ul class="nav navbar-nav navbar-right">
@@ -102,6 +99,7 @@
             <li><a href="#main-window">Main window</a></li>
             <li><a href="#settings-windows">Settings windows</a></li>
             <li><a href="#general-navigation">General navigation</a></li>
+            <li><a href="#biscuit-is-bids-aware">Biscuit is BIDS aware</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -158,7 +156,13 @@ It is worth spending some time to enter in any project information here as the i
 <h2 id="general-navigation">General navigation</h2>
 <p>Biscuit is split in two halves.
 The left side consists of a file treeview which is used to navigate the directories containing all the various files. Selecting any file will bring up information if there is info available. Most files that are not used for MEG will simply have the message that the data type is not supported. Some human-readble text files will be displayed however. This includes <em>MATLAB</em> <code>.m</code> files, <em>Python</em> <code>.py</code> scripts and <code>.txt</code> files. Both <code>.py</code> and <code>.m</code> files also support syntax highlighting (requires the <a href="https://pypi.org/project/Pygments/">pygments</a> python library)</p>
-<p>The right side displays all the file information for the selected file. This view is a tabbed which <code>.con</code> and <code>.fif</code> files utilise to gain a <em>Channels</em> and <em>Events</em> tab respectively.</p></div>
+<p>The right side displays all the file information for the selected file. This view is a tabbed which <code>.con</code> and <code>.fif</code> files utilise to gain a <em>Channels</em> and <em>Events</em> tab respectively.</p>
+<h2 id="biscuit-is-bids-aware">Biscuit is BIDS aware</h2>
+<p>Once a some data has been converted into BIDS format it will appear in a subfolder named <code>BIDS-20XX-YY</code> where <code>XX</code> will be the year and <code>YY</code> will be the fortnight number (this can be configured in the settings window if you do not want the export process to check the BIDS data. This is only like this for institutions who may want to back up data regularly).</p>
+<p>Right-clicking on this folder will bring up a context menu with the option to "assign as BIDS folder".
+Selecting this option will check whether the folder contains data that conforms to the BIDS specification, and if so it will parse some of the data and load it into a data structure. This information can then be seen when selecting the Folder itself, or the subsequent project, subject or session folders.</p>
+<p>After indicating to Biscuit that a folder contains BIDS compliant data, it can be transferred to an external device by selecting "sent to..." from the right click menu of a folder.
+A prompt will appear that lets you select a folder to transfer to. If you have a folder on an external drive already containing BIDS data it is this folder you should select to ensure the transfer works correctly.</p></div>
         </div>
 
         <footer class="col-md-12">

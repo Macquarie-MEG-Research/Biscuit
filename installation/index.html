@@ -69,9 +69,6 @@
 </li>
                                 </ul>
                             </li>
-                            <li >
-                                <a href="../workshop/">Workshop</a>
-                            </li>
                         </ul>
 
                     <ul class="nav navbar-nav navbar-right">
@@ -101,12 +98,8 @@
         <li class="main active"><a href="#installating-prerequisites">Installating prerequisites</a></li>
             <li><a href="#already-have-python-installed">&gt; Already have Python installed</a></li>
             <li><a href="#dont-have-python-installed">&gt; Don't have Python installed</a></li>
-            <li><a href="#installing-the-most-recent-version-of-mne">Installing the most recent version of MNE</a></li>
-            <li><a href="#issues-with-pip">Issues with pip</a></li>
+        <li class="main "><a href="#issues-with-pip">Issues with pip</a></li>
         <li class="main "><a href="#installing-and-running-biscuit">Installing and running Biscuit</a></li>
-            <li><a href="#windows">Windows</a></li>
-            <li><a href="#macos">MacOS</a></li>
-            <li><a href="#linux">Linux</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
@@ -115,28 +108,31 @@
 <p>Biscuit is completely written in python, allowing it to be run on any computer you can install python on.
 To allow for the reading of MEG data and conversion a few libraries are required to be installed. There are a few options available depending on the current python install on your system.</p>
 <h2 id="already-have-python-installed">&gt; Already have Python installed</h2>
-<p>Biscuit is written for python 3.4 and above, however it is recommended that you use at least the latest version of 3.6 which can be found <a href="https://www.python.org/downloads/release/python-367/">here</a>. If you already have python installed you just need to ensure you have the required dependencies installed.
-The easiest way to do this is by using <code>pip</code> (see potential issues <a href="installation/#issues-with-pip">here</a>):</p>
-<pre><code>python3 -m pip install numpy scipy matplotlib pandas Pygments Pillow
+<p>Biscuit is written for python 3.4 and above, however it is recommended that you use at least the latest version of 3.6 which can be found <a href="https://www.python.org/downloads/release/python-367/">here</a>. If you already have python installed you can easily install Biscuit from a precompiled wheel.
+This can be downloaded from the <a href="https://github.com/Macquarie-MEG-Research/Biscuit/releases">releases tab</a> on github.
+There are two ways to download and install using this. You can either just copy the link and enter</p>
+<pre><code>python3 -m pip install https://github.com/Macquarie-MEG-Research/Biscuit/releases/download/v0.9.3/Biscuit-0.9.3-py3-none-any.whl
 </code></pre>
 
-<p>(<code>Pygments</code> is used for syntax highlighting. If you do not want this you can ignore this library, however all the other libraries are required for BIDS conversion).</p>
+<p>(where the version may vary depending on the current release version),</p>
+<p>or you can download the wheel (<code>.whl</code>) file to your local disk and enter</p>
+<pre><code>python3 -m pip install Biscuit-0.9.3-py3-none-any.whl
+</code></pre>
+
+<p>into your command line within the directory the downloaded file resides.</p>
+<p>This wheel is preconfigured to download any prerequisites as well as create an executable in the scripts folder of your python install.</p>
 <p>On linux you may also require <code>python3-pil.imagetk</code> and <code>python3-tk</code> for the GUI to function.</p>
+<h3 id="important-installing-bidshanlder">Important: Installing BIDSHanlder</h3>
+<p>Biscuit also requires a library that is not yet on <a href="https://pypi.org/">PyPI</a> and thus needs to be installed in a similar fashion as Biscuit.
+To allow Biscuit to read and handle BIDS folder correctly it uses <a href="https://github.com/Macquarie-MEG-Research/BIDSHandler">BIDSHandler</a>.</p>
+<p>This can be installed in a similar way to Biscuit by going to the <a href="https://github.com/Macquarie-MEG-Research/BIDSHandler/releases">releases tab</a> and installing the most recent version.</p>
+<p>Biscuit should always be compatible with the most recent version, however this method of installation will be replaced with a more stable version of installing for PyPi automatically once BIDSHandler has been added to it.</p>
 <h2 id="dont-have-python-installed">&gt; Don't have Python installed</h2>
 <p>If you do not have a current Python install on your system, you can either install the <a href="https://anaconda.org/anaconda/python">Anaconda</a> Python distribution.
-Anaconda is however a reasonably large installation, so you may prefer to simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the website</a> and install the packages using pip as above. This has the benefit of also being faster to install and gives you more control over what is installed.
+Anaconda is however a reasonably large installation, so you may prefer to simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the website</a> and install Biscuit using pip as above. This has the benefit of also being faster to install and gives you more control over what is installed.
 You can also follow the steps to <a href="https://www.martinos.org/mne/stable/getting_started.html">install MNE-Python</a>.</p>
-<h2 id="installing-the-most-recent-version-of-mne">Installing the most recent version of MNE</h2>
-<p>Currently Biscuit uses features introduced in MNE (0.17dev0) that aren't yet included in the public release (0.16). Once the public release is updated the easiest way to install MNE is by entering</p>
-<pre><code>python3 -m pip install mne
-</code></pre>
-
-<p>Until then, you will need to enter</p>
-<pre><code>python3 -m pip install -U https://api.github.com/repos/mne-tools/mne-python/zipball/master
-</code></pre>
-
-<p>(see <a href="https://github.com/mne-tools/mne-python#get-the-latest-code">here</a>)</p>
-<h2 id="issues-with-pip">Issues with pip</h2>
+<hr />
+<h1 id="issues-with-pip">Issues with pip</h1>
 <p>If you are installing python 3 and the required libraries on a mac (or on a system with another python install) you may have conflicts with the internal python 2.7 install. To get around this you may need to specify excplitly the version of python the libraries are being install into.</p>
 <p>Entering</p>
 <pre><code>python3 --version
@@ -146,7 +142,7 @@ You can also follow the steps to <a href="https://www.martinos.org/mne/stable/ge
 If an error is raised, entering <code>python --version</code> should show the current version (&gt;3.4).
 If neither <code>python3 --version</code> or <code>python --version</code> return a value or error, then Python has not been installed correctly. You may need to ensure that python is installed to the path:
 <a href="https://docs.python.org/3/using/windows.html"><img alt="python_path" src="https://docs.python.org/3/_images/win_installer.png" /></a></p>
-<p>Note that you <em>shouldn't</em> have to do this for python version 3.6 and above.</p>
+<p>Note that you <em>shouldn't</em> have to do this for python version 3.6 and above (but it is good to go though the "advanced" settings when installing to ensure that it is indeed added to the path to save any headaches later.)</p>
 <p>Whichever command (<code>python</code> or <code>python3</code>) is the one which shows the correctly installed version of python &gt; 3.4, can be used to call pip explicitly for that version:</p>
 <pre><code>python -m pip install &lt;package names&gt;
 </code></pre>
@@ -158,16 +154,9 @@ If neither <code>python3 --version</code> or <code>python --version</code> retur
 <p>where <code>&lt;package names&gt;</code> is the list of packages to be installed (<code>numpy</code>, <code>scipy</code> etc.).</p>
 <hr />
 <h1 id="installing-and-running-biscuit">Installing and running Biscuit</h1>
-<p>The most recent version of Biscuit can be found <a href="https://github.com/Macquarie-MEG-Research/Biscuit/releases">here</a> or can be downloaded directly from <a href="https://github.com/Macquarie-MEG-Research/Biscuit/archive/master.zip">here</a>.
-Extract the files from the .zip to whatever directory you choose.</p>
-<p>Depending on your operating system and comfort with python there are a number of ways to start Biscuit.</p>
-<h2 id="windows">Windows</h2>
-<p>Double-clicking on the <code>Biscuit.py</code> file will run Biscuit. A python console will appear also which can be ignored.</p>
-<h2 id="macos">MacOS</h2>
-<p>Double-clicking on the <code>run-mac.command</code> will run Biscuit. This script changes the current working directory to the current directory then calls the python script. It is the same as running <code>python3 Biscuit.py</code> from terminal while in the <em>Biscuit</em> folder.</p>
-<h2 id="linux">Linux</h2>
-<p>Double-clicking <code>Biscuit.py</code> may also work but this is pretty untested right now. Run <code>Biscuit.py</code> however you know best.</p>
-<p>Some linux python installs do not come with the libraries required to display the GUI. If running <code>Biscuit.py</code> causes errors to be thrown, you will need to install <code>tkinter</code> separately by using <code>apt-get</code> (or similar package manager) to add <code>python3-pil.imagetk</code> and <code>python3-tk</code>.</p></div>
+<p>Installing Biscuit from the wheel creates an executable in the python scripts folder (<code>&lt;python install directory&gt;\Scripts\Biscuit.&lt;extension&gt;</code>).
+This executable is generally added to the path if you have administrative rights on the computer, so you can either run Biscuit by simply entering <code>Biscuit</code> into a command prompt, or you can create a shortcut to the executable (extension is platform dependent) and run Biscuit like any other executable.</p>
+<p>If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at <code>&lt;python install directory&gt;\Lib\site-packages\Biscuit\assets\bisc.&lt;ico/png/gif&gt;</code>.</p></div>
         </div>
 
         <footer class="col-md-12">
