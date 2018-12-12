@@ -6,18 +6,6 @@ from Biscuit.FileTypes import con_file, Folder
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 
-"""
-TODO:
-Make association more robust.
-To do this we need to store the data that will be associated in a more
-persistent way instead of curr_clicked and prev_clicked.
-These id's can can be compared.
-
-Need to pack the logic for checking if the ids are in the same folder a single
-function to make it less messy.
-This can probably be added to the enhanced treeview widget as a method.
-"""
-
 # pattern to match with folder names to determine if the folder is the result
 # of the export process.
 # This is to allow the right-click context to upload the data to the archive.
@@ -39,6 +27,12 @@ class RightClick():
 
         self.context = context
 
+#region public methods
+
+    def popup(self, event):
+        self._add_options()
+        self.popup_menu.post(event.x_root, event.y_root)
+
     def set_current_selected(self):
         # keep track of the files selected each time a right-click occurs
         if self.prev_selection != self.curr_selection:
@@ -46,6 +40,11 @@ class RightClick():
             self.prev_selection = self.curr_selection
         # now get the current set of selected files
         self.curr_selection = self.parent.file_treeview.selection()
+
+    def undraw(self, event):
+        self.popup_menu.unpost()
+
+#region private methods
 
     def _add_options(self):
         # a context dependent function to only add options that are applicable
@@ -107,65 +106,6 @@ class RightClick():
                     self.popup_menu.add_command(
                         label="Assign as BIDS folder",
                         command=self._toggle_bids_folder)
-
-    def _ignore_cons(self):
-        """
-        Set all selected con files to have 'Is Junk' as True
-        """
-        for sid in self.curr_selection:
-            con = self.parent.preloaded_data.get(sid, None)
-            if con is not None:
-                if isinstance(con, con_file):
-                    con.is_junk.set(True)
-                    con.validate()
-
-    def _include_cons(self):
-        """
-        Set all selected con files to have 'Is Junk' as False
-        """
-        for sid in self.curr_selection:
-            con = self.parent.preloaded_data.get(sid, None)
-            if con is not None:
-                if isinstance(con, con_file):
-                    con.is_junk.set(False)
-                    con.validate()
-
-    def _create_folder(self):
-        """
-        Create a folder at the currently open level. Clicking on a folder and
-        selecting "create folder" will create a sibling folder, not child
-        folder (not sure which to do?)
-        """
-        # get the current root depth
-        if self.context != set():        # maybe??
-            dir_ = path.dirname(
-                self.parent.file_treeview.get_filepath(self.curr_selection[0]))
-        else:
-            dir_ = self.parent.settings['DATA_PATH']
-        # ask the user for the folder name:
-        folder_name = simpledialog.askstring("Folder Name",
-                                             "Enter a folder Name:",
-                                             parent=self.parent)
-        # we will need to make sure the folder doesn't already exist at the
-        # selected level
-        if folder_name is not None:
-            # create the folder
-            full_path = path.join(dir_, folder_name)
-            _, exists_already = create_folder(full_path)
-            if not exists_already:
-                try:
-                    parent = self.parent.file_treeview.parent(
-                        self.parent.selected_files[0])
-                except IndexError:
-                    # we have clicked outside the tree. Set the parent as the
-                    # root
-                    parent = ''
-                self.parent.file_treeview.ordered_insert(
-                    parent, values=['', str(full_path)], text=folder_name,
-                    open=False)
-                print('folder created!!')
-            else:
-                print('Folder already exists!')
 
     # TODO: clean this up
     def _associate_mrk(self, all_=False):
@@ -303,11 +243,64 @@ class RightClick():
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
 
-    def _upload(self, src_obj):
-        """Upload the selected object to the MEG_RAW archive."""
-        dst = self.parent.settings.get("ARCHIVE_PATH", None)
-        if dst is not None:
-            SendFilesWindow(self.parent, src_obj, dst, set_copied=True)
+    def _create_folder(self):
+        """
+        Create a folder at the currently open level. Clicking on a folder and
+        selecting "create folder" will create a sibling folder, not child
+        folder (not sure which to do?)
+        """
+        # get the current root depth
+        if self.context != set():        # maybe??
+            dir_ = path.dirname(
+                self.parent.file_treeview.get_filepath(self.curr_selection[0]))
+        else:
+            dir_ = self.parent.settings['DATA_PATH']
+        # ask the user for the folder name:
+        folder_name = simpledialog.askstring("Folder Name",
+                                             "Enter a folder Name:",
+                                             parent=self.parent)
+        # we will need to make sure the folder doesn't already exist at the
+        # selected level
+        if folder_name is not None:
+            # create the folder
+            full_path = path.join(dir_, folder_name)
+            _, exists_already = create_folder(full_path)
+            if not exists_already:
+                try:
+                    parent = self.parent.file_treeview.parent(
+                        self.parent.selected_files[0])
+                except IndexError:
+                    # we have clicked outside the tree. Set the parent as the
+                    # root
+                    parent = ''
+                self.parent.file_treeview.ordered_insert(
+                    parent, values=['', str(full_path)], text=folder_name,
+                    open=False)
+                print('folder created!!')
+            else:
+                print('Folder already exists!')
+
+    def _ignore_cons(self):
+        """
+        Set all selected con files to have 'Is Junk' as True
+        """
+        for sid in self.curr_selection:
+            con = self.parent.preloaded_data.get(sid, None)
+            if con is not None:
+                if isinstance(con, con_file):
+                    con.is_junk.set(True)
+                    con.validate()
+
+    def _include_cons(self):
+        """
+        Set all selected con files to have 'Is Junk' as False
+        """
+        for sid in self.curr_selection:
+            con = self.parent.preloaded_data.get(sid, None)
+            if con is not None:
+                if isinstance(con, con_file):
+                    con.is_junk.set(False)
+                    con.validate()
 
     def _send_to(self, src_obj):
         """Send the selected object to another selected location."""
@@ -327,12 +320,12 @@ class RightClick():
 
         bids_folder = assign_bids_folder(fpath, self.parent.file_treeview,
                                          self.parent.preloaded_data)
-        self.parent.preloaded_data[sid] = bids_folder
-        self.parent.info_notebook.data = [bids_folder]
+        if bids_folder is not None:
+            self.parent.preloaded_data[sid] = bids_folder
+            self.parent.info_notebook.data = [bids_folder]
 
-    def popup(self, event):
-        self._add_options()
-        self.popup_menu.post(event.x_root, event.y_root)
-
-    def undraw(self, event):
-        self.popup_menu.unpost()
+    def _upload(self, src_obj):
+        """Upload the selected object to the MEG_RAW archive."""
+        dst = self.parent.settings.get("ARCHIVE_PATH", None)
+        if dst is not None:
+            SendFilesWindow(self.parent, src_obj, dst, set_copied=True)

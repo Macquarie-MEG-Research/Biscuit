@@ -13,6 +13,8 @@ class FileTreeview(EnhancedTreeview):
 
         self.index_cache = dict()
 
+#region public methods
+
     def generate(self, parent, directory=""):
         """
         Iterate over the folder structure and list all the files in the
@@ -67,6 +69,23 @@ class FileTreeview(EnhancedTreeview):
             # won't be included
             pass
 
+    def get_filepath(self, sid):
+        """ Return the file path corresponding to the provided sid """
+        return self.item(sid)['values'][1]
+
+    def get_text(self, sid):
+        """ Return the text corresponding to the provided sid """
+        return self.item(sid)['text']
+
+    def index(self):
+        """ Create a cache of the file information in a flattened way to allow
+        fast comparison of existing and new data """
+        for sid in self.all_children():
+            if sid != '':
+                self.index_cache[self.item(sid)['values'][1]] = sid
+            else:
+                self.index_cache[self.root_path] = ''
+
     def refresh(self):
         """ Refresh the treeview to include any newly added or removed files"""
         curr_selection = self.focus()
@@ -94,14 +113,56 @@ class FileTreeview(EnhancedTreeview):
         if curr_selection not in self.index_cache.values():
             self.selection_set([''])
 
-    def index(self):
-        """ Create a cache of the file information in a flattened way to allow
-        fast comparison of existing and new data """
+    def sid_from_filepath(self, fpath):
+        """ Return the sid in the treeview with the given filepath
+
+        Parameters
+        ----------
+        fpath : str
+            Filepath to match
+
+        """
+        return self.index_cache[fpath]
+
+    def sid_from_text(self, text, _all=False):
+        """ Return the sid(s) in the treeview with the given text
+
+        Parameters
+        ----------
+        text : str
+            text value to match.
+        _all : bool
+            Whether or not to return all the results or just the first
+
+        """
+        rtn_list = []
         for sid in self.all_children():
-            if sid != '':
-                self.index_cache[self.item(sid)['values'][1]] = sid
-            else:
-                self.index_cache[self.root_path] = ''
+            if self.item(sid)['text'] == text:
+                if _all:
+                    rtn_list.append(sid)
+                else:
+                    return [sid]
+        return rtn_list
+
+#region private methods
+
+    def _find_added_files(self):
+        """ Return a list of all files paths in the folder that don't currently
+        exist in the current file treeview
+        """
+        new_files = []
+        for root, dirs, files in os.walk(self.root_path):
+            # add all the new files
+            for file in files:
+                fpath = path.join(root, file)
+                if self.index_cache.get(fpath, None) is None:
+                    new_files.append(fpath)
+            # add all the new folders
+            for dir_ in dirs:
+                fpath = path.join(root, dir_)
+                if self.index_cache.get(fpath, None) is None:
+                    new_files.append(fpath)
+        return new_files
 
     def _find_folder_diff(self):
         """ Create a list of all the files and folders contained within
@@ -124,60 +185,3 @@ class FileTreeview(EnhancedTreeview):
         removed_files = (prev_files - contained_files) - set([self.root_path])
         added_files = contained_files - prev_files
         return (list(added_files), list(removed_files))
-
-    def _find_added_files(self):
-        """ Return a list of all files paths in the folder that don't currently
-        exist in the current file treeview
-        """
-        new_files = []
-        for root, dirs, files in os.walk(self.root_path):
-            # add all the new files
-            for file in files:
-                fpath = path.join(root, file)
-                if self.index_cache.get(fpath, None) is None:
-                    new_files.append(fpath)
-            # add all the new folders
-            for dir_ in dirs:
-                fpath = path.join(root, dir_)
-                if self.index_cache.get(fpath, None) is None:
-                    new_files.append(fpath)
-        return new_files
-
-    def get_text(self, sid):
-        """ Return the text corresponding to the provided sid """
-        return self.item(sid)['text']
-
-    def get_filepath(self, sid):
-        """ Return the file path corresponding to the provided sid """
-        return self.item(sid)['values'][1]
-
-    def sid_from_text(self, text, _all=False):
-        """ Return the sid(s) in the treeview with the given text
-
-        Parameters
-        ----------
-        text : str
-            text value to match.
-        _all : bool
-            Whether or not to return all the results or just the first
-
-        """
-        rtn_list = []
-        for sid in self.all_children():
-            if self.item(sid)['text'] == text:
-                if _all:
-                    rtn_list.append(sid)
-                else:
-                    return [sid]
-        return rtn_list
-
-    def sid_from_filepath(self, fpath):
-        """ Return the sid in the treeview with the given filepath
-
-        Parameters
-        ----------
-        fpath : str
-            Filepath to match
-
-        """
-        return self.index_cache[fpath]

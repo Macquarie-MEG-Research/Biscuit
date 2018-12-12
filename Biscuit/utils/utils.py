@@ -145,6 +145,7 @@ def assign_bids_folder(fpath, treeview, data):
             "The folder you selected is does not contain valid BIDS "
             "data.\nPlease select a folder containing BIDS-formatted "
             "data.")
+        return None
     else:
         # now we need to assign all the data to the filetree...
         for project in bids_folder:
@@ -156,7 +157,7 @@ def assign_bids_folder(fpath, treeview, data):
                 for session in subject:
                     sid = treeview.sid_from_filepath(session.path)
                     data[sid] = session
-    return bids_folder
+        return bids_folder
 
 
 if __name__ == "__main__":
