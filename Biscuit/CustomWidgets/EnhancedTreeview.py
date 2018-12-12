@@ -5,7 +5,6 @@ from tkinter.ttk import Treeview, Scrollbar
 import threading    # only used for DND (which isn't currently allowed)
 import shutil
 
-from platform import system as os_name
 from os.path import isdir, basename, join
 
 from Biscuit.utils.constants import OSCONST

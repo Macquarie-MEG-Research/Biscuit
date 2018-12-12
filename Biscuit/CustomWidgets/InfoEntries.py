@@ -1,7 +1,7 @@
-from tkinter import ALL
+from tkinter import ALL, Checkbutton
 # import this specifically like this because we can actually set the bg colour
 from tkinter import Entry as tkEntry
-from tkinter.ttk import Label, Checkbutton, Frame, Combobox, Entry
+from tkinter.ttk import Label, Frame, Combobox, Entry
 from Biscuit.utils.utils import clear_widget
 from Biscuit.Management import ToolTipManager
 

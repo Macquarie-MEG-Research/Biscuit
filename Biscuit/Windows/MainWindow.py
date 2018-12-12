@@ -122,6 +122,11 @@ class MainWindow(Frame):
                                                    screen_height - 200)
         self.master.geometry(screen_dimensions)
 
+        if OSCONST.os == 'LNX':
+            # For some reason the right click menu isn't un-drawn on linux
+            # like it is on windows and mac...
+            self.master.bind("<Button-1>", self.r_click_menu.undraw, add='+')
+
     def _load_settings(self):
         """
         Load the various settings the program will use to automatically
@@ -519,8 +524,12 @@ class MainWindow(Frame):
         SettingsWindow(self, self.settings)
 
     def _open_settings_folder(self):
-        # TODO: doesn't work on linux...
-        webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
+        if OSCONST.os != 'LNX':
+            webbrowser.open('file://{0}'.format(OSCONST.USRDIR))
+        else:
+            # only need this for linux
+            from subprocess import Popen
+            Popen(['xdg-open', OSCONST.USRDIR])
 
     def get_selection_info(self):
         data = []

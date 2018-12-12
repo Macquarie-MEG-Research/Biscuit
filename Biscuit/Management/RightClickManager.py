@@ -333,3 +333,6 @@ class RightClick():
     def popup(self, event):
         self._add_options()
         self.popup_menu.post(event.x_root, event.y_root)
+
+    def undraw(self, event):
+        self.popup_menu.unpost()

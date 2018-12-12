@@ -71,7 +71,7 @@ except TypeError:
     pass
 OSCONST.USRDIR_MAC = os.path.join(os.path.expanduser('~'), 'Library',
                                   'Biscuit')
-OSCONST.USRDIR_LNX = '~/.Biscuit'  # dummy for now
+OSCONST.USRDIR_LNX = os.path.expanduser('~/.Biscuit')
 
 # biscuit icon file
 # these file paths are relative to the `__main__.py` file
