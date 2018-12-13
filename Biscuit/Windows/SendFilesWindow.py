@@ -170,13 +170,6 @@ class SendFilesWindow(Toplevel):
     @threaded
     def _transfer(self):
         """ Transfer all the files in self.src to the server """
-        noerrors = True
-
-        # if we are transferring an entire BIDS folder we need to determine
-        # all of the projects within it.
-        # if we are sending just project folders we obviously don't need to do
-        # this
-        # TODO: make smarter (like the `get_projects` function...)
         copy_func = BIDSCopy(overwrite=self.force_override.get(),
                              verify=self.verify.get(),
                              file_name_tracker=self.curr_file,
@@ -186,10 +179,9 @@ class SendFilesWindow(Toplevel):
         dst_folder = BIDSFolder(self.dst)
         dst_folder.add(self.src, copier=copy_func.copy_files)
         self.transferred_count.set(self.file_count)
-        self.curr_file.set('None')
-        if noerrors:
-            if self.set_copied:
-                self._rename_complete()
+        if self.set_copied:
+            self._rename_complete()
+        self.curr_file.set('Complete!')
 
     def _rename_complete(self):
         """ rename the folder to have `_copied` appended to the name """

@@ -85,9 +85,7 @@ class BIDSCopy():
                                          "Please ensure there is no issue with"
                                          " the file".format(src))
             if self.file_num_tracker is not None:
-                self.file_num_tracker.set(fnum + 1)
-
-        self.file_name_tracker.set("Complete!")
+                self.file_num_tracker.set(self.file_num_tracker.get() + 1)
 
 
 def md5hash(src):
