@@ -1,4 +1,4 @@
-from tkinter import Toplevel, StringVar
+from tkinter import Toplevel, StringVar, messagebox
 from tkinter.ttk import Frame, Label, Button
 import os.path as path
 import pickle
@@ -128,7 +128,18 @@ class ProjectListWindow(Toplevel):
         self.proj_settings[curr_row] = proj_settings
 
     def _remove_row(self, idx):
-        del self.proj_settings[idx]
+        if messagebox.askyesno(
+                title="Confirm deletion",
+                message=("Are you sure you want to delete the project "
+                         "settings?\n"
+                         "This cannot be undone once you save the settings "
+                         "and you will lose your saved project settings if "
+                         "you continue!"),
+                parent=self):
+            del self.proj_settings[idx]
+        else:
+            # return something to block deletion
+            return True
 
     def save_and_exit(self):
         self._write_settings()
