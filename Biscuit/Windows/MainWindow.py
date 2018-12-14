@@ -23,8 +23,8 @@ from Biscuit.Management.RightClickManager import RightClick
 from Biscuit.Management.InfoManager import InfoManager
 from Biscuit.Management.SaveManager import SaveManager
 from Biscuit.Windows import (ProjectListWindow, ProgressPopup, CheckSavePopup,
-                             CreditsPopup, SettingsWindow)
-from Biscuit.utils.utils import threaded, get_object_class
+                             CreditsPopup, SettingsWindow, SendFilesWindow)
+from Biscuit.utils.utils import threaded, get_object_class, assign_bids_data
 from Biscuit.utils.constants import OSCONST
 
 # TODO: move into the SettingsWindow
@@ -178,23 +178,28 @@ class MainWindow(Frame):
         """
         Create the menus
         """
-        # main menu bar
+        # Main menu bar
         self.menu_bar = Menu(self.master)
-        # options menu
+        # Options menu
         self.options_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Options", menu=self.options_menu)
 
         # add options to the options menu:
         self.options_menu.add_command(label="Set data directory",
                                       command=self._get_data_location)
-        # self.options_menu.add_command(label="Matlab path",
-        #                              command=self._get_matlab_location)
         self.options_menu.add_command(label="Set defaults",
                                       command=self._display_defaults_popup)
         self.options_menu.add_command(label="Settings",
                                       command=self._open_settings)
 
-        # info menu
+        # Tools menu
+        self.tools_menu = Menu(self.menu_bar, tearoff=0)
+        self.menu_bar.add_cascade(label="Tools", menu=self.tools_menu)
+
+        self.tools_menu.add_command(label="Import BIDS data",
+                                    command=self._import_bids_data)
+
+        # Info menu
         self.info_menu = Menu(self.menu_bar, tearoff=0)
         self.menu_bar.add_cascade(label="Info", menu=self.info_menu)
 
@@ -205,7 +210,7 @@ class MainWindow(Frame):
         self.info_menu.add_command(label="Open Settings Folder",
                                    command=self._open_settings_folder)
 
-        # finally, tell the GUI to include the menu bar
+        # Finally, tell the GUI to include the menu bar.
         self.master.config(menu=self.menu_bar)
 
     def _create_widgets(self):
@@ -521,6 +526,15 @@ class MainWindow(Frame):
                 if isinstance(obj, BIDSContainer):
                     obj.settings = self.proj_settings
 
+    def _import_bids_data(self):
+        """Allow BIDS data to be imported into Biscuit."""
+        # TODO: only works to import an entire BIDS folder currently...
+        src_dir = filedialog.askdirectory(
+            title="Select the BIDS folder to import")
+        dst_dir = filedialog.askdirectory(
+            title="Select the BIDS folder to import into")
+        SendFilesWindow(self, src_dir, dst_dir, opt_verify=True)
+
     def _display_credits_popup(self):
         CreditsPopup(self)
 
@@ -556,7 +570,8 @@ class MainWindow(Frame):
             self.progress_popup = ProgressPopup(self, progress, None)
 
     def _refresh_filetree(self):
-        self.file_treeview.refresh()
+        new_sids = self.file_treeview.refresh()
+        assign_bids_data(new_sids, self.file_treeview, self.preloaded_data)
 
     def _check_exit(self):
         """

@@ -30,7 +30,7 @@ class BIDSContainer(FileInfo):
         self.proj_name.trace("w", self.check_projname_change)
         self.session_ID = StringVar(value='1')
         self.session_ID.trace("w", self.validate)
-        # this will be a list of BIDSFile's which have their data extracted
+        # This will be a list of BIDSFile's which have their data extracted
         # and passed to mne_bids.
         self.jobs = set()
 
@@ -47,6 +47,9 @@ class BIDSContainer(FileInfo):
         self.requires_save = True
 
         self.extra_data = dict()
+        # List of extra files to be dumped in the same directory as the
+        # scants.tsv
+        self.extra_files = []
 
         # MEG data parameters
         self.electrode = None
@@ -55,7 +58,7 @@ class BIDSContainer(FileInfo):
 
         self.make_specific_data = dict()
 
-        # whether the object has had any validation done yet
+        # Whether the object has had any validation done yet.
         # This will be used to optimise the validation process since once the
         # BIDSContainer has had it's initial validation checks done, we will
         # only need to check the job for their validation sate, instead of

@@ -24,6 +24,47 @@ class FileInfo():
         self.loaded = False
         self._create_vars()
 
+#region public methods
+
+    def check_valid(self):
+        """ Returns True (method will be overriden by derived classes) """
+        return True
+
+    def load_data(self):
+        # default method to be overidden by inherited classes
+        pass
+
+    def validate(self, *args):
+        """
+        Check whether the file is valid (ie. contains all the required info for
+        BIDS exporting)
+        """
+        self.valid = self.check_valid()
+
+    def update_treeview(self):
+        """
+        Change the colour of the tag in the treeview to reflect the current
+        state of the entry
+        """
+        if self.parent is not None:
+            # check for the is_junk tag. If it has it apply the correct tags.
+            if self.is_junk.get() is True:
+                self.parent.file_treeview.add_tags(self.ID, ['JUNK_FILE'])
+            else:
+                self.parent.file_treeview.remove_tags(self.ID, ['JUNK_FILE'])
+            # next see if good or not and give the correct tags
+            if self.valid:
+                self.parent.file_treeview.remove_tags(self.ID, ['BAD_FILE'])
+                self.parent.file_treeview.add_tags(self.ID, tags=['GOOD_FILE'])
+            else:
+                self.parent.file_treeview.add_tags(self.ID, tags=['BAD_FILE'])
+                self.parent.file_treeview.remove_tags(self.ID, ['GOOD_FILE'])
+
+#region private methods
+
+    def _apply_settings(self):
+        pass
+
     def _create_vars(self):
         """ Create all the required data for the file """
         self.info = dict()
@@ -60,38 +101,7 @@ class FileInfo():
         # used for files that are viewed with the text viewer
         self.saved_time = "Never"
 
-    def _apply_settings(self):
-        pass
-
-    def check_valid(self):
-        """ Returns True (method will be overriden by derived classes) """
-        return True
-
-    def validate(self, *args):
-        """
-        Check whether the file is valid (ie. contains all the required info for
-        BIDS exporting)
-        """
-        self.valid = self.check_valid()
-
-    def update_treeview(self):
-        """
-        Change the colour of the tag in the treeview to reflect the current
-        state of the entry
-        """
-        if self.parent is not None:
-            # check for the is_junk tag. If it has it apply the correct tags.
-            if self.is_junk.get() is True:
-                self.parent.file_treeview.add_tags(self.ID, ['JUNK_FILE'])
-            else:
-                self.parent.file_treeview.remove_tags(self.ID, ['JUNK_FILE'])
-            # next see if good or not and give the correct tags
-            if self.valid:
-                self.parent.file_treeview.remove_tags(self.ID, ['BAD_FILE'])
-                self.parent.file_treeview.add_tags(self.ID, tags=['GOOD_FILE'])
-            else:
-                self.parent.file_treeview.add_tags(self.ID, tags=['BAD_FILE'])
-                self.parent.file_treeview.remove_tags(self.ID, ['GOOD_FILE'])
+#region properties
 
     @property
     def ID(self):
@@ -118,24 +128,7 @@ class FileInfo():
     def dtype(self):
         return self._type
 
-    def load_data(self):
-        # default method to be overidden by inherited classes
-        pass
-
-    # TODO: fix me!!! please!!!
-    def copy(self, new_id):
-        """
-        This can be called to create another version of the object.
-        This will be used when we create the BIDS folder so that the copied
-        files already have all the info they need.
-        Creating it as a method like this instead of a __copy__ so that we can
-        create a copy with a different id
-        """
-        obj = type(self)(new_id, self._file, parent=self.parent)
-        obj.info = self.info
-        obj._type = self._type
-        obj.unknown_type = self.unknown_type
-        return obj
+#region class methods
 
     def __getstate__(self):
         """

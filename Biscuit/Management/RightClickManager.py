@@ -4,7 +4,7 @@ import re
 
 from BIDSHandler import BIDSFolder, Project, Subject, Session
 
-from Biscuit.FileTypes import con_file, Folder
+from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 
@@ -62,6 +62,10 @@ class RightClick():
                 self.popup_menu.add_command(label="Create Folder",
                                             command=self._create_folder)
             """
+            # add an option to associate the file as extra data to be included
+            # in the bids output
+            self.popup_menu.add_command(label="Add to BIDS output",
+                                        command=self._add_to_bids)
             if ('.CON' in self.context or '.MRK' in self.context):
                 self.popup_menu.add_command(label="Associate",
                                             command=self._associate_mrk)
@@ -111,10 +115,25 @@ class RightClick():
                         label="Assign as BIDS folder",
                         command=self._toggle_bids_folder)
 
+    def _add_to_bids(self):
+        """Add the selected file(s) to the list of files to be retained across
+        BIDS conversion.
+        """
+        sids = self.curr_selection
+        parent_obj = None
+        for sid in sids:
+            parent = self.parent.file_treeview.parent(sid)
+            fpath = self.parent.file_treeview.get_filepath(sid)
+            parent_obj = self.parent.preloaded_data.get(parent, None)
+            if isinstance(parent_obj, BIDSContainer):
+                parent_obj.extra_files.append(fpath)
+
     # TODO: clean this up
     def _associate_mrk(self, all_=False):
-        # allow the user to select an .mrk file if a .con file has been
-        # selected (or vice-versa) and associate the mrk file with the con file
+        """
+        Allow the user to select an .mrk file if a .con file has been
+        selected (or vice-versa) and associate the mrk file with the con file.
+        """
         con_files = []
         if all_ and self.parent.treeview_select_mode == "NORMAL":
             mrk_files = [self.parent.preloaded_data[sid] for sid in

@@ -1,14 +1,14 @@
 from contextlib import redirect_stdout
 from time import sleep
 import os.path as path
-from os import makedirs
 from tkinter import StringVar
 from datetime import date
+import shutil
 
 from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.Windows import ProgressPopup
-from Biscuit.utils.utils import threaded
+from Biscuit.utils.utils import threaded, assign_bids_data
 
 from Biscuit.utils.timeutils import get_chunk_num, get_year
 
@@ -37,28 +37,6 @@ def convert(container, settings, parent=None):
     # Find the SID of the BIDS folder.
     bids_root_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
     bids_folder_path = path.join(bids_root_folder_path, subfolder_name)
-    if not path.exists(bids_root_folder_path):
-        makedirs(bids_root_folder_path)
-        bids_root_folder_sid = parent.file_treeview.ordered_insert(
-            '', text='BIDS', values=('', bids_root_folder_path))
-    else:
-        for sid in parent.file_treeview.get_children():
-            if parent.file_treeview.item(sid)['text'] == 'BIDS':
-                bids_root_folder_sid = sid
-                break
-    if chunk_length != 0:
-        # Find the SID of the BIDS sub-folder for the current chunk
-        if not path.exists(bids_folder_path):
-            bids_folder_sid = parent.file_treeview.ordered_insert(
-                bids_root_folder_sid, text=subfolder_name,
-                values=('', bids_folder_path))
-        else:
-            for sid in parent.file_treeview.get_children(bids_root_folder_sid):
-                if parent.file_treeview.item(sid)['text'] == subfolder_name:
-                    bids_folder_sid = sid
-                    break
-    else:
-        bids_folder_sid = bids_root_folder_sid
 
     # Create variables for the dynamic displaying of the process.
     # We unfortunately cannot get particularly granular or precise progress
@@ -69,22 +47,23 @@ def convert(container, settings, parent=None):
 
     p = ProgressPopup(parent, progress, job_name)
 
+    # get the variables for the raw_to_bids conversion function:
+    subject_id = container.subject_ID.get()
+    sess_id = container.session_ID.get()
+    if sess_id == '':
+        sess_id = None
+    subject_group = container.subject_group.get()
+
+    target_folder = path.join(bids_folder_path,
+                              container.proj_name.get())
+
     # redict the stout to the StreamedVar as a way of capturing progress
     with redirect_stdout(progress):
         for job in container.jobs:
             if not job.is_junk.get():
-                target_folder = path.join(bids_folder_path,
-                                          container.proj_name.get())
-
-                # get the variables for the raw_to_bids conversion function:
-                subject_id = container.subject_ID.get()
-                sess_id = container.session_ID.get()
 
                 extra_data = job.extra_data
-                subject_group = container.subject_group.get()
 
-                if sess_id == '':
-                    sess_id = None
                 emptyroom_path = ''
 
                 # TODO: change this to just use the event_info property
@@ -157,6 +136,11 @@ def convert(container, settings, parent=None):
                             subject_group=subject_group,
                             readme_text=container.readme, verbose=True,
                             **container.make_specific_data)
+        # copy over any extra files:
+        for file in container.extra_files:
+            dst = path.join(target_folder, 'sub-{0}'.format(subject_id),
+                            'ses-{0}'.format(sess_id))
+            shutil.copy(file, dst)
         print("Conversion done! Closing window in 3...")
         sleep(1)
         print("Conversion done! Closing window in 2...")
@@ -165,7 +149,10 @@ def convert(container, settings, parent=None):
         sleep(1)
         p._exit()
 
-    parent.file_treeview.generate(bids_folder_sid, bids_folder_path)
+    new_sids = parent.file_treeview.refresh()
+
+    # assign any new BIDS data
+    assign_bids_data(new_sids, parent.file_treeview, parent.preloaded_data)
 
     # This is essentially useless but it suppresses pylint:E1111
     return True
