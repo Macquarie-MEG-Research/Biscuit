@@ -1,5 +1,6 @@
 from contextlib import redirect_stdout
 from time import sleep
+import os
 import os.path as path
 from tkinter import StringVar
 from datetime import date
@@ -155,8 +156,15 @@ def convert(container, settings, parent=None):
         if not has_error:
             # copy over any extra files:
             for file in container.extra_files:
-                dst = path.join(target_folder, 'sub-{0}'.format(subject_id),
-                                'ses-{0}'.format(sess_id))
+                ext = path.splitext(file)[1]
+                if ext in ['.m', '.py']:
+                    dst = path.join(target_folder, 'code')
+                else:
+                    dst = path.join(target_folder,
+                                    'sub-{0}'.format(subject_id),
+                                    'ses-{0}'.format(sess_id), 'extras')
+                if not path.exists(dst):
+                    os.makedirs(dst)
                 shutil.copy(file, dst)
             print("Conversion done! Closing window in 3...")
             sleep(1)
