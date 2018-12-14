@@ -45,6 +45,8 @@ def convert(container, settings, parent=None):
                            {'Writing': _shorten_path})
     job_name = StringVar()
 
+    has_error = False
+
     p = ProgressPopup(parent, progress, job_name)
 
     # get the variables for the raw_to_bids conversion function:
@@ -128,31 +130,41 @@ def convert(container, settings, parent=None):
                             for _ in range(mrks.count(None)):
                                 mrks.remove(None)
 
-                raw_to_bids(subject_id=subject_id, task=task,
-                            raw_file=job.raw, output_path=target_folder,
-                            session_id=sess_id, kind='meg', event_id=event_ids,
-                            hpi=mrks, run=run,
-                            emptyroom=emptyroom, extra_data=extra_data,
-                            subject_group=subject_group,
-                            readme_text=container.readme, verbose=True,
-                            **container.make_specific_data)
-        # copy over any extra files:
-        for file in container.extra_files:
-            dst = path.join(target_folder, 'sub-{0}'.format(subject_id),
-                            'ses-{0}'.format(sess_id))
-            shutil.copy(file, dst)
-        print("Conversion done! Closing window in 3...")
-        sleep(1)
-        print("Conversion done! Closing window in 2...")
-        sleep(1)
-        print("Conversion done! Closing window in 1...")
-        sleep(1)
-        p._exit()
+                try:
+                    raw_to_bids(subject_id=subject_id, task=task,
+                                raw_file=job.raw, output_path=target_folder,
+                                session_id=sess_id, kind='meg',
+                                event_id=event_ids, hpi=mrks, run=run,
+                                emptyroom=emptyroom, extra_data=extra_data,
+                                subject_group=subject_group,
+                                readme_text=container.readme, verbose=True,
+                                **container.make_specific_data)
+                except:  # noqa
+                    # We want to actually just catch any error and print a
+                    # message.
+                    progress.set("An error occurred during the conversion "
+                                 "process.\nPlease check the python console "
+                                 "to see the error.")
+                    has_error = True
 
-    new_sids = parent.file_treeview.refresh()
+        new_sids = parent.file_treeview.refresh()
 
-    # assign any new BIDS data
-    assign_bids_data(new_sids, parent.file_treeview, parent.preloaded_data)
+        # assign any new BIDS data
+        assign_bids_data(new_sids, parent.file_treeview, parent.preloaded_data)
+
+        if not has_error:
+            # copy over any extra files:
+            for file in container.extra_files:
+                dst = path.join(target_folder, 'sub-{0}'.format(subject_id),
+                                'ses-{0}'.format(sess_id))
+                shutil.copy(file, dst)
+            print("Conversion done! Closing window in 3...")
+            sleep(1)
+            print("Conversion done! Closing window in 2...")
+            sleep(1)
+            print("Conversion done! Closing window in 1...")
+            sleep(1)
+            p._exit()
 
     # This is essentially useless but it suppresses pylint:E1111
     return True

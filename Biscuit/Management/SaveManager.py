@@ -143,8 +143,8 @@ class SaveManager():
                     sid = self.get_file_id(file.file)
                     file.ID = sid
                     file.parent = self.parent
-                    file.settings = self.parent.proj_settings
                     file.load_data()
+                    file.settings = self.parent.proj_settings
                     _data[file.ID] = file
 
                     # find any children of the IC and give them this object as

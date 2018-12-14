@@ -176,7 +176,7 @@ class BIDSContainer(FileInfo):
         self.subject_age[1].set(state.get('sja', ['', '', ''])[1])
         self.subject_age[2].set(state.get('sja', ['', '', ''])[2])
         gender = state.get('sjs', 'M')
-        self.subject_gender.options = [gender]
+        self.subject_gender.options = ['M', 'F', 'U']
         self.subject_gender.set(gender)
         group = state.get('sjg', '')
         self.subject_group.options = [group]

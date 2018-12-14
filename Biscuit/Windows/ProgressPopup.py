@@ -17,8 +17,7 @@ class ProgressPopup(Toplevel):
         self.title('Conversion Progress')
 
         self.job_name_var = job_name_var
-        self.streamedvar = progress_var
-        self.progress_var = self.streamedvar.curr_value
+        self.progress_var = progress_var.curr_value
 
         self._create_widgets()
 
