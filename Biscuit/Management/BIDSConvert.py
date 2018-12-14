@@ -1,14 +1,15 @@
 from contextlib import redirect_stdout
 from time import sleep
+import os
 import os.path as path
-from os import makedirs
 from tkinter import StringVar
 from datetime import date
+import shutil
 
 from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.Windows import ProgressPopup
-from Biscuit.utils.utils import threaded
+from Biscuit.utils.utils import threaded, assign_bids_data
 
 from Biscuit.utils.timeutils import get_chunk_num, get_year
 
@@ -37,28 +38,6 @@ def convert(container, settings, parent=None):
     # Find the SID of the BIDS folder.
     bids_root_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
     bids_folder_path = path.join(bids_root_folder_path, subfolder_name)
-    if not path.exists(bids_root_folder_path):
-        makedirs(bids_root_folder_path)
-        bids_root_folder_sid = parent.file_treeview.ordered_insert(
-            '', text='BIDS', values=('', bids_root_folder_path))
-    else:
-        for sid in parent.file_treeview.get_children():
-            if parent.file_treeview.item(sid)['text'] == 'BIDS':
-                bids_root_folder_sid = sid
-                break
-    if chunk_length != 0:
-        # Find the SID of the BIDS sub-folder for the current chunk
-        if not path.exists(bids_folder_path):
-            bids_folder_sid = parent.file_treeview.ordered_insert(
-                bids_root_folder_sid, text=subfolder_name,
-                values=('', bids_folder_path))
-        else:
-            for sid in parent.file_treeview.get_children(bids_root_folder_sid):
-                if parent.file_treeview.item(sid)['text'] == subfolder_name:
-                    bids_folder_sid = sid
-                    break
-    else:
-        bids_folder_sid = bids_root_folder_sid
 
     # Create variables for the dynamic displaying of the process.
     # We unfortunately cannot get particularly granular or precise progress
@@ -67,24 +46,27 @@ def convert(container, settings, parent=None):
                            {'Writing': _shorten_path})
     job_name = StringVar()
 
+    has_error = False
+
     p = ProgressPopup(parent, progress, job_name)
+
+    # get the variables for the raw_to_bids conversion function:
+    subject_id = container.subject_ID.get()
+    sess_id = container.session_ID.get()
+    if sess_id == '':
+        sess_id = None
+    subject_group = container.subject_group.get()
+
+    target_folder = path.join(bids_folder_path,
+                              container.proj_name.get())
 
     # redict the stout to the StreamedVar as a way of capturing progress
     with redirect_stdout(progress):
         for job in container.jobs:
             if not job.is_junk.get():
-                target_folder = path.join(bids_folder_path,
-                                          container.proj_name.get())
-
-                # get the variables for the raw_to_bids conversion function:
-                subject_id = container.subject_ID.get()
-                sess_id = container.session_ID.get()
 
                 extra_data = job.extra_data
-                subject_group = container.subject_group.get()
 
-                if sess_id == '':
-                    sess_id = None
                 emptyroom_path = ''
 
                 # TODO: change this to just use the event_info property
@@ -149,23 +131,48 @@ def convert(container, settings, parent=None):
                             for _ in range(mrks.count(None)):
                                 mrks.remove(None)
 
-                raw_to_bids(subject_id=subject_id, task=task,
-                            raw_file=job.raw, output_path=target_folder,
-                            session_id=sess_id, kind='meg', event_id=event_ids,
-                            hpi=mrks, run=run,
-                            emptyroom=emptyroom, extra_data=extra_data,
-                            subject_group=subject_group,
-                            readme_text=container.readme, verbose=True,
-                            **container.make_specific_data)
-        print("Conversion done! Closing window in 3...")
-        sleep(1)
-        print("Conversion done! Closing window in 2...")
-        sleep(1)
-        print("Conversion done! Closing window in 1...")
-        sleep(1)
-        p._exit()
+                try:
+                    raw_to_bids(subject_id=subject_id, task=task,
+                                raw_file=job.raw, output_path=target_folder,
+                                session_id=sess_id, kind='meg',
+                                event_id=event_ids, hpi=mrks, run=run,
+                                emptyroom=emptyroom, extra_data=extra_data,
+                                subject_group=subject_group,
+                                readme_text=container.readme, verbose=True,
+                                **container.make_specific_data)
+                except:  # noqa
+                    # We want to actually just catch any error and print a
+                    # message.
+                    progress.set("An error occurred during the conversion "
+                                 "process.\nPlease check the python console "
+                                 "to see the error.")
+                    has_error = True
 
-    parent.file_treeview.generate(bids_folder_sid, bids_folder_path)
+        new_sids = parent.file_treeview.refresh()
+
+        # assign any new BIDS data
+        assign_bids_data(new_sids, parent.file_treeview, parent.preloaded_data)
+
+        if not has_error:
+            # copy over any extra files:
+            for file in container.extra_files:
+                ext = path.splitext(file)[1]
+                if ext in ['.m', '.py']:
+                    dst = path.join(target_folder, 'code')
+                else:
+                    dst = path.join(target_folder,
+                                    'sub-{0}'.format(subject_id),
+                                    'ses-{0}'.format(sess_id), 'extras')
+                if not path.exists(dst):
+                    os.makedirs(dst)
+                shutil.copy(file, dst)
+            print("Conversion done! Closing window in 3...")
+            sleep(1)
+            print("Conversion done! Closing window in 2...")
+            sleep(1)
+            print("Conversion done! Closing window in 1...")
+            sleep(1)
+            p._exit()
 
     # This is essentially useless but it suppresses pylint:E1111
     return True

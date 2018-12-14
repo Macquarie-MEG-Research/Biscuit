@@ -17,8 +17,8 @@ class FileTreeview(EnhancedTreeview):
 
     def generate(self, parent, directory=""):
         """
-        Iterate over the folder structure and list all the files in the
-        treeview
+        Iterate over the folder structure and add all found files to the
+        treeview.
 
         Parameters
         ----------
@@ -87,23 +87,38 @@ class FileTreeview(EnhancedTreeview):
                 self.index_cache[self.root_path] = ''
 
     def refresh(self):
-        """ Refresh the treeview to include any newly added or removed files"""
+        """
+        Refresh the treeview to include any newly added or removed files.
+        Returns a list of any added sid's.
+        """
         curr_selection = self.focus()
+        added_sids = []
         added_files, removed_files = self._find_folder_diff()
         # sort by length to ensure that any new folders are generated first
         added_files.sort(key=lambda x: len(x))
         # reverse sort the removed files to go from the ends of the branches
         removed_files.sort(key=lambda x: len(x), reverse=True)
         # add any new files to the file tree
+        # TODO: check any file to see if it has a parent that is a BIDSObject
+        # (ie. BIDSFolder, Project, Subject, Session), and if so then
+        # instantiate the folder as the child object and add it.
         for fullpath in added_files:
             base, file = path.split(fullpath)
             parent = self.sid_from_filepath(base)
             fname, ext = path.splitext(file)
-            sid = self.ordered_insert(parent,
-                                      values=[ext, fullpath],
-                                      text=fname, open=False,
-                                      tags=(ext))
+
+            if path.isdir(fullpath):
+                sid = self.ordered_insert(parent,
+                                          values=[ext, fullpath],
+                                          text=fname,
+                                          open=False)
+            else:
+                sid = self.insert(parent, 'end',
+                                  values=[ext, fullpath],
+                                  text=fname, open=False,
+                                  tags=(ext))
             self.index_cache[fullpath] = sid
+            added_sids.append(sid)
         # remove any removed files from the filetree
         for fpath in removed_files:
             sid = self.index_cache[fpath]
@@ -112,6 +127,7 @@ class FileTreeview(EnhancedTreeview):
             # TODO: remove from main.preloaded_data somehow??
         if curr_selection not in self.index_cache.values():
             self.selection_set([''])
+        return added_sids
 
     def sid_from_filepath(self, fpath):
         """ Return the sid in the treeview with the given filepath

@@ -4,7 +4,8 @@ from os import makedirs
 from math import log
 from tkinter import messagebox
 
-from BIDSHandler import BIDSFolder
+from BIDSHandler import BIDSFolder, Project, Subject, Session
+from BIDSHandler.utils import get_bids_params
 
 
 def create_folder(location):
@@ -160,6 +161,67 @@ def assign_bids_folder(fpath, treeview, data):
                     sid = treeview.sid_from_filepath(session.path)
                     data[sid] = session
         return bids_folder
+
+
+def assign_bids_data(new_sids, treeview, data):
+    """Go over a list of new sid's and determine if any of them contain BIDS
+    data that needs to be added to the existing BIDS objects.
+
+    Parameters
+    ----------
+    new_sids : list of strings
+        The newly added sid's.
+    treeview : instance of FileTreeview
+        The treeview widget that the new entries will be added to/checked
+        against.
+    data : dict
+        The preloaded data from the main window instance. Any new data is added
+        to this automatically.
+    """
+    # Go over each of the new entries in the tree from the top down, and
+    # determine if they are BIDS objects.
+    for sid in new_sids:
+        pid = treeview.parent(sid)
+        if sid not in data:
+            # Make sure the object isn't already in the preloaded data.
+            # This is vital as the loading of one object will automatically
+            # create objects for lower down objects which will be added to the
+            # preloaded data in the process
+            full_path = treeview.get_filepath(sid)
+            if path.isdir(full_path):
+                parent_obj = data.get(pid, None)
+                if isinstance(parent_obj, BIDSFolder):
+                    fname = treeview.get_text(sid)
+                    proj = Project(fname, parent_obj)
+                    parent_obj._projects[fname] = proj
+                    data[sid] = proj
+                    for subject in proj:
+                        sid = treeview.sid_from_filepath(subject.path)
+                        data[sid] = subject
+                        for session in subject:
+                            sid = treeview.sid_from_filepath(session.path)
+                            data[sid] = session
+                # This is *technically* a bit sketchy as if someone copies
+                # data into the folder at a subject level or below then
+                # important BIDS information may be lost. This will be fine
+                # however if the data is generated via BIDSHadler or mne-bids.
+                elif isinstance(parent_obj, Project):
+                    fname = treeview.get_text(sid)
+                    subj_id = get_bids_params(fname).get('sub', None)
+                    if subj_id is not None:
+                        subj = Subject(subj_id, parent_obj)
+                        parent_obj._subjects[subj_id] = subj
+                        data[sid] = subj
+                        for session in subj:
+                            sid = treeview.sid_from_filepath(session.path)
+                            data[sid] = session
+                elif isinstance(parent_obj, Subject):
+                    fname = treeview.get_text(sid)
+                    sess_id = get_bids_params(fname).get('ses', None)
+                    if sess_id is not None:
+                        sess = Session(sess_id, parent_obj)
+                        parent_obj._sessions[sess_id] = sess
+                        data[sid] = sess
 
 
 if __name__ == "__main__":

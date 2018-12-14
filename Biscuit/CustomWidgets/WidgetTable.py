@@ -58,7 +58,10 @@ class WidgetTable(Frame):
         If this function returns an values they are assumed to be the
         values to be passed into the newly created widgets if possible.
     remove_script : function
-        A callback for when a row is deleted
+        A callback for when a row is deleted.
+        This function can be used to block deletion. This is acheived by having
+        this function return anything. If nothing is returned then the deletion
+        occurs as expected.
     sort_column : int
         The column number that the data will automatically be sorted by.
 
@@ -469,12 +472,14 @@ class WidgetTable(Frame):
             Defaults to False (runs removal script by default if there is one)
 
         """
+        remove_rtn = None
         if self.remove_script is not None and not ignore_script:
-            self.remove_script(idx)
-        for w in self.widgets[-1]:
-            w.grid_forget()
-        del self.widgets[-1]
-        del self.data[idx]
+            remove_rtn = self.remove_script(idx)
+        if remove_rtn is None:
+            for w in self.widgets[-1]:
+                w.grid_forget()
+            del self.widgets[-1]
+            del self.data[idx]
 
     def delete_rows_and_update(self, idx, count=1, ignore_script=False):
         """ Remove one or more row widgets and update the table
