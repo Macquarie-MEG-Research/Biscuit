@@ -64,11 +64,15 @@ class WidgetTable(Frame):
         occurs as expected.
     sort_column : int
         The column number that the data will automatically be sorted by.
+    max_rows : int
+        The maximum number of rows to display before forcing the
+        ScrollableFrame to have a scroller.
 
     """
     def __init__(self, master, headings=[], pattern=[], widgets_pattern=[],
                  add_options=None, data_array=[], adder_script=None,
-                 remove_script=None, sort_column=None, *args, **kwargs):
+                 remove_script=None, sort_column=None, max_rows=None, *args,
+                 **kwargs):
         self.master = master
 
         # s = Style(self.master)
@@ -85,6 +89,7 @@ class WidgetTable(Frame):
         self.adder_script = adder_script
         self.remove_script = remove_script
         self.sort_column = sort_column
+        self.max_rows = max_rows
 
         self.entry_config = {'readonlybackground': OSCONST.TEXT_RONLY_BG,
                              'highlightbackground': OSCONST.TEXT_BG}
@@ -113,12 +118,16 @@ class WidgetTable(Frame):
             # ensure a 2D array
             if not isinstance(data_array[0], list):
                 data_array = [data_array]
+            self.data = []
+            self.set(data_array)
+            """
             # generate all the widgets
             self.add_row_widgets(len(data_array))
             # now assign the data to self.data
             self._assign_data(data_array)
             self.sort_data()
             self._apply_data()
+            """
         else:
             # empty table
             self.data = []
@@ -209,7 +218,7 @@ class WidgetTable(Frame):
             Defaults to 1
 
         """
-        # remove the add button if it exsists
+        # remove the add button if it exists
         if count != 0:
             if self.add_button is not None:
                 self.add_button.grid_forget()
@@ -538,7 +547,8 @@ class WidgetTable(Frame):
                 pass
         else:
             self.add_rows()
-        self.sf.configure_view(move_to_bottom=True, resize_canvas='x')
+
+        self._resize_to_max(move_to_bottom=True)
 
     def add_row_from_selection(self, event):
         """ Add a new row from the list of possible rows to add """
@@ -551,7 +561,7 @@ class WidgetTable(Frame):
                 self.add_rows()
             else:
                 self.add_rows(ret)
-        self.sf.configure_view(resize_canvas='x')
+        self._resize_to_max(resize_canvas='x')
 
     def get(self, values=True):
         """
@@ -623,12 +633,23 @@ class WidgetTable(Frame):
         elif diff == 0:
             self.add_rows(data, diff, from_start=True)
 
-        self.sf.configure_view()
+        self._resize_to_max()
 
-    # !REMOVE
-    def curr_row(self):
-        a = self.focus_get().grid_info().get('row') - self.row_offset
-        return a
+    def _resize_to_max(self, **config):
+        """ Resize the ScrollCanvas up to the maximum allowed size if a max
+        number of rows is specified.
+        """
+        max_x, max_y = (None, None)
+        self.sf.update_idletasks()
+
+        if self.max_rows is not None:
+            if len(self.data) > self.max_rows:
+                max_x, max_y = self.sf.frame.grid_bbox(
+                    column=self.sf.frame.grid_size()[0],
+                    row=self.max_rows + self.row_offset - 1)[:2]
+
+        self.sf.block_resize = False
+        self.sf.configure_view(max_size=(max_x, max_y), **config)
 
     @property
     def options(self):

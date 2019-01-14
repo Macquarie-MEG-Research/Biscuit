@@ -16,14 +16,22 @@ class ScrollableFrame(Frame):
         self.master = master
         Frame.__init__(self, self.master, *args, **kwargs)
 
+        # Block resizing. This is required because we bind the resizing code to
+        # a <Configure> tag. This would result in one resizing to a specific
+        # size to call self.configure_view again but with no arguments.
+        self.block_resize = False
+
         self.grid(sticky='nsew')
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
-        self.vsb = Scrollbar(self, orient="vertical")
+        self.vsb = Scrollbar(self, orient='vertical')
         self.vsb.grid(row=0, column=1, sticky='ns')
+        self.hsb = Scrollbar(self, orient='horizontal')
+        self.hsb.grid(row=1, column=0, sticky='ew')
 
         self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
+                             xscrollcommand=self.hsb.set,
                              bg=OSCONST.CANVAS_BG, highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
 
@@ -33,18 +41,19 @@ class ScrollableFrame(Frame):
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
         self.vsb.config(command=self.canvas.yview)
+        self.hsb.config(command=self.canvas.xview)
 
         self.bind("<Configure>", self.configure_view)
 
         # mouse wheel scroll bindings c/o Mikhail. T on stackexchange:
         # https://stackoverflow.com/a/37858368
-        self.bind('<Enter>', self._bound_to_mousewheel)
-        self.bind('<Leave>', self._unbound_to_mousewheel)
+        self.bind('<Enter>', self._bind_to_mousewheel)
+        self.bind('<Leave>', self._unbind_to_mousewheel)
 
-    def _bound_to_mousewheel(self, event):
+    def _bind_to_mousewheel(self, event):
         self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
 
-    def _unbound_to_mousewheel(self, event):
+    def _unbind_to_mousewheel(self, event):
         self.canvas.unbind_all("<MouseWheel>")
 
     def _on_mousewheel(self, event):
@@ -56,17 +65,61 @@ class ScrollableFrame(Frame):
                 self.canvas.yview_scroll(-event.delta, "units")
 
     def configure_view(self, event=None, move_to_bottom=False,
-                       resize_canvas='xy'):
-        self.update_idletasks()
+                       max_size=(None, None), resize_canvas='xy'):
+        """
+        Configure the size of the scrollable frame.
+
+        Parameters
+        ----------
+        move_to_bottom : bool
+            Whether or not to move the scroll bar all the way to the bottom.
+        max_size : tuple of int's
+            Maximum size that the scrollable canvas can be. This is a tuple of
+            length 2. (X, Y).
+        resize_canvas : str
+            The directions along which the scrollable canvas should be
+            stretched. One of `'x'`, `'y'`, or `'xy'` for the x-direction,
+            y-direction, or both respectively.
+        """
         bbox = self.canvas.bbox(ALL)
-        canvas_config = {'scrollregion': bbox}
+        x_size = None
+        y_size = None
         if 'x' in resize_canvas:
-            canvas_config['width'] = bbox[2]
+            if max_size[0] is not None:
+                x_size = min(max_size[0], bbox[2])
+            else:
+                x_size = bbox[2]
         if 'y' in resize_canvas:
-            canvas_config['height'] = bbox[3]
-        self.canvas.config(**canvas_config)
+            if max_size[1] is not None:
+                y_size = min(max_size[1], bbox[3])
+            else:
+                y_size = bbox[3]
+        self._resize_canvas(x_size, y_size)
         if move_to_bottom:
             self.canvas.yview_moveto(1.0)
+        self.canvas.config(scrollregion=bbox)
+
+    def _resize_canvas(self, width, height):
+        """Resize the canvas to the specified size
+
+        Parameters
+        ----------
+        width : int
+            Width of the frame.
+        height : int
+            Height of the frame.
+        """
+        if not self.block_resize:
+            if width is not None or height is not None:
+                self.block_resize = True
+            else:
+                self.block_resize = False
+            canvas_config = dict()
+            if width is not None:
+                canvas_config['width'] = width
+            if height is not None:
+                canvas_config['height'] = height
+            self.canvas.config(**canvas_config)
 
     def reattach(self):
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
