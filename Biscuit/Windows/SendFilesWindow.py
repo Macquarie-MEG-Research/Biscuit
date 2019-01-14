@@ -4,7 +4,7 @@ import os
 import os.path as path
 from subprocess import check_call, CalledProcessError
 
-from BIDSHandler import BIDSFolder
+from BIDSHandler import BIDSTree
 
 from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
@@ -23,7 +23,7 @@ class SendFilesWindow(Toplevel):
     ----------
     master : instance of tkinter.Widget
         Parent widget for this Toplevel widget
-    src : Instance of BIDSHandler.[BIDSFolder, Project, Subject, Session]
+    src : Instance of BIDSHandler.[BIDSTree, Project, Subject, Session]
         Source object to copy over
     dst : string
         Destination folder or location on server.
@@ -176,7 +176,7 @@ class SendFilesWindow(Toplevel):
                              file_num_tracker=self.transferred_count,
                              file_prog_tracker=self.curr_file_progress)
         self.curr_file.set('Mapping destination BIDS structure...')
-        dst_folder = BIDSFolder(self.dst)
+        dst_folder = BIDSTree(self.dst)
         dst_folder.add(self.src, copier=copy_func.copy_files)
         self.transferred_count.set(self.file_count)
         if self.set_copied:
@@ -188,8 +188,8 @@ class SendFilesWindow(Toplevel):
         if not self.src.path.endswith('_copied'):
             new_path = "{0}_copied".format(self.src)
             os.rename(self.src.path, new_path)
-            # fix the path in the BIDSFolder object also
-            if isinstance(self.src, BIDSFolder):
+            # fix the path in the BIDSTree object also
+            if isinstance(self.src, BIDSTree):
                 self.src.path = new_path
             # also rename the branch in the filetree
             fname = path.basename(self.src)
