@@ -63,7 +63,8 @@ class ProjectListWindow(Toplevel):
             widgets_pattern=[Label, Label, Label, Button],
             data_array=[self.settings_view(s) for s in self.proj_settings],
             adder_script=self._add_project_row,
-            remove_script=self._remove_row)
+            remove_script=self._remove_row,
+            max_rows=self.settings.get('PROJ_ROWS', 10))
         self.projects_table.grid(column=0, row=0, sticky='nsew')
         self.defaults_list_frame.grid(column=0, row=1, columnspan=2,
                                       sticky='nsew')
@@ -95,6 +96,8 @@ class ProjectListWindow(Toplevel):
                         settings.get('ProjectTitle', 'None'),
                         '', None]
             else:
+                # sort channel list first so it looks nicer
+                dt.sort(key=lambda x: x[0])
                 return [settings.get('ProjectID', 'None'),
                         settings.get('ProjectTitle', 'None'),
                         ','.join([str(i[0]) for i in dt]), None]

@@ -31,7 +31,7 @@ class SettingsWindow(Toplevel):
         self.settings_file = path.join(OSCONST.USRDIR,
                                        'settings.pkl')
 
-        self.protocol("WM_DELETE_WINDOW", self.exit)
+        self.protocol('WM_DELETE_WINDOW', self.exit)
 
         self.lock_icon = Image.open(OSCONST.ICON_LOCK)
         self.lock_icon = ImageTk.PhotoImage(self.lock_icon)
@@ -39,10 +39,11 @@ class SettingsWindow(Toplevel):
         self.settings = settings
 
         self.show_assoc = BooleanVar(
-            value=self.settings.get("SHOW_ASSOC_MESSAGE", True))
+            value=self.settings.get('SHOW_ASSOC_MESSAGE', True))
+        self.proj_lines = IntVar(value=self.settings.get('PROJ_ROWS', 10))
         self.archive_path = StringVar(
-            value=self.settings.get("ARCHIVE_PATH", None))
-        self.chunk_freq = IntVar(value=self.settings.get("CHUNK_FREQ", 14))
+            value=self.settings.get('ARCHIVE_PATH', None))
+        self.chunk_freq = IntVar(value=self.settings.get('CHUNK_FREQ', 14))
 
         self._create_widgets()
 
@@ -58,54 +59,69 @@ class SettingsWindow(Toplevel):
         frame = Frame(self)
         frame.grid(sticky='nsew')
 
-        assoc_lbl = Label(frame, text="Show association message:")
+        # Option to show association message
+        assoc_lbl = Label(frame, text='Show association message:')
         assoc_lbl.grid(column=0, row=0, sticky='ew')
         ttm.register(assoc_lbl,
-                     "Whether or not to show a message with details on how "
-                     "to associate .mrk and .con files.")
+                     'Whether or not to show a message with details on how '
+                     'to associate .mrk and .con files.')
         assoc_chk = Checkbutton(frame, variable=self.show_assoc)
         assoc_chk.grid(column=1, row=0, columnspan=2, sticky='w', padx=2)
 
-        archive_lbl = Label(frame, text="Archive path:")
-        archive_lbl.grid(column=0, row=1, sticky='ew')
+        # Option to set how many project settings are shown by default
+        proj_lines_lbl = Label(frame,
+                               text='Number of project settings to show:')
+        proj_lines_lbl.grid(column=0, row=1, sticky='ew')
+        ttm.register(proj_lines_lbl,
+                     'The default number of projects to be shown in the '
+                     '"Set defaults" window. To see the rest of the project '
+                     'settings the window will have to be scrolled down.')
+        self.proj_lines_entry = ValidatedEntry(frame,
+                                               textvariable=self.proj_lines,
+                                               force_dtype='int')
+        self.proj_lines_entry.grid(column=1, row=1, columnspan=2, sticky='ew',
+                                   padx=2)
+
+        archive_lbl = Label(frame, text='Archive path:')
+        archive_lbl.grid(column=0, row=2, sticky='ew')
         ttm.register(archive_lbl,
-                     "Path to upload data for storage.")
+                     'Path to upload data for storage.')
         self.archive_entry = Entry(frame,
                                    textvariable=self.archive_path,
                                    state=DISABLED,
                                    width=50)
-        self.archive_entry.grid(column=1, row=1, columnspan=2, sticky='ew',
+        self.archive_entry.grid(column=1, row=2, columnspan=2, sticky='ew',
                                 padx=2)
 
-        chunk_lbl = Label(frame, text="Chunking frequency:")
-        chunk_lbl.grid(column=0, row=2, sticky='ew')
+        chunk_lbl = Label(frame, text='Chunking frequency:')
+        chunk_lbl.grid(column=0, row=3, sticky='ew')
         ttm.register(chunk_lbl,
-                     "How often to create a new BIDS folder locally.\n"
-                     "For personal use this should be 0, indicating no "
-                     "chunking.\nFor use in a lab this should be set the "
-                     "frequency at which\nthe data is expected to be "
-                     "backed up to an external archive if that occurs.\n"
-                     "WARNING! This should be set up when first setting up"
-                     "Biscuit.\nChanging wid-way through a year can have"
-                     "unintended side-effects.")
+                     'How often to create a new BIDS folder locally.\n'
+                     'For personal use this should be 0, indicating no '
+                     'chunking.\nFor use in a lab this should be set the '
+                     'frequency at which\nthe data is expected to be '
+                     'backed up to an external archive if that occurs.\n'
+                     'WARNING! This should be set up when first setting up '
+                     'Biscuit.\nChanging wid-way through a year can have '
+                     'unintended side-effects.')
         self.chunk_entry = ValidatedEntry(frame,
                                           textvariable=self.chunk_freq,
                                           state=DISABLED,
                                           force_dtype='int')
-        self.chunk_entry.grid(column=1, row=2, padx=2, sticky='ew')
-        week_lbl = Label(frame, text="(days)")
-        week_lbl.grid(column=2, row=2, sticky='e')
+        self.chunk_entry.grid(column=1, row=3, padx=2, sticky='ew')
+        week_lbl = Label(frame, text='(days)')
+        week_lbl.grid(column=2, row=3, sticky='e')
 
         unlock_archive_btn = tkButton(frame, relief='flat', borderwidth=0,
                                       highlightthickness=0, takefocus=0,
                                       command=self._unlock_settings)
         unlock_archive_btn.config(image=self.lock_icon)
-        unlock_archive_btn.grid(column=3, row=1, rowspan=2, padx=2,
+        unlock_archive_btn.grid(column=3, row=2, rowspan=2, padx=2,
                                 sticky='nsew')
 
-        exit_btn = Button(frame, text="Save and Exit",
+        exit_btn = Button(frame, text='Save and Exit',
                           command=self.save_and_exit)
-        exit_btn.grid(column=0, row=3)
+        exit_btn.grid(column=0, row=4)
 
         frame.grid_columnconfigure(0, weight=0)
         frame.grid_columnconfigure(1, weight=1)
@@ -134,5 +150,6 @@ class SettingsWindow(Toplevel):
         self.settings['SHOW_ASSOC_MESSAGE'] = self.show_assoc.get()
         self.settings['ARCHIVE_PATH'] = self.archive_path.get()
         self.settings['CHUNK_FREQ'] = self.chunk_freq.get()
+        self.settings['PROJ_ROWS'] = self.proj_lines.get()
         with open(self.settings_file, 'wb') as settings:
             pickle.dump(self.settings, settings)

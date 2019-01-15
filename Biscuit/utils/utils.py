@@ -3,8 +3,9 @@ import os.path as path
 from os import makedirs
 from math import log
 from tkinter import messagebox
+from copy import copy
 
-from BIDSHandler import BIDSFolder, Project, Subject, Session
+from BIDSHandler import BIDSTree, Project, Subject, Session
 from BIDSHandler.utils import get_bids_params
 
 
@@ -45,6 +46,21 @@ def flatten(lst):
             out = lst
             break
     return out
+
+
+def copy_dict(dict_):
+    """Return a faithful copy of a dictionary.
+    This is different to a deep copy in that it will return `copy` of the
+    object, unless it is a dictionary, in which case this will be called
+    recursively
+    """
+    new_dict = dict()
+    for key, value in dict_.items():
+        if not isinstance(value, dict):
+            new_dict[key] = copy(value)
+        else:
+            new_dict[key] = copy_dict(value)
+    return new_dict
 
 
 def threaded(func):
@@ -137,7 +153,7 @@ def assign_bids_folder(fpath, treeview, data):
     Assign the filepath as a BIDS folder and associate all children as the
     required type.
     """
-    bids_folder = BIDSFolder(fpath)
+    bids_folder = BIDSTree(fpath)
     # TODO: check for BIDSHandler.MappingError?
     if bids_folder.projects == []:
         # Ie. no valid data
@@ -190,7 +206,7 @@ def assign_bids_data(new_sids, treeview, data):
             full_path = treeview.get_filepath(sid)
             if path.isdir(full_path):
                 parent_obj = data.get(pid, None)
-                if isinstance(parent_obj, BIDSFolder):
+                if isinstance(parent_obj, BIDSTree):
                     fname = treeview.get_text(sid)
                     proj = Project(fname, parent_obj)
                     parent_obj._projects[fname] = proj

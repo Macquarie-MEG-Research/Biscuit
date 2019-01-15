@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 from copy import copy
 
 from Biscuit.utils.constants import OSCONST
+from Biscuit.utils.utils import copy_dict
 
 from .ScrollableFrame import ScrollableFrame
 
@@ -64,11 +65,15 @@ class WidgetTable(Frame):
         occurs as expected.
     sort_column : int
         The column number that the data will automatically be sorted by.
+    max_rows : int
+        The maximum number of rows to display before forcing the
+        ScrollableFrame to have a scroller.
 
     """
     def __init__(self, master, headings=[], pattern=[], widgets_pattern=[],
                  add_options=None, data_array=[], adder_script=None,
-                 remove_script=None, sort_column=None, *args, **kwargs):
+                 remove_script=None, sort_column=None, max_rows=None, *args,
+                 **kwargs):
         self.master = master
 
         # s = Style(self.master)
@@ -85,6 +90,7 @@ class WidgetTable(Frame):
         self.adder_script = adder_script
         self.remove_script = remove_script
         self.sort_column = sort_column
+        self.max_rows = max_rows
 
         self.entry_config = {'readonlybackground': OSCONST.TEXT_RONLY_BG,
                              'highlightbackground': OSCONST.TEXT_BG}
@@ -113,12 +119,8 @@ class WidgetTable(Frame):
             # ensure a 2D array
             if not isinstance(data_array[0], list):
                 data_array = [data_array]
-            # generate all the widgets
-            self.add_row_widgets(len(data_array))
-            # now assign the data to self.data
-            self._assign_data(data_array)
-            self.sort_data()
-            self._apply_data()
+            self.data = []
+            self.set(data_array)
         else:
             # empty table
             self.data = []
@@ -126,58 +128,7 @@ class WidgetTable(Frame):
 
         self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
-    def _add_row_from_key(self, *args):
-        """ Add a new row when the new row keyboard shortcut is pressed
-
-        This will only be possible when we don't have a fixed list of
-        possibilites to add.
-
-        """
-        if not isinstance(self.add_options, list):
-            self.add_row_from_button()
-            self.sf.configure_view(resize_canvas='x')
-
-    def _create_widgets(self):
-        """ Create all the base widgets required """
-        if isinstance(self.add_options, list):
-            add_option_frame = Frame(self)
-            Label(add_option_frame, text="Add an option: ").grid(column=0,
-                                                                 row=0,
-                                                                 sticky='w')
-            self.nameselection = Combobox(add_option_frame,
-                                          values=self.add_options,
-                                          state='readonly', exportselection=0)
-            self.nameselection.grid(column=2, row=0, sticky='w')
-            self.nameselection.bind("<<ComboboxSelected>>",
-                                    self.add_row_from_selection)
-            self.separator_offset = 1
-            add_option_frame.grid(column=0, row=0, sticky='w', padx=2, pady=2)
-            self.sf = ScrollableFrame(self)
-            self.sf.grid(column=0, row=1, sticky='nsew')
-
-            self.grid_rowconfigure(0, weight=0)
-            self.grid_rowconfigure(1, weight=1)
-            self.grid_columnconfigure(0, weight=1)
-        else:
-            self.sf = ScrollableFrame(self)
-            self.sf.grid(column=0, row=0, sticky='nsew')
-            if self.adder_script != DISABLED:
-                self.add_button = Button(self.sf.frame, text="Add Row",
-                                         command=self.add_row_from_button)
-                self.add_button.grid(row=2, column=2 * self.num_columns - 1)
-                self.add_button.bind(OSCONST.ADDROW, self._add_row_from_key)
-
-            self.grid_rowconfigure(0, weight=1)
-            self.grid_columnconfigure(0, weight=1)
-        for i, heading in enumerate(self.headings):
-            Label(self.sf.frame, text=heading).grid(
-                column=2 * i, row=self.separator_offset, sticky='nsew', padx=2,
-                pady=2)
-        Separator(self.sf.frame, orient='horizontal').grid(
-            column=0, row=self.separator_offset + 1,
-            columnspan=2 * self.num_columns - 1, sticky='ew')
-
-        self.row_offset = self.sf.frame.grid_size()[1]
+#region public methods
 
     def add_row_data(self, idx, data=None):
         """
@@ -209,7 +160,7 @@ class WidgetTable(Frame):
             Defaults to 1
 
         """
-        # remove the add button if it exsists
+        # remove the add button if it exists
         if count != 0:
             if self.add_button is not None:
                 self.add_button.grid_forget()
@@ -299,6 +250,238 @@ class WidgetTable(Frame):
         # apply the data appropriately
         self._apply_data()
 
+    def add_row_from_button(self):
+        """ Add a row from the 'Add Row' button """
+        # before anything happens call the adder script if there is one to
+        # determine whether there is any data that can populate the new row.
+        if self.adder_script is not None:
+            try:
+                ret = self.adder_script()
+                if ret is None:
+                    self.add_rows()
+                else:
+                    self.add_rows(ret)
+            except TypeError:
+                # in this case the wrong number of arguments have been passed
+                # (potentially. Print a message and pass)
+                print(("The adder function used wasn't called because "
+                       "it had the wrong number of arguments"))
+            except ValueError:
+                # In this case the function may have broken.
+                # This indicates we do not want to add the row
+                pass
+        else:
+            self.add_rows()
+
+        self._resize_to_max(move_to_bottom=True)
+
+    def add_row_from_selection(self, event):
+        """ Add a new row from the list of possible rows to add """
+        # this only needs to be different to implement the functionality to
+        # allow the entry in the list to be removed if it needs to be
+        # unless we leave that functionality up to the user...
+        if self.adder_script is not None:
+            ret = self.adder_script()
+            if ret is None:
+                self.add_rows()
+            else:
+                self.add_rows(ret)
+        self._resize_to_max(resize_canvas='x')
+
+    def delete_row(self, idx, ignore_script=False):
+        """ Remove the row widgets and data
+
+        Parameters
+        ----------
+        idx : int
+            Row index to delete.
+        ignore_script : bool
+            Whether or not to ignore the call to the removal script.
+            Defaults to False (runs removal script by default if there is one)
+
+        """
+        remove_rtn = None
+        if self.remove_script is not None and not ignore_script:
+            remove_rtn = self.remove_script(idx)
+        if remove_rtn is None:
+            for w in self.widgets[-1]:
+                w.grid_forget()
+            del self.widgets[-1]
+            del self.data[idx]
+
+    def delete_rows_and_update(self, idx, count=1, ignore_script=False):
+        """ Remove one or more row widgets and update the table
+
+        Parameters
+        ----------
+        idx : int
+            Row index to delete.
+        count : int
+            Number of rows to delete. Defaults to 1.
+        ignore_script : bool
+            Whether or not to ignore the call to the removal script.
+            Defaults to False (runs removal script by default if there is one).
+
+        """
+        # remove up to the maximum number of rows
+        for _ in range(min(len(self.widgets), count)):
+            self.delete_row(idx, ignore_script)
+        # remap the delete command for the buttons
+        for i in range(len(self.widgets)):
+            del_btn = self.widgets[i][-1]
+            del_btn.config(command=lambda x=i: self.delete_rows_and_update(x))
+        # now, reapply all the variables
+        self.first_redraw_row = 0
+        self._correct_idx_refs()
+        self._apply_data()
+        self.sf.configure_view(resize_canvas='')
+
+    def get(self, values=True):
+        """
+        Return a 2D array of all the data contained.
+
+        Parameters
+        ----------
+        values : bool
+            If values == True, the value of the Variables will be
+        returned. If False the Variables themselves will be returned
+        """
+        out_data = []
+        for row in self.data:
+            row_data = []
+            if values:
+                for var in row:
+                    if not isinstance(var, dict):
+                        row_data.append(var.get())
+                    else:
+                        if 'var' in var:
+                            row_data.append(var['var'].get())
+                        elif 'text' in var:
+                            row_data.append(var['text'])
+            else:
+                # simply return the actual row data
+                row_data.append(row)
+            out_data.append(row_data)
+        return out_data
+
+    def set(self, data=[]):
+        """
+        Force the table to be updated with new data
+        """
+        diff = len(data) - len(self.data)
+        if diff < 0:
+            # assign the row data
+            for i in range(len(data)):
+                self.add_row_data(i, data[i])
+            # remove all unneccesary rows
+            self.delete_rows_and_update(-1, abs(diff), ignore_script=True)
+        elif diff > 0:
+            # assign the data up to the number of existing widgets
+            for i in range(len(data) - diff):
+                self.add_row_data(i, data[i])
+            self.add_rows(data[-diff:], diff)
+        elif diff == 0:
+            self.add_rows(data, diff, from_start=True)
+
+        self._resize_to_max()
+
+    def set_row(self, idx, data):
+        """
+        Set the data for a specific row
+
+        Parameters
+        ----------
+        idx : int
+            Index of the row the data will be set in.
+        data : list
+            Row data to be assigned. This should be a list of raw values, not
+            a list of instances of Variables.
+        """
+        for i, val in enumerate(data):
+            if val is not None:
+                self.data[idx][i].set(val)
+
+    def sort_data(self):
+        """ If a sort column is specified on intialisation of the WidgetTable
+        then sort by this column."""
+        if isinstance(self.sort_column, int):
+            if self.sort_column < self.num_columns:
+                self.data.sort(key=lambda x: x[self.sort_column].get())
+
+#region private methods
+
+    def _add_row_from_key(self, *args):
+        """ Add a new row when the new row keyboard shortcut is pressed
+
+        This will only be possible when we don't have a fixed list of
+        possibilites to add.
+
+        """
+        if not isinstance(self.add_options, list):
+            self.add_row_from_button()
+            self.sf.configure_view(resize_canvas='x')
+
+    def _apply_data(self):
+        """
+        Apply all the data in self.data to the widget array.
+        The widgets are traversed column by column so that we can create an
+        apply function specifically for that widget type.
+        """
+        # do columns then rows to save having to check data types repeatedly
+        for column in range(self.num_columns):
+            # first, create a lambda which can be re-used for each row
+            w = self.widgets_pattern[column]
+            try:
+                if callable(w):
+                    # in this case the widget is actually one wrapped in a
+                    # lambda statement.
+                    # extract it by checking the type
+                    w = type(w(self))
+                if issubclass(w, Label):
+                    if isinstance(self.pattern[column], dict):
+                        # apply any provided configs:
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
+                            textvariable=var['var'],
+                            **var.get('configs', dict()))
+                    else:
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
+                            textvariable=var)
+                if issubclass(w, tkEntry):
+                    if isinstance(self.pattern[column], dict):
+                        # apply any provided configs:
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
+                            textvariable=var['var'], **self.entry_config,
+                            **var.get('configs', dict()))
+                    else:
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
+                            textvariable=var, **self.entry_config)
+                if issubclass(w, Checkbutton):
+                    # check underlying data type to provide correct function
+                    if isinstance(self.pattern[column], dict):
+                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
+                            variable=var['var'], command=var.get('func', None),
+                            **var.get('configs', dict()))
+                    else:
+                        apply = lambda wgt, var: wgt.configure(variable=var)  # noqa: E731,E501
+                elif issubclass(w, Button):
+                    apply = lambda wgt, var: wgt.configure(text=var['text'],  # noqa: E731,E501
+                                                           command=var['func'])
+                elif issubclass(w, Combobox):
+                    # we will be assuming that the underlying data type is an
+                    # OptionsVar to provide simplest functionality
+                    def apply(wgt, var):
+                        wgt.configure(values=var.options, state='readonly')
+                        wgt.set(var.get())
+                        # set the selection binding
+                        select_value = lambda e, w=wgt: var.set(wgt.get())  # noqa: E731,E501
+                        wgt.bind("<<ComboboxSelected>>", select_value)
+            except TypeError:
+                print('unsupported Widget Type??')
+                print(w, w.__name__)
+            # now, on each row apply the data
+            for row in range(self.first_redraw_row, len(self.widgets)):
+                apply(self.widgets[row][column], self.data[row][column])
+
     def _assign_row_data(self, idx, data=None):
         """
         Assign the data provided to the WidgetTable's data array's Variables.
@@ -316,6 +499,7 @@ class WidgetTable(Frame):
             (see help(WidgetTable) for more info)
         """
         row_vars = []
+        # iterate over the columns
         for i in range(len(self.pattern)):
             if data is not None:
                 val = data[i]
@@ -324,7 +508,7 @@ class WidgetTable(Frame):
             if val is not None:
                 if isinstance(self.pattern[i], dict):
                     # create a copy of the pattern for the current column data
-                    new_dict = self.pattern[i].copy()
+                    new_dict = copy_dict(self.pattern[i])
                     # then populate the new dict with any provided data
                     if isinstance(val, Variable):
                         # in this case we are just receiving the Variable
@@ -389,67 +573,6 @@ class WidgetTable(Frame):
         for i, row in enumerate(data):
             self._assign_row_data(i, row)
 
-    def _apply_data(self):
-        """
-        Apply all the data in self.data to the widget array.
-        The widgets are traversed column by column so that we can create an
-        apply function specifically for that widget type.
-        """
-        # do columns then rows to save having to check data types repeatedly
-        for column in range(self.num_columns):
-            # first, create a lambda which can be re-used for each row
-            w = self.widgets_pattern[column]
-            try:
-                if callable(w):
-                    # in this case the widget is actually one wrapped in a
-                    # lambda statement.
-                    # extract it by checking the type
-                    w = type(w(self))
-                if issubclass(w, Label):
-                    if isinstance(self.pattern[column], dict):
-                        # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var['var'],
-                            **var.get('configs', dict()))
-                    else:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var)
-                if issubclass(w, tkEntry):
-                    if isinstance(self.pattern[column], dict):
-                        # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var['var'], **self.entry_config,
-                            **var.get('configs', dict()))
-                    else:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var, **self.entry_config)
-                if issubclass(w, Checkbutton):
-                    # check underlying data type to provide correct function
-                    if isinstance(self.pattern[column], dict):
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            variable=var['var'], command=var.get('func', None),
-                            **var.get('configs', dict()))
-                    else:
-                        apply = lambda wgt, var: wgt.configure(variable=var)  # noqa: E731,E501
-                elif issubclass(w, Button):
-                    apply = lambda wgt, var: wgt.configure(text=var['text'],  # noqa: E731,E501
-                                                           command=var['func'])
-                elif issubclass(w, Combobox):
-                    # we will be assuming that the underlying data type is an
-                    # OptionsVar to provide simplest functionality
-                    def apply(wgt, var):
-                        wgt.configure(values=var.options, state='readonly')
-                        wgt.set(var.get())
-                        # set the selection binding
-                        select_value = lambda e, w=wgt: var.set(wgt.get())  # noqa: E731,E501
-                        wgt.bind("<<ComboboxSelected>>", select_value)
-            except TypeError:
-                print('unsupported Widget Type??')
-                print(w, w.__name__)
-            # now, on each row apply the data
-            for row in range(self.first_redraw_row, len(self.widgets)):
-                apply(self.widgets[row][column], self.data[row][column])
-
     def _correct_idx_refs(self):
         """ Correct any reference to index in any function in the data array"""
         for i, row in enumerate(self.data):
@@ -460,53 +583,47 @@ class WidgetTable(Frame):
                         del val['func']
                         val['func'] = lambda x=i: f(x)
 
-    def delete_row(self, idx, ignore_script=False):
-        """ Remove the row widgets and data
+    def _create_widgets(self):
+        """ Create all the base widgets required """
+        if isinstance(self.add_options, list):
+            add_option_frame = Frame(self)
+            Label(add_option_frame, text="Add an option: ").grid(column=0,
+                                                                 row=0,
+                                                                 sticky='w')
+            self.nameselection = Combobox(add_option_frame,
+                                          values=self.add_options,
+                                          state='readonly', exportselection=0)
+            self.nameselection.grid(column=2, row=0, sticky='w')
+            self.nameselection.bind("<<ComboboxSelected>>",
+                                    self.add_row_from_selection)
+            self.separator_offset = 1
+            add_option_frame.grid(column=0, row=0, sticky='w', padx=2, pady=2)
+            self.sf = ScrollableFrame(self)
+            self.sf.grid(column=0, row=1, sticky='nsew')
 
-        Parameters
-        ----------
-        idx : int
-            Row index to delete.
-        ignore_script : bool
-            Whether or not to ignore the call to the removal script.
-            Defaults to False (runs removal script by default if there is one)
+            self.grid_rowconfigure(0, weight=0)
+            self.grid_rowconfigure(1, weight=1)
+            self.grid_columnconfigure(0, weight=1)
+        else:
+            self.sf = ScrollableFrame(self)
+            self.sf.grid(column=0, row=0, sticky='nsew')
+            if self.adder_script != DISABLED:
+                self.add_button = Button(self.sf.frame, text="Add Row",
+                                         command=self.add_row_from_button)
+                self.add_button.grid(row=2, column=2 * self.num_columns - 1)
+                self.add_button.bind(OSCONST.ADDROW, self._add_row_from_key)
 
-        """
-        remove_rtn = None
-        if self.remove_script is not None and not ignore_script:
-            remove_rtn = self.remove_script(idx)
-        if remove_rtn is None:
-            for w in self.widgets[-1]:
-                w.grid_forget()
-            del self.widgets[-1]
-            del self.data[idx]
+            self.grid_rowconfigure(0, weight=1)
+            self.grid_columnconfigure(0, weight=1)
+        for i, heading in enumerate(self.headings):
+            Label(self.sf.frame, text=heading).grid(
+                column=2 * i, row=self.separator_offset, sticky='nsew', padx=2,
+                pady=2)
+        Separator(self.sf.frame, orient='horizontal').grid(
+            column=0, row=self.separator_offset + 1,
+            columnspan=2 * self.num_columns - 1, sticky='ew')
 
-    def delete_rows_and_update(self, idx, count=1, ignore_script=False):
-        """ Remove one or more row widgets and update the table
-
-        Parameters
-        ----------
-        idx : int
-            Row index to delete.
-        count : int
-            Number of rows to delete. Defaults to 1.
-        ignore_script : bool
-            Whether or not to ignore the call to the removal script.
-            Defaults to False (runs removal script by default if there is one).
-
-        """
-        # remove up to the maximum number of rows
-        for _ in range(min(len(self.widgets), count)):
-            self.delete_row(idx, ignore_script)
-        # remap the delete command for the buttons
-        for i in range(len(self.widgets)):
-            del_btn = self.widgets[i][-1]
-            del_btn.config(command=lambda x=i: self.delete_rows_and_update(x))
-        # now, reapply all the variables
-        self.first_redraw_row = 0
-        self._correct_idx_refs()
-        self._apply_data()
-        self.sf.configure_view(resize_canvas='')
+        self.row_offset = self.sf.frame.grid_size()[1]
 
     def _draw_separators(self):
         """ Redraw all the separators when the table is being redrawn """
@@ -516,119 +633,23 @@ class WidgetTable(Frame):
             sep.grid(column=2 * i + 1, row=self.separator_offset,
                      rowspan=rows - self.separator_offset, sticky='ns')
 
-    def add_row_from_button(self):
-        """ Add a row from the 'Add Row' button """
-        # before anything happens call the adder script if there is one to
-        # determine whether there is any data that can populate the new row.
-        if self.adder_script is not None:
-            try:
-                ret = self.adder_script()
-                if ret is None:
-                    self.add_rows()
-                else:
-                    self.add_rows(ret)
-            except TypeError:
-                # in this case the wrong number of arguments have been passed
-                # (potentially. Print a message and pass)
-                print(("The adder function used wasn't called because "
-                       "it had the wrong number of arguments"))
-            except ValueError:
-                # In this case the function may have broken.
-                # This indicates we do not want to add the row
-                pass
-        else:
-            self.add_rows()
-        self.sf.configure_view(move_to_bottom=True, resize_canvas='x')
-
-    def add_row_from_selection(self, event):
-        """ Add a new row from the list of possible rows to add """
-        # this only needs to be different to implement the functionality to
-        # allow the entry in the list to be removed if it needs to be
-        # unless we leave that functionality up to the user...
-        if self.adder_script is not None:
-            ret = self.adder_script()
-            if ret is None:
-                self.add_rows()
-            else:
-                self.add_rows(ret)
-        self.sf.configure_view(resize_canvas='x')
-
-    def get(self, values=True):
+    def _resize_to_max(self, **config):
+        """ Resize the ScrollCanvas up to the maximum allowed size if a max
+        number of rows is specified.
         """
-        Return a 2D array of all the data contained.
+        max_x, max_y = (None, None)
+        self.sf.update_idletasks()
 
-        Parameters
-        ----------
-        values : bool
-            If values == True, the value of the Variables will be
-        returned. If False the Variables themselves will be returned
-        """
-        out_data = []
-        for row in self.data:
-            row_data = []
-            if values:
-                for var in row:
-                    if not isinstance(var, dict):
-                        row_data.append(var.get())
-                    else:
-                        if 'var' in var:
-                            row_data.append(var['var'].get())
-                        elif 'text' in var:
-                            row_data.append(var['text'])
-            else:
-                # simply return the actual row data
-                row_data.append(row)
-            out_data.append(row_data)
-        return out_data
+        if self.max_rows is not None:
+            if len(self.data) > self.max_rows:
+                max_x, max_y = self.sf.frame.grid_bbox(
+                    column=self.sf.frame.grid_size()[0],
+                    row=self.max_rows + self.row_offset - 1)[:2]
 
-    def set_row(self, idx, data):
-        """
-        Set the data for a specific row
+        self.sf.block_resize = False
+        self.sf.configure_view(max_size=(max_x, max_y), **config)
 
-        Parameters
-        ----------
-        idx : int
-            Index of the row the data will be set in.
-        data : list
-            Row data to be assigned. This should be a list of raw values, not
-            a list of instances of Variables.
-        """
-        for i, val in enumerate(data):
-            if val is not None:
-                self.data[idx][i].set(val)
-
-    def sort_data(self):
-        """ If a sort column is specified on intialisation of the WidgetTable
-        then sort by this column """
-        if isinstance(self.sort_column, int):
-            if self.sort_column < self.num_columns:
-                self.data.sort(key=lambda x: x[self.sort_column].get())
-
-    def set(self, data=[]):
-        """
-        Force the table to be updated with new data
-        """
-        diff = len(data) - len(self.data)
-        if diff < 0:
-            # assign the row data
-            for i in range(len(data)):
-                self.add_row_data(i, data[i])
-            # remove all unneccesary rows
-            self.delete_rows_and_update(-1, abs(diff), ignore_script=True)
-        elif diff > 0:
-            # assign the data up to the number of existing widgets
-            for i in range(len(data) - diff):
-                self.add_row_data(i, data[i])
-            self.add_rows(data[-diff:], diff)
-        elif diff == 0:
-            self.add_rows(data, diff, from_start=True)
-
-        self.sf.configure_view()
-
-    # !REMOVE
-    def curr_row(self):
-        a = self.focus_get().grid_info().get('row') - self.row_offset
-        return a
+#region properties
 
     @property
     def options(self):
@@ -640,6 +661,9 @@ class WidgetTable(Frame):
             self.nameselection.configure(values=value)
             self.nameselection.set(value[0])
 
+#region class methods
+
+    #TODO: move to utils?
     @staticmethod
     def ensure_2D_array(arr):
         """ If the provided array is not 2D convert it to one """

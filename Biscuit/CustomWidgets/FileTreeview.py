@@ -100,7 +100,7 @@ class FileTreeview(EnhancedTreeview):
         removed_files.sort(key=lambda x: len(x), reverse=True)
         # add any new files to the file tree
         # TODO: check any file to see if it has a parent that is a BIDSObject
-        # (ie. BIDSFolder, Project, Subject, Session), and if so then
+        # (ie. BIDSTree, Project, Subject, Session), and if so then
         # instantiate the folder as the child object and add it.
         for fullpath in added_files:
             base, file = path.split(fullpath)

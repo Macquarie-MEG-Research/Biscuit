@@ -4,7 +4,7 @@ from os import makedirs, replace, rename
 from tkinter import StringVar
 from datetime import datetime
 
-from BIDSHandler import BIDSFolder
+from BIDSHandler import BIDSTree
 
 from Biscuit.FileTypes import FIFData, con_file, mrk_file, KITData
 from Biscuit.utils.constants import OSCONST
@@ -127,7 +127,7 @@ class SaveManager():
                         file.ID = sid
                         _data[file.ID] = file
                     elif isinstance(file, list):
-                        # In this case it is the BIDSFolder data
+                        # In this case it is the BIDSTree data
                         # load all the info (I guess?)
                         for fpath in file:
                             bids_folder = assign_bids_folder(
@@ -187,7 +187,7 @@ class SaveManager():
         if not path.exists(self.save_path):
             makedirs(self.save_path)
         temp_save = self.save_file + '_temp'
-        BIDSFolder_paths = []
+        BIDSTree_paths = []
         with open(temp_save, 'wb') as f:
             for file in self.parent.preloaded_data.values():
                 if hasattr(file, 'requires_save'):
@@ -197,9 +197,9 @@ class SaveManager():
                         except (TypeError, AttributeError):
                             print('error saving file: {0}'.format(file))
                             raise
-                if isinstance(file, BIDSFolder):
-                    BIDSFolder_paths.append(file.path)
-            pickle.dump(BIDSFolder_paths, f)
+                if isinstance(file, BIDSTree):
+                    BIDSTree_paths.append(file.path)
+            pickle.dump(BIDSTree_paths, f)
 
             savetime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             self.saved_time.set("Last saved:\t{0}".format(savetime))

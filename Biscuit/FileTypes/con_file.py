@@ -170,6 +170,11 @@ class con_file(BIDSFile):
                     self.tab_info[i] = [name_var, bad_var, trigger_var,
                                         desc_var]
                     self.interesting_channels.add(i)
+                    # If the associated channel tab is currently associated,
+                    # select the channel name and redraw the panel
+                    if self.associated_channel_tab is not None:
+                        self.associated_channel_tab.channels_table.nameselection.set(self.channel_names[i])  # noqa
+                        self.associated_channel_tab.channels_table.add_row_from_selection(None)  # noqa
 
     # TODO: maybe not have this return two lists??
     def get_event_data(self):

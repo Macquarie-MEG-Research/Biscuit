@@ -106,14 +106,6 @@ class SessionInfoFrame(Frame):
     def convert_to_bids(self):
         convert(self.file, self.settings, self.parent)
 
-    """
-    def _folder_to_bids(self):
-        if self.file._create_raws():
-            self.file._folder_to_bids()
-        else:
-            print("Error creating raw data required for BIDS conversion")
-    """
-
     @property
     def file(self):
         return self._file
