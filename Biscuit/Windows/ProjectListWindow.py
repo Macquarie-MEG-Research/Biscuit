@@ -96,6 +96,8 @@ class ProjectListWindow(Toplevel):
                         settings.get('ProjectTitle', 'None'),
                         '', None]
             else:
+                # sort channel list first so it looks nicer
+                dt.sort(key=lambda x: x[0])
                 return [settings.get('ProjectID', 'None'),
                         settings.get('ProjectTitle', 'None'),
                         ','.join([str(i[0]) for i in dt]), None]
