@@ -9,6 +9,7 @@ from PIL import Image, ImageTk
 from copy import copy
 
 from Biscuit.utils.constants import OSCONST
+from Biscuit.utils.utils import copy_dict
 
 from .ScrollableFrame import ScrollableFrame
 
@@ -120,14 +121,6 @@ class WidgetTable(Frame):
                 data_array = [data_array]
             self.data = []
             self.set(data_array)
-            """
-            # generate all the widgets
-            self.add_row_widgets(len(data_array))
-            # now assign the data to self.data
-            self._assign_data(data_array)
-            self.sort_data()
-            self._apply_data()
-            """
         else:
             # empty table
             self.data = []
@@ -410,7 +403,7 @@ class WidgetTable(Frame):
 
     def sort_data(self):
         """ If a sort column is specified on intialisation of the WidgetTable
-        then sort by this column """
+        then sort by this column."""
         if isinstance(self.sort_column, int):
             if self.sort_column < self.num_columns:
                 self.data.sort(key=lambda x: x[self.sort_column].get())
@@ -506,6 +499,7 @@ class WidgetTable(Frame):
             (see help(WidgetTable) for more info)
         """
         row_vars = []
+        # iterate over the columns
         for i in range(len(self.pattern)):
             if data is not None:
                 val = data[i]
@@ -514,7 +508,7 @@ class WidgetTable(Frame):
             if val is not None:
                 if isinstance(self.pattern[i], dict):
                     # create a copy of the pattern for the current column data
-                    new_dict = self.pattern[i].copy()
+                    new_dict = copy_dict(self.pattern[i])
                     # then populate the new dict with any provided data
                     if isinstance(val, Variable):
                         # in this case we are just receiving the Variable
