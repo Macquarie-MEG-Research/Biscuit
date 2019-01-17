@@ -3,6 +3,8 @@
 from platform import system as os_name
 import os
 
+import Biscuit
+
 OSNAMEMAP = {'Windows': 'WIN',
              'Linux': 'LNX',
              'Darwin': 'MAC'}   # TODO: confirm on other ios versions
@@ -37,7 +39,7 @@ class OSConstMap():
 OSCONST = OSConstMap()
 
 # TODO: replace this with just Biscuit.__version__??
-OSCONST.VERSION = 'v0.9.5'
+OSCONST.VERSION = Biscuit.__version__
 
 # tkinter.canvas background colour
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')
