@@ -5,11 +5,12 @@ import os.path as path
 from tkinter import StringVar
 from datetime import date
 import shutil
+from BIDSHandler import Session
 
 from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.Windows import ProgressPopup
-from Biscuit.utils.utils import threaded, assign_bids_data
+from Biscuit.utils.utils import threaded, assign_bids_data, assign_bids_folder
 
 from Biscuit.utils.timeutils import get_chunk_num, get_year
 
@@ -35,9 +36,11 @@ def convert(container, settings, parent=None):
         subfolder_name = 'BIDS-{0}-{1}'.format(
             get_year(curr_date), get_chunk_num(curr_date, chunk_length))
 
-    # Find the SID of the BIDS folder.
     bids_root_folder_path = path.join(settings['DATA_PATH'], 'BIDS')
     bids_folder_path = path.join(bids_root_folder_path, subfolder_name)
+
+    # Determine if the BIDS-YYYY-FF folder exists already:
+    bidstree_folder_exists = path.exists(bids_folder_path)
 
     # Create variables for the dynamic displaying of the process.
     # We unfortunately cannot get particularly granular or precise progress
@@ -150,8 +153,23 @@ def convert(container, settings, parent=None):
 
         new_sids = parent.file_treeview.refresh()
 
-        # assign any new BIDS data
-        assign_bids_data(new_sids, parent.file_treeview, parent.preloaded_data)
+        if not bidstree_folder_exists:
+            assign_bids_folder(bids_folder_path, parent.file_treeview,
+                               parent.preloaded_data)
+        else:
+            # assign any new BIDS data
+            assign_bids_data(new_sids, parent.file_treeview,
+                             parent.preloaded_data)
+
+        # find the first instance from the newly added folders that is a
+        # BIDSHandler.Session object and set this is the focus of the treeview.
+        for sid in new_sids:
+            if isinstance(parent.preloaded_data.get(sid, None), Session):
+                parent.file_treeview.see(sid)
+                parent.file_treeview.focus(item=sid)
+                # sid added as a tuple for pre-3.6 compatibilty
+                parent.file_treeview.selection_set((sid,))
+                break
 
         if not has_error:
             # copy over any extra files:

@@ -127,13 +127,13 @@ class SaveManager():
                         file.ID = sid
                         _data[file.ID] = file
                     elif isinstance(file, list):
+                        # TODO: improve...
                         # In this case it is the BIDSTree data
                         # load all the info (I guess?)
                         for fpath in file:
-                            bids_folder = assign_bids_folder(
-                                fpath, self.parent.file_treeview, _data)
-                            sid = self.get_file_id(fpath)
-                            _data[sid] = bids_folder
+                            assign_bids_folder(fpath,
+                                               self.parent.file_treeview,
+                                               _data)
                 except FileNotFoundError:
                     pass
             # load containers after files to ensure the files are referenced in

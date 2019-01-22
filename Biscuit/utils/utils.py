@@ -5,7 +5,7 @@ from math import log
 from tkinter import messagebox
 from copy import copy
 
-from BIDSHandler import BIDSTree, Project, Subject, Session
+from BIDSHandler import BIDSTree, Project, Subject, Session, MappingError
 from BIDSHandler.utils import get_bids_params
 
 
@@ -153,7 +153,10 @@ def assign_bids_folder(fpath, treeview, data):
     Assign the filepath as a BIDS folder and associate all children as the
     required type.
     """
-    bids_folder = BIDSTree(fpath)
+    try:
+        bids_folder = BIDSTree(fpath)
+    except MappingError:
+        bids_folder = []
     # TODO: check for BIDSHandler.MappingError?
     if bids_folder.projects == []:
         # Ie. no valid data
@@ -165,18 +168,19 @@ def assign_bids_folder(fpath, treeview, data):
         # Remove the bids folder just to be sure
         del bids_folder
         return None
-    else:
-        # now we need to assign all the data to the filetree...
-        for project in bids_folder:
-            sid = treeview.sid_from_filepath(project.path)
-            data[sid] = project
-            for subject in project:
-                sid = treeview.sid_from_filepath(subject.path)
-                data[sid] = subject
-                for session in subject:
-                    sid = treeview.sid_from_filepath(session.path)
-                    data[sid] = session
-        return bids_folder
+    # now we need to assign all the data to the filetree...
+    sid = treeview.sid_from_filepath(fpath)
+    data[sid] = bids_folder
+    for project in bids_folder:
+        sid = treeview.sid_from_filepath(project.path)
+        data[sid] = project
+        for subject in project:
+            sid = treeview.sid_from_filepath(subject.path)
+            data[sid] = subject
+            for session in subject:
+                sid = treeview.sid_from_filepath(session.path)
+                data[sid] = session
+    return bids_folder
 
 
 def assign_bids_data(new_sids, treeview, data):

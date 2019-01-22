@@ -344,7 +344,8 @@ class RightClick():
         bids_folder = assign_bids_folder(fpath, self.parent.file_treeview,
                                          self.parent.preloaded_data)
         if bids_folder is not None:
-            self.parent.preloaded_data[sid] = bids_folder
+            # Only needed if the current selection is the same thing that has
+            # been right-clicked.
             self.parent.info_notebook.data = [bids_folder]
 
     def _upload(self, src_obj):
