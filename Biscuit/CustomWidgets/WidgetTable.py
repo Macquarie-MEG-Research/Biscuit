@@ -42,30 +42,30 @@ class WidgetTable(Frame):
             etc.
         - func_has_row_ctx: (bool) whether or not the function specified by
             func is given the current line as an argument.
-    widgets_pattern : list(instance of Widget)
+    widgets_pattern : list of Widget instances
         A list of Widgets that will be drawn in each
         column.
         These widgets *must* be un-instantiated to allow cloning when
         creating new rows.
-    add_options : list
+    add_options : list, optional
         A fixed length list of options that can be added.
         If None then the rows can just be added arbitrarily using button.
-    data_array : list
+    data_array : list, optional
         A list of the intial data to populate the table with.
         This can either be raw data or an array of the variables
-    adder_script : function
+    adder_script : function, optional
         A function that will be called when the Add button is
         pressed or a value is picked from the add_options option box.
         If this function returns an values they are assumed to be the
         values to be passed into the newly created widgets if possible.
-    remove_script : function
+    remove_script : function, optional
         A callback for when a row is deleted.
         This function can be used to block deletion. This is acheived by having
         this function return anything. If nothing is returned then the deletion
         occurs as expected.
-    sort_column : int
+    sort_column : int, optional
         The column number that the data will automatically be sorted by.
-    max_rows : int
+    max_rows : int, optional
         The maximum number of rows to display before forcing the
         ScrollableFrame to have a scroller.
 
