@@ -29,6 +29,10 @@ class OptionsVar(Variable):
             self._options.append(StringVar(value=str(option)))
         self._set_initial(value)
 
+    def copy(self):
+        """Return a copy of the Variable."""
+        return OptionsVar(options=self.options)
+
     def get(self):
         value = self._tk.globalgetvar(self._name)
         if isinstance(value, str):

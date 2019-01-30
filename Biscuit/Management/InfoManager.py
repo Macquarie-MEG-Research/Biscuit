@@ -140,6 +140,7 @@ class InfoManager(Notebook):
             else:
                 if isinstance(self.data[0], BIDSTree):
                     self.display_tabs(T_SEARCH)
+                    self.bids_search_tab.file = self.data[0]
                     self.bids_search_tab.set_text(str(self.data[0]))
                 else:
                     self.display_tabs(T_BIDS)
