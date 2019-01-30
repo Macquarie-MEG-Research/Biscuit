@@ -43,6 +43,13 @@ class BIDSSearchFrame(Frame):
                       'configs': {'state': 'readonly'}},
                      StringVar],
             widgets_pattern=[Combobox, Label, Entry, Combobox, Entry],
+            data_array=[
+                {'var': self.obj_var, 'configs': {'state': 'readonly'}},
+                {'text': 'with'},
+                StringVar(),
+                {'var': self.condition_var,
+                 'configs': {'state': 'readonly'}},
+                StringVar()],
             style={'nodividers': True})
         self.search_table.grid(column=0, row=2, columnspan=2, sticky='nsew')
 

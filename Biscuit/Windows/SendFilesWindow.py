@@ -137,8 +137,8 @@ class SendFilesWindow(Toplevel):
         btn_frame.grid(column=0, row=4, columnspan=2)
 
     def _check_write_access(self):
-        """ Check whether or not the user is authenicated to write to the
-        archive
+        """Check whether or not the user is authenicated to write to the
+        archive.
         """
         # TODO: make more generic? (and check if this even works???)
         auth = dict()
@@ -169,7 +169,7 @@ class SendFilesWindow(Toplevel):
 
     @threaded
     def _transfer(self):
-        """ Transfer all the files in self.src to the server """
+        """Transfer all the files in self.src to the server."""
         copy_func = BIDSCopy(overwrite=self.force_override.get(),
                              verify=self.verify.get(),
                              file_name_tracker=self.curr_file,
@@ -184,19 +184,22 @@ class SendFilesWindow(Toplevel):
         self.curr_file.set('Complete!')
 
     def _rename_complete(self):
-        """ rename the folder to have `_copied` appended to the name """
+        """Rename the folder to have `_copied` appended to the name."""
         if not self.src.path.endswith('_copied'):
-            new_path = "{0}_copied".format(self.src)
+            fname = path.basename(self.src.path)
+            new_path = "{0}_copied".format(self.src.path)
             os.rename(self.src.path, new_path)
             # fix the path in the BIDSTree object also
             if isinstance(self.src, BIDSTree):
                 self.src.path = new_path
             # also rename the branch in the filetree
-            fname = path.basename(self.src)
-
             sid = self.master.file_treeview.sid_from_text(fname)
             self.master.file_treeview.item(sid[0],
                                            text="{0}_copied".format(fname))
+            # the hidden filepath value also needs to be updated
+            new_vals = list(self.master.file_treeview.item(sid[0])['values'])
+            new_vals[1] = new_path
+            self.master.file_treeview.item(sid[0], values=new_vals)
 
     def _update_file_progress(self):
         self.file_prog.config(maximum=self.curr_file_progress.max)

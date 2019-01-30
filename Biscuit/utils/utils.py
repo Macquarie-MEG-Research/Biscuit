@@ -156,8 +156,7 @@ def assign_bids_folder(fpath, treeview, data):
     try:
         bids_folder = BIDSTree(fpath)
     except MappingError:
-        bids_folder = []
-    # TODO: check for BIDSHandler.MappingError?
+        return
     if bids_folder.projects == []:
         # Ie. no valid data
         messagebox.showerror(
