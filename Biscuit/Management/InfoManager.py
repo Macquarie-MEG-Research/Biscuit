@@ -86,7 +86,7 @@ class InfoManager(Notebook):
 
         # TODO: replace the BIDS frame with this?
         # BIDS search frame
-        self.bids_search_tab = BIDSSearchFrame(self)
+        self.bids_search_tab = BIDSSearchFrame(self, parent=self.parent)
         self.add(self.bids_search_tab, text="BIDS")
         self._tabs[T_SEARCH] = 9
 
