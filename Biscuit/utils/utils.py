@@ -5,8 +5,8 @@ from math import log
 from tkinter import messagebox
 from copy import copy
 
-from BIDSHandler import BIDSTree, Project, Subject, Session, MappingError
-from BIDSHandler.utils import get_bids_params
+from bidshandler import BIDSTree, Project, Subject, Session, MappingError
+from bidshandler.utils import get_bids_params
 
 
 def create_folder(location):

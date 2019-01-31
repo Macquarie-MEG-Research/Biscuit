@@ -4,9 +4,8 @@ from webbrowser import open_new as open_hyperlink
 
 from Biscuit.CustomWidgets import WidgetTable
 from Biscuit.Management.CustomVars import OptionsVar
-from Biscuit.CustomWidgets import ScrollableFrame
 
-HELP_LINK = "https://github.com/Macquarie-MEG-Research/BIDSHandler/blob/master/README.md#querying-bids-data"
+HELP_LINK = "https://github.com/Macquarie-MEG-Research/BIDSHandler/blob/master/README.md#querying-bids-data"  # noqa
 
 
 class BIDSSearchFrame(Frame):

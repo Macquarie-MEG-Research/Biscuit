@@ -2,7 +2,7 @@ from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
-from BIDSHandler import BIDSTree, Project, Subject, Session
+from bidshandler import BIDSTree, Project, Subject, Session
 
 from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder

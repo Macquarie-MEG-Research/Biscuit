@@ -4,7 +4,7 @@ import os
 import os.path as path
 from subprocess import check_call, CalledProcessError
 
-from BIDSHandler import BIDSTree
+from bidshandler import BIDSTree
 
 from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
@@ -23,7 +23,7 @@ class SendFilesWindow(Toplevel):
     ----------
     master : instance of tkinter.Widget
         Parent widget for this Toplevel widget
-    src : Instance of BIDSHandler.[BIDSTree, Project, Subject, Session]
+    src : Instance of bidshandler.[BIDSTree, Project, Subject, Session]
         Source object to copy over
     dst : string
         Destination folder or location on server.

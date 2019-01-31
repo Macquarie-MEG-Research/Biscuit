@@ -1,6 +1,6 @@
 from tkinter import HIDDEN, NORMAL, TclError
 from tkinter.ttk import Notebook
-from BIDSHandler import BIDSTree
+from bidshandler import BIDSTree
 
 from Biscuit.FileTypes import FileInfo, Folder, FIFData
 # TODO: import just InfoTabs and then . these to make this cleaner?
