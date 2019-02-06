@@ -3,10 +3,11 @@ from tkinter import StringVar, Entry, Text, Scrollbar, filedialog
 from tkinter import END, FLAT, NORMAL, DISABLED, HORIZONTAL, NONE
 from webbrowser import open_new as open_hyperlink
 
-from bidshandler import Scan, BIDSTree
+from bidshandler import Scan
 
 from Biscuit.utils.utils import str_to_obj, get_bidsobj_info
 from Biscuit.utils.constants import OSCONST
+from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 from Biscuit.CustomWidgets import WidgetTable
 from Biscuit.Management.CustomVars import OptionsVar
 from Biscuit.Management.tkHyperlinkManager import HyperlinkManager
@@ -112,10 +113,7 @@ class BIDSSearchFrame(Frame):
             # ask where to copy the data to
             dst = filedialog.askdirectory(title="Select BIDS folder")
             if dst != '':
-                bt = BIDSTree(dst)
-                for obj in self.results:
-                    bt.add(obj)
-                print('done!')
+                SendFilesWindow(self, self.results, dst, opt_verify=True)
         else:
             print('There needs to be some results to send.')
 
@@ -124,6 +122,7 @@ class BIDSSearchFrame(Frame):
 
     def _search(self):
         query = self.search_table.get()
+        self.results = None
         for q in query:
             if self.results is None:
                 self.results = self.file.query(q[0], q[2], q[3],
