@@ -1,0 +1,11 @@
+site_name: Biscuit
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - First-time use: guide_first_time.md
+    - Using Biscuit:
+        - General use: guide_general.md
+        - Adding new project settings: guide_new_proj_settings.md
+        - KIT data: guide_kit.md
+        - Elekta data: guide_elekta.md
+        
