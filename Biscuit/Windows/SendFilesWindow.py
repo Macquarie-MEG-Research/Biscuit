@@ -145,13 +145,13 @@ class SendFilesWindow(Toplevel):
         """
         # TODO: make more generic? (and check if this even works???)
         auth = dict()
-        if not os.access(OSCONST.MEG_RAW_PATH, os.W_OK):
+        if not os.access(OSCONST.SVR_PATH, os.W_OK):
             # create a popup to get the username and password
             AuthPopup(self, auth)
 
             if auth.get('uname', None) and auth.get('pword', None):
                 auth_cmd = OSCONST.ACCESS_CMD.format(
-                    unc_path=OSCONST.MEG_RAW_PATH,
+                    unc_path=OSCONST.SVR_PATH,
                     uname=auth.get('uname', ''),
                     pword=auth.get('pword', ''))
                 del auth
