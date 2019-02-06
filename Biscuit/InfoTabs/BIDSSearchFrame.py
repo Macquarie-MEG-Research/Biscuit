@@ -1,10 +1,9 @@
 from tkinter.ttk import Label, Frame, Combobox, Button
-from tkinter import StringVar, Entry, Text, Scrollbar
+from tkinter import StringVar, Entry, Text, Scrollbar, filedialog
 from tkinter import END, FLAT, NORMAL, DISABLED, HORIZONTAL, NONE
 from webbrowser import open_new as open_hyperlink
-import os.path as op
 
-from bidshandler import Scan
+from bidshandler import Scan, BIDSTree
 
 from Biscuit.utils.utils import str_to_obj, get_bidsobj_info
 from Biscuit.utils.constants import OSCONST
@@ -27,6 +26,7 @@ class BIDSSearchFrame(Frame):
                                            'scan'])
         self.condition_var = OptionsVar(options=['<', '<=', '=', '!=', '!!=',
                                                  '>=', '>'])
+        self.results = None
 
         self._create_widgets()
 
@@ -68,8 +68,6 @@ class BIDSSearchFrame(Frame):
 
         self.search_button = Button(self, text='Search', command=self._search)
         self.search_button.grid(column=0, row=3, sticky='e')
-        help_button = Button(self, text='Help', command=self._open_help)
-        help_button.grid(column=1, row=3, sticky='e')
 
         # results section
         Label(self, text='Results:').grid(column=0, row=4, sticky='nw')
@@ -102,18 +100,38 @@ class BIDSSearchFrame(Frame):
         self.result_count_label = Label(self, text="Total results: 0")
         self.result_count_label.grid(column=0, row=6, sticky='w')
 
+        export_button = Button(self, text='Export',
+                               command=self._export_results)
+        export_button.grid(column=0, row=7, sticky='e')
+        help_button = Button(self, text='Help', command=self._open_help)
+        help_button.grid(column=1, row=7, sticky='e')
+
+    def _export_results(self):
+        # TODO: wrap with the SendFilesWindow to track progress
+        if len(self.results) != 0:
+            # ask where to copy the data to
+            dst = filedialog.askdirectory(title="Select BIDS folder")
+            if dst != '':
+                bt = BIDSTree(dst)
+                for obj in self.results:
+                    bt.add(obj)
+                print('done!')
+        else:
+            print('There needs to be some results to send.')
+
     def _open_help(self):
         open_hyperlink(HELP_LINK)
 
     def _search(self):
         query = self.search_table.get()
-        results = None
         for q in query:
-            if results is None:
-                results = self.file.query(q[0], q[2], q[3], str_to_obj(q[4]))
+            if self.results is None:
+                self.results = self.file.query(q[0], q[2], q[3],
+                                               str_to_obj(q[4]))
             else:
-                results = results.query(q[0], q[2], q[3], str_to_obj(q[4]))
-        str_results = list(get_bidsobj_info(x) for x in results)
+                self.results = self.results.query(q[0], q[2], q[3],
+                                                  str_to_obj(q[4]))
+        str_results = list(get_bidsobj_info(x) for x in self.results)
         self.results_frame.config(state=NORMAL)
         # Clear all the current text.
         self.results_frame.delete(1.0, END)
@@ -123,12 +141,12 @@ class BIDSSearchFrame(Frame):
                 END,
                 result + '\n',
                 self.hyperlink.add(
-                    lambda obj=results[i]: self._select_obj(obj)))
+                    lambda obj=self.results[i]: self._select_obj(obj)))
         # Set the frame to not be writable any more.
         self.results_frame.config(state=DISABLED)
 
         self.result_count_label.config(
-            text="Total results: {0}".format(len(results)))
+            text="Total results: {0}".format(len(self.results)))
 
     def _select_obj(self, obj):
         """Highlight the selected object in the treeview."""

@@ -19,9 +19,9 @@ setuptools.setup(
     include_package_data=True,
     download_url=DOWNLOAD_URL,
     packages=setuptools.find_packages(),
-    # TODO: add BIDSHandler when done
     install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'Pygments',
-                      'Pillow', 'mne', 'requests'],
+                      'Pillow', 'mne>=0.17.0', 'requests',
+                      'bidshandler>=0.2.1'],
     license="MIT",
     platform="any",
     classifiers=[

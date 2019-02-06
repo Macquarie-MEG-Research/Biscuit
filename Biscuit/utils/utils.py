@@ -6,7 +6,7 @@ from tkinter import messagebox
 from copy import copy
 
 from bidshandler import BIDSTree, Project, Subject, Session, Scan, MappingError
-from bidshandler.utils import get_bids_params
+from bidshandler.utils import _get_bids_params
 
 
 def assign_bids_data(new_sids, treeview, data):
@@ -53,7 +53,7 @@ def assign_bids_data(new_sids, treeview, data):
                 # however if the data is generated via BIDSHadler or mne-bids.
                 elif isinstance(parent_obj, Project):
                     fname = treeview.get_text(sid)
-                    subj_id = get_bids_params(fname).get('sub', None)
+                    subj_id = _get_bids_params(fname).get('sub', None)
                     if subj_id is not None:
                         subj = Subject(subj_id, parent_obj)
                         parent_obj._subjects[subj_id] = subj
@@ -63,7 +63,7 @@ def assign_bids_data(new_sids, treeview, data):
                             data[sid] = session
                 elif isinstance(parent_obj, Subject):
                     fname = treeview.get_text(sid)
-                    sess_id = get_bids_params(fname).get('ses', None)
+                    sess_id = _get_bids_params(fname).get('ses', None)
                     if sess_id is not None:
                         sess = Session(sess_id, parent_obj)
                         parent_obj._sessions[sess_id] = sess
