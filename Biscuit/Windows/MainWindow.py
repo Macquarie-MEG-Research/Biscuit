@@ -13,6 +13,8 @@ from os import makedirs
 
 import webbrowser
 
+from bidshandler import BIDSTree, MappingError
+
 from Biscuit.FileTypes import (generic_file, Folder, KITData, BIDSFile,
                                BIDSContainer)
 
@@ -528,12 +530,20 @@ class MainWindow(Frame):
 
     def _import_bids_data(self):
         """Allow BIDS data to be imported into Biscuit."""
-        # TODO: only works to import an entire BIDS folder currently...
         src_dir = filedialog.askdirectory(
             title="Select the BIDS folder to import")
-        dst_dir = filedialog.askdirectory(
-            title="Select the BIDS folder to import into")
-        SendFilesWindow(self, src_dir, dst_dir, opt_verify=True)
+        if src_dir != '':
+            try:
+                bt = BIDSTree(src_dir)
+            except MappingError:
+                messagebox.showerror('Invalid folder',
+                                     'Can only import entire BIDS folders '
+                                     'currently.')
+                return
+            dst_dir = filedialog.askdirectory(
+                title="Select the BIDS folder to import into")
+            if dst_dir != '':
+                SendFilesWindow(self, bt, dst_dir, opt_verify=True)
 
     def _display_credits_popup(self):
         CreditsPopup(self)

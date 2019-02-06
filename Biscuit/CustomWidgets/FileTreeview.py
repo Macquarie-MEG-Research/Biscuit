@@ -148,12 +148,9 @@ class FileTreeview(EnhancedTreeview):
             # found then follow it back down.
             temp_fpath = op.dirname(fpath)
             while True:
-                print(temp_fpath)
                 if temp_fpath in self.index_cache:
-                    print('found in cache')
                     sid = self.index_cache[temp_fpath]
                     for child in self.all_children(item=sid):
-                        print(self.item(child)['values'][1])
                         if child['values'][1] == fpath:
                             return child
                 _temp_fpath = op.dirname(temp_fpath)
