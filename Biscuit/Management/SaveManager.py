@@ -4,7 +4,7 @@ from os import makedirs, replace, rename
 from tkinter import StringVar
 from datetime import datetime
 
-from BIDSHandler import BIDSTree
+from bidshandler import BIDSTree
 
 from Biscuit.FileTypes import FIFData, con_file, mrk_file, KITData
 from Biscuit.utils.constants import OSCONST

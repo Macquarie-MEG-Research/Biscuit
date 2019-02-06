@@ -8,7 +8,6 @@ from Biscuit.utils.version import Version
 from Biscuit.Management.tkHyperlinkManager import HyperlinkManager
 
 
-# TODO: change to using a Text widget so have the hyperlink within the text
 # TODO: add big biscuit logo.
 # TODO: make this look good...
 

@@ -1,12 +1,13 @@
 from tkinter import HIDDEN, NORMAL, TclError
 from tkinter.ttk import Notebook
+from bidshandler import BIDSTree
 
 from Biscuit.FileTypes import FileInfo, Folder, FIFData
 # TODO: import just InfoTabs and then . these to make this cleaner?
 from Biscuit.InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
                               EventInfoFrame, GenericInfoFrame,
                               ScrolledTextInfoFrame, ChannelInfoFrame,
-                              MrkFileFrame)
+                              MrkFileFrame, BIDSSearchFrame)
 
 # some global names:
 T_CON = 'con_tab'
@@ -18,6 +19,7 @@ T_FOLDER = 'session_tab'
 T_CHANNELS = 'channels_tab'
 T_SCROLLTEXT = 'scrolltext_tab'
 T_BIDS = 'bids_tab'
+T_SEARCH = 'search_tab'
 
 
 class InfoManager(Notebook):
@@ -82,6 +84,12 @@ class InfoManager(Notebook):
         self.add(self.bids_tab, text="BIDS")
         self._tabs[T_BIDS] = 8
 
+        # TODO: replace the BIDS frame with this?
+        # BIDS search frame
+        self.bids_search_tab = BIDSSearchFrame(self, parent=self.parent)
+        self.add(self.bids_search_tab, text="BIDS")
+        self._tabs[T_SEARCH] = 9
+
     def determine_tabs(self):
         """
         Determine which tabs should be visible due to the current context
@@ -130,8 +138,13 @@ class InfoManager(Notebook):
                 else:
                     self.display_tabs(T_MISC)
             else:
-                self.display_tabs(T_BIDS)
-                self.bids_tab.set_text(str(self.data[0]))
+                if isinstance(self.data[0], BIDSTree):
+                    self.display_tabs(T_SEARCH)
+                    self.bids_search_tab.file = self.data[0]
+                    self.bids_search_tab.set_text(str(self.data[0]))
+                else:
+                    self.display_tabs(T_BIDS)
+                    self.bids_tab.set_text(str(self.data[0]))
             self.channel_tab.is_loaded = False
         else:
             if self.data is None:

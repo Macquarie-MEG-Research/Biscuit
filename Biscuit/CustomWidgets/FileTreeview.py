@@ -1,4 +1,4 @@
-import os.path as path
+import os.path as op
 import os
 
 from .EnhancedTreeview import EnhancedTreeview
@@ -45,12 +45,12 @@ class FileTreeview(EnhancedTreeview):
         # we want to put folders above files (it looks nicer!!)
         try:
             for file in os.listdir(dir_):
-                fullpath = path.join(dir_, file)
+                fullpath = op.normpath(op.join(dir_, file))
 
                 # need to check to see whether or not the file/folder already
                 # exists in the tree:
                 exists_id = file_list.get(fullpath, None)
-                if path.isdir(fullpath):
+                if op.isdir(fullpath):
                     if exists_id is None:
                         exists_id = self.ordered_insert(parent,
                                                         values=['', fullpath],
@@ -58,7 +58,7 @@ class FileTreeview(EnhancedTreeview):
                                                         open=False)
                     self.generate(exists_id, directory=fullpath)
                 else:
-                    fname, ext = path.splitext(file)
+                    fname, ext = op.splitext(file)
                     if exists_id is None:
                         self.insert(parent, 'end',
                                     values=[ext, fullpath],
@@ -103,11 +103,11 @@ class FileTreeview(EnhancedTreeview):
         # (ie. BIDSTree, Project, Subject, Session), and if so then
         # instantiate the folder as the child object and add it.
         for fullpath in added_files:
-            base, file = path.split(fullpath)
+            base, file = op.split(fullpath)
             parent = self.sid_from_filepath(base)
-            fname, ext = path.splitext(file)
+            fname, ext = op.splitext(file)
 
-            if path.isdir(fullpath):
+            if op.isdir(fullpath):
                 sid = self.ordered_insert(parent,
                                           values=[ext, fullpath],
                                           text=fname,
@@ -138,7 +138,30 @@ class FileTreeview(EnhancedTreeview):
             Filepath to match
 
         """
-        return self.index_cache[fpath]
+        # Normalise the path just to ensure there are no issues.
+        fpath = op.normpath(fpath)
+        try:
+            return self.index_cache[fpath]
+        except KeyError:
+            # In this case the file isn't in the cache, however it may still
+            # be in the tree. Recurse up the base paths until an object is
+            # found then follow it back down.
+            temp_fpath = op.dirname(fpath)
+            while True:
+                print(temp_fpath)
+                if temp_fpath in self.index_cache:
+                    print('found in cache')
+                    sid = self.index_cache[temp_fpath]
+                    for child in self.all_children(item=sid):
+                        print(self.item(child)['values'][1])
+                        if child['values'][1] == fpath:
+                            return child
+                _temp_fpath = op.dirname(temp_fpath)
+                # ensure we cannot get stuck in an infinte loop
+                if _temp_fpath != temp_fpath:
+                    temp_fpath = _temp_fpath
+                else:
+                    break
 
     def sid_from_text(self, text, _all=False):
         """ Return the sid(s) in the treeview with the given text
@@ -170,12 +193,12 @@ class FileTreeview(EnhancedTreeview):
         for root, dirs, files in os.walk(self.root_path):
             # add all the new files
             for file in files:
-                fpath = path.join(root, file)
+                fpath = op.normpath(op.join(root, file))
                 if self.index_cache.get(fpath, None) is None:
                     new_files.append(fpath)
             # add all the new folders
             for dir_ in dirs:
-                fpath = path.join(root, dir_)
+                fpath = op.join(root, dir_)
                 if self.index_cache.get(fpath, None) is None:
                     new_files.append(fpath)
         return new_files
@@ -191,11 +214,11 @@ class FileTreeview(EnhancedTreeview):
         for root, dirs, files in os.walk(self.root_path):
             # add all the new files
             for file in files:
-                fpath = path.join(root, file)
+                fpath = op.normpath(op.join(root, file))
                 contained_files.add(fpath)
             # add all the new folders
             for dir_ in dirs:
-                fpath = path.join(root, dir_)
+                fpath = op.join(root, dir_)
                 contained_files.add(fpath)
         prev_files = set(self.index_cache.keys())
         removed_files = (prev_files - contained_files) - set([self.root_path])

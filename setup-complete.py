@@ -1,6 +1,6 @@
 import setuptools
 
-VERSION = "0.9.7"
+VERSION = "0.9.7complete"
 
 DESCRIPTION = "GUI for converting MEG data to BIDS format"
 URL = "https://macquarie-meg-research.github.io/Biscuit/"
@@ -19,6 +19,9 @@ setuptools.setup(
     include_package_data=True,
     download_url=DOWNLOAD_URL,
     packages=setuptools.find_packages(),
+    install_requires=['numpy', 'scipy', 'matplotlib', 'pandas', 'Pygments',
+                      'Pillow', 'mne>=0.17.0', 'requests',
+                      'bidshandler>=0.2.1'],
     license="MIT",
     platform="any",
     classifiers=[
@@ -26,4 +29,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    entry_points={
+        'console_scripts': ['Biscuit = Biscuit.__main__:main']
+    }
 )

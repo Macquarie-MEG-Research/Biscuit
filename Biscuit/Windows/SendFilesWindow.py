@@ -4,7 +4,7 @@ import os
 import os.path as path
 from subprocess import check_call, CalledProcessError
 
-from BIDSHandler import BIDSTree
+from bidshandler import BIDSTree
 
 from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
@@ -23,8 +23,8 @@ class SendFilesWindow(Toplevel):
     ----------
     master : instance of tkinter.Widget
         Parent widget for this Toplevel widget
-    src : Instance of BIDSHandler.[BIDSTree, Project, Subject, Session]
-        Source object to copy over
+    srcs : List of BIDSHandler objects (excluding bidshandler.Scan)
+        List of source objects to copy over.
     dst : string
         Destination folder or location on server.
     set_copied : bool
@@ -35,9 +35,11 @@ class SendFilesWindow(Toplevel):
         If the option is provided then it will be off by default.
 
     """
-    def __init__(self, master, src, dst, set_copied=False, opt_verify=False):
+    def __init__(self, master, srcs, dst, set_copied=False, opt_verify=False):
         self.master = master
-        self.src = src
+        self.srcs = srcs
+        if not isinstance(self.srcs, list):
+            self.srcs = [self.srcs]
         self.dst = dst
         self.set_copied = set_copied
         self.opt_verify = opt_verify
@@ -60,12 +62,13 @@ class SendFilesWindow(Toplevel):
         self.total_file_size = StringVar(value="Total file size: {0}")
         self.file_count = 0
         total_file_size = 0
-        for root, _, files in os.walk(self.src.path):
-            self.file_count += len(files)
-            for file in files:
-                fpath = path.join(root, file)
-                fsize = os.stat(fpath).st_size
-                total_file_size += fsize
+        for src in self.srcs:
+            for root, _, files in os.walk(src.path):
+                self.file_count += len(files)
+                for file in files:
+                    fpath = path.join(root, file)
+                    fsize = os.stat(fpath).st_size
+                    total_file_size += fsize
         fsize = get_fsize(total_file_size)
         self.file_count_var.set(
             self.file_count_var.get().format(self.file_count))
@@ -137,8 +140,8 @@ class SendFilesWindow(Toplevel):
         btn_frame.grid(column=0, row=4, columnspan=2)
 
     def _check_write_access(self):
-        """ Check whether or not the user is authenicated to write to the
-        archive
+        """Check whether or not the user is authenicated to write to the
+        archive.
         """
         # TODO: make more generic? (and check if this even works???)
         auth = dict()
@@ -169,7 +172,7 @@ class SendFilesWindow(Toplevel):
 
     @threaded
     def _transfer(self):
-        """ Transfer all the files in self.src to the server """
+        """Transfer all the files in each of the sources to the destination."""
         copy_func = BIDSCopy(overwrite=self.force_override.get(),
                              verify=self.verify.get(),
                              file_name_tracker=self.curr_file,
@@ -177,26 +180,34 @@ class SendFilesWindow(Toplevel):
                              file_prog_tracker=self.curr_file_progress)
         self.curr_file.set('Mapping destination BIDS structure...')
         dst_folder = BIDSTree(self.dst)
-        dst_folder.add(self.src, copier=copy_func.copy_files)
+        for src in self.srcs:
+            dst_folder.add(src, copier=copy_func.copy_files)
+            if self.set_copied:
+                self._rename_complete(src)
         self.transferred_count.set(self.file_count)
-        if self.set_copied:
-            self._rename_complete()
         self.curr_file.set('Complete!')
 
-    def _rename_complete(self):
-        """ rename the folder to have `_copied` appended to the name """
-        if not self.src.path.endswith('_copied'):
-            new_path = "{0}_copied".format(self.src)
-            os.rename(self.src.path, new_path)
-            # fix the path in the BIDSTree object also
-            if isinstance(self.src, BIDSTree):
-                self.src.path = new_path
-            # also rename the branch in the filetree
-            fname = path.basename(self.src)
+    def _rename_complete(self, src):
+        """Rename the folder to have `_copied` appended to the name.
 
+        Parameters
+        ----------
+        src : Instance of bidshandler.(BIDSTree, Project, Subject, Setting)"""
+        if not src.path.endswith('_copied'):
+            fname = path.basename(src.path)
+            new_path = "{0}_copied".format(src.path)
+            os.rename(src.path, new_path)
+            # fix the path in the BIDSTree object also
+            if isinstance(src, BIDSTree):
+                src.path = new_path
+            # also rename the branch in the filetree
             sid = self.master.file_treeview.sid_from_text(fname)
             self.master.file_treeview.item(sid[0],
                                            text="{0}_copied".format(fname))
+            # the hidden filepath value also needs to be updated
+            new_vals = list(self.master.file_treeview.item(sid[0])['values'])
+            new_vals[1] = new_path
+            self.master.file_treeview.item(sid[0], values=new_vals)
 
     def _update_file_progress(self):
         self.file_prog.config(maximum=self.curr_file_progress.max)

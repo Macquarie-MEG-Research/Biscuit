@@ -72,18 +72,6 @@ class EnhancedTreeview(Treeview):
             # entry?
             self.bind("<<TreeviewSelect>>", self._close_entry, add='+')
 
-        """
-        could do check boxes using the unicode characters u"\u2610" and
-        u"\u2611", but will look bad
-        self.check_columns = kwargs.get("check_columns", [])
-        if self.check_columns != []:
-            self.im_checked = PhotoImage(file='assets/checked.png')
-            self.im_unchecked = PhotoImage(file='assets/unchecked.png')
-            self.tag_configure("checked", image=self.im_checked)
-            self.tag_configure("unchecked", image=self.im_unchecked)
-            self.bind("<Button-1>>", self._toggle_checkbox, add='+')
-        """
-
     def all_children(self, item=''):
         """
         This is a generator that will yield the ids of all the children
@@ -196,19 +184,6 @@ class EnhancedTreeview(Treeview):
             except (AttributeError, TclError):
                 # In this case I dunno, but just pass
                 pass
-    """
-    def _toggle_checkbox(self, event):
-        # find out what row and column was clicked on
-        rowid = self.identify_row(event.y)
-        column_num = self.identify_column(event.x)
-        column = self.column(column_num, option='id')
-        if column_num == '#0':
-            column = column_num
-        # we only want to allow editing if the user has specified the column
-        # should be editable
-        if column in self.check_columns or column_num in self.check_columns:
-            pass
-    """
 
     @property
     def OnRightClick(self):

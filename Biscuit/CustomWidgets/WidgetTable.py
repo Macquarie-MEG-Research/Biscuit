@@ -2,7 +2,7 @@ from tkinter import Variable, DISABLED
 from tkinter import Button as tkButton
 from tkinter import Entry as tkEntry
 from tkinter.ttk import (Label, Separator, Button, Frame, Checkbutton,
-                         Combobox)
+                         Combobox, Entry)
 from PIL import Image, ImageTk
 # import copy so we can create static copies of the reference functions in the
 # underlying pattern of a row if any.
@@ -24,7 +24,8 @@ class WidgetTable(Frame):
     Parameters
     ----------
     headings : list(str)
-        A list of strings for the headings
+        A list of strings for the headings.
+        If the value is specified as `None` then no header row will be drawn.
     pattern : list(instance of Variable)
         A list of Variables to be associated with the widget.
         These variables need to be the appropriate type for the
@@ -42,38 +43,47 @@ class WidgetTable(Frame):
             etc.
         - func_has_row_ctx: (bool) whether or not the function specified by
             func is given the current line as an argument.
-    widgets_pattern : list(instance of Widget)
+    widgets_pattern : list of Widget instances
         A list of Widgets that will be drawn in each
         column.
         These widgets *must* be un-instantiated to allow cloning when
         creating new rows.
-    add_options : list
+    add_options : list, optional
         A fixed length list of options that can be added.
         If None then the rows can just be added arbitrarily using button.
-    data_array : list
+    data_array : list, optional
         A list of the intial data to populate the table with.
         This can either be raw data or an array of the variables
-    adder_script : function
+    adder_script : function, optional
         A function that will be called when the Add button is
         pressed or a value is picked from the add_options option box.
         If this function returns an values they are assumed to be the
         values to be passed into the newly created widgets if possible.
-    remove_script : function
+        To remove the functionality to add new rows set this to
+        tkinter.DISABLED.
+    remove_script : function, optional
         A callback for when a row is deleted.
         This function can be used to block deletion. This is acheived by having
         this function return anything. If nothing is returned then the deletion
         occurs as expected.
-    sort_column : int
+        To remove the functionality to remove rows set this to
+        tkinter.DISABLED.
+    sort_column : int, optional
         The column number that the data will automatically be sorted by.
-    max_rows : int
+    max_rows : int, optional
         The maximum number of rows to display before forcing the
         ScrollableFrame to have a scroller.
+    style : dict, optional
+        A dictionary containing a number of style parameters.
+        Possible parameters are:
+        nodivders : bool
+            Whether or not to draw the dividers.
 
     """
     def __init__(self, master, headings=[], pattern=[], widgets_pattern=[],
                  add_options=None, data_array=[], adder_script=None,
-                 remove_script=None, sort_column=None, max_rows=None, *args,
-                 **kwargs):
+                 remove_script=None, sort_column=None, max_rows=None,
+                 style=dict(), *args, **kwargs):
         self.master = master
 
         # s = Style(self.master)
@@ -85,12 +95,13 @@ class WidgetTable(Frame):
         self.headings = headings
         self.pattern = pattern
         self.widgets_pattern = widgets_pattern
-        self.num_columns = len(self.headings)
+        self.num_columns = len(self.widgets_pattern)
         self.add_options = add_options
         self.adder_script = adder_script
         self.remove_script = remove_script
         self.sort_column = sort_column
         self.max_rows = max_rows
+        self.style = style
 
         self.entry_config = {'readonlybackground': OSCONST.TEXT_RONLY_BG,
                              'highlightbackground': OSCONST.TEXT_BG}
@@ -106,9 +117,10 @@ class WidgetTable(Frame):
         self._create_widgets()
 
         self.separators = []
-        for _ in range(self.num_columns - 1):
-            sep = Separator(self.sf.frame, orient='vertical')
-            self.separators.append(sep)
+        if not self.style.get('nodividers', False):
+            for _ in range(self.num_columns - 1):
+                sep = Separator(self.sf.frame, orient='vertical')
+                self.separators.append(sep)
 
         self.delete_icon = Image.open(OSCONST.ICON_REMOVE)
         self.delete_icon = self.delete_icon.resize((20, 20), Image.LANCZOS)
@@ -326,10 +338,12 @@ class WidgetTable(Frame):
         # remove up to the maximum number of rows
         for _ in range(min(len(self.widgets), count)):
             self.delete_row(idx, ignore_script)
-        # remap the delete command for the buttons
-        for i in range(len(self.widgets)):
-            del_btn = self.widgets[i][-1]
-            del_btn.config(command=lambda x=i: self.delete_rows_and_update(x))
+        if self.remove_script != DISABLED:
+            # remap the delete command for the buttons
+            for i in range(len(self.widgets)):
+                del_btn = self.widgets[i][-1]
+                del_btn.config(
+                    command=lambda x=i: self.delete_rows_and_update(x))
         # now, reapply all the variables
         self.first_redraw_row = 0
         self._correct_idx_refs()
@@ -440,22 +454,61 @@ class WidgetTable(Frame):
                 if issubclass(w, Label):
                     if isinstance(self.pattern[column], dict):
                         # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var['var'],
-                            **var.get('configs', dict()))
+                        if self.pattern[column].get('var') is not None:
+                            apply = lambda wgt, var: wgt.configure(
+                                textvariable=var['var'],
+                                **var.get('configs', dict()))  # noqa: E731
+                        elif self.pattern[column].get('text') is not None:
+                            apply = lambda wgt, var: wgt.configure(
+                                text=var['text'],
+                                **var.get('configs', dict()))  # noqa: E731
                     else:
                         apply = lambda wgt, var: wgt.configure(  # noqa: E731
                             textvariable=var)
-                if issubclass(w, tkEntry):
-                    if isinstance(self.pattern[column], dict):
-                        # apply any provided configs:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var['var'], **self.entry_config,
-                            **var.get('configs', dict()))
+                elif issubclass(w, tkEntry):
+                    # combobox is a subclass of the ttk.Entry object
+                    if issubclass(w, Combobox):
+                        # we will be assuming that the underlying data type is
+                        # an OptionsVar to provide simplest functionality
+                        if isinstance(self.pattern[column], dict):
+                            def apply(wgt, var):
+                                configs = var.get('configs', dict())
+                                var = var['var']
+                                wgt.configure(values=var.options,
+                                              **configs)
+                                wgt.set(var.get())
+                                # set the selection binding
+                                select_value = lambda e, w=wgt: var.set(
+                                    wgt.get())  # noqa: E731
+                                wgt.bind("<<ComboboxSelected>>", select_value)
+                        else:
+                            def apply(wgt, var):
+                                wgt.configure(values=var.options)
+                                wgt.set(var.get())
+                                # set the selection binding
+                                select_value = lambda e, w=wgt: var.set(
+                                    wgt.get())  # noqa: E731
+                                wgt.bind("<<ComboboxSelected>>", select_value)
+                    elif issubclass(w, Entry):
+                        if isinstance(self.pattern[column], dict):
+                            # apply any provided configs:
+                            apply = lambda wgt, var: wgt.configure(
+                                textvariable=var['var'],
+                                **var.get('configs', dict()))  # noqa: E731
+                        else:
+                            apply = lambda wgt, var: wgt.configure(
+                                textvariable=var)  # noqa: E731
                     else:
-                        apply = lambda wgt, var: wgt.configure(  # noqa: E731
-                            textvariable=var, **self.entry_config)
-                if issubclass(w, Checkbutton):
+                        if isinstance(self.pattern[column], dict):
+                            # apply any provided configs:
+                            apply = lambda wgt, var: wgt.configure(
+                                textvariable=var['var'], **self.entry_config,
+                                **var.get('configs', dict()))  # noqa: E731
+                        else:
+                            apply = lambda wgt, var: wgt.configure(
+                                textvariable=var,
+                                **self.entry_config)  # noqa: E731
+                elif issubclass(w, Checkbutton):
                     # check underlying data type to provide correct function
                     if isinstance(self.pattern[column], dict):
                         apply = lambda wgt, var: wgt.configure(  # noqa: E731
@@ -466,18 +519,12 @@ class WidgetTable(Frame):
                 elif issubclass(w, Button):
                     apply = lambda wgt, var: wgt.configure(text=var['text'],  # noqa: E731,E501
                                                            command=var['func'])
-                elif issubclass(w, Combobox):
-                    # we will be assuming that the underlying data type is an
-                    # OptionsVar to provide simplest functionality
-                    def apply(wgt, var):
-                        wgt.configure(values=var.options, state='readonly')
-                        wgt.set(var.get())
-                        # set the selection binding
-                        select_value = lambda e, w=wgt: var.set(wgt.get())  # noqa: E731,E501
-                        wgt.bind("<<ComboboxSelected>>", select_value)
+                else:
+                    raise TypeError
             except TypeError:
                 print('unsupported Widget Type??')
                 print(w, w.__name__)
+                raise
             # now, on each row apply the data
             for row in range(self.first_redraw_row, len(self.widgets)):
                 apply(self.widgets[row][column], self.data[row][column])
@@ -513,19 +560,24 @@ class WidgetTable(Frame):
                     if isinstance(val, Variable):
                         # in this case we are just receiving the Variable
                         # and don't want to modify the rest of the dictionary
-                        new_dict['var'] = val
+                        if hasattr(val, 'copy'):
+                            new_dict['var'] = val.copy()
+                        else:
+                            new_dict['var'] = val
                         p = self.pattern[i]
                         if p.get('func_has_row_ctx', False):
                             f = copy(p['func'])
                             new_dict['func'] = lambda x=idx: f(x)
-                    # TODO: handle the case of the raw data being passed
                     else:
                         # otherwise we have been passed a (at least partial)
                         # dictionary of data
                         if 'var' in val:
                             var = val['var']
                             if isinstance(var, Variable):
-                                new_dict['var'] = var
+                                if hasattr(var, 'copy'):
+                                    new_dict['var'] = var.copy()
+                                else:
+                                    new_dict['var'] = var
                             else:
                                 new_dict['var'].set(var)
                         if 'text' in val:
@@ -542,20 +594,36 @@ class WidgetTable(Frame):
                     var = new_dict
                 else:
                     if isinstance(val, Variable):
-                        var = val
+                        if hasattr(val, 'copy'):
+                            var = val.copy()
+                        else:
+                            var = val
                     else:
                         var = self.pattern[i]()
                         var.set(val)
             else:
                 if not isinstance(self.pattern[i], dict):
-                    var = self.pattern[i]()
+                    try:
+                        issubclass(self.pattern[i], Variable)
+                        var = self.pattern[i]()
+                    except TypeError:
+                        if hasattr(self.pattern[i], 'copy'):
+                            var = self.pattern[i].copy()
+                        else:
+                            var = self.pattern[i]
                 else:
                     # we still need to check if the function requires row
                     # context
                     var = dict()
                     for key in self.pattern[i].keys():
                         if key != 'func':
-                            var[key] = self.pattern[i][key]
+                            if key == 'var':
+                                if hasattr(self.pattern[i][key], 'copy'):
+                                    var[key] = self.pattern[i][key].copy()
+                                else:
+                                    var[key] = self.pattern[i][key]
+                            else:
+                                var[key] = self.pattern[i][key]
                     if var.get('func_has_row_ctx', False):
                         var['func'] = lambda x=idx: self.pattern[i]['func'](x)
             row_vars.append(var)
@@ -615,18 +683,21 @@ class WidgetTable(Frame):
 
             self.grid_rowconfigure(0, weight=1)
             self.grid_columnconfigure(0, weight=1)
-        for i, heading in enumerate(self.headings):
-            Label(self.sf.frame, text=heading).grid(
-                column=2 * i, row=self.separator_offset, sticky='nsew', padx=2,
-                pady=2)
-        Separator(self.sf.frame, orient='horizontal').grid(
-            column=0, row=self.separator_offset + 1,
-            columnspan=2 * self.num_columns - 1, sticky='ew')
+        if self.headings is not None:
+            for i, heading in enumerate(self.headings):
+                Label(self.sf.frame, text=heading).grid(
+                    column=2 * i, row=self.separator_offset, sticky='nsew',
+                    padx=2, pady=2)
+            Separator(self.sf.frame, orient='horizontal').grid(
+                column=0, row=self.separator_offset + 1,
+                columnspan=2 * self.num_columns - 1, sticky='ew')
 
         self.row_offset = self.sf.frame.grid_size()[1]
 
     def _draw_separators(self):
         """ Redraw all the separators when the table is being redrawn """
+        if self.style.get('nodividers', False):
+            return
         rows = self.sf.frame.grid_size()[1]
         for i, sep in enumerate(self.separators):
             sep.grid_forget()
@@ -642,9 +713,14 @@ class WidgetTable(Frame):
 
         if self.max_rows is not None:
             if len(self.data) > self.max_rows:
-                max_x, max_y = self.sf.frame.grid_bbox(
-                    column=self.sf.frame.grid_size()[0],
-                    row=self.max_rows + self.row_offset - 1)[:2]
+                if self.headings is None:
+                    max_x, max_y = self.sf.frame.grid_bbox(
+                        column=self.sf.frame.grid_size()[0],
+                        row=self.max_rows + self.row_offset)[:2]
+                else:
+                    max_x, max_y = self.sf.frame.grid_bbox(
+                        column=self.sf.frame.grid_size()[0],
+                        row=self.max_rows + self.row_offset - 1)[:2]
 
         self.sf.block_resize = False
         self.sf.configure_view(max_size=(max_x, max_y), **config)

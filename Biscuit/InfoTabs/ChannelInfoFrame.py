@@ -1,6 +1,7 @@
 from tkinter import StringVar, BooleanVar
 from tkinter import Entry as tkEntry
 from tkinter.ttk import Frame, Label, Checkbutton
+
 from Biscuit.FileTypes import con_file
 from Biscuit.CustomWidgets import WidgetTable
 

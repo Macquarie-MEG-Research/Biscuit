@@ -2,7 +2,7 @@ from tkinter import Menu, StringVar, messagebox, simpledialog, filedialog
 import os.path as path
 import re
 
-from BIDSHandler import BIDSTree, Project, Subject, Session
+from bidshandler import BIDSTree, Project, Subject, Session
 
 from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
@@ -56,12 +56,6 @@ class RightClick():
         self.popup_menu.delete(0, self.popup_menu.index("end"))
         # now, draw the manu elements required depending on context
         if self.parent.treeview_select_mode == "NORMAL":
-            """
-            if ("FOLDER" not in self.context and
-                    self.context != set()):
-                self.popup_menu.add_command(label="Create Folder",
-                                            command=self._create_folder)
-            """
             # add an option to associate the file as extra data to be included
             # in the bids output
             self.popup_menu.add_command(label="Add to BIDS output",
@@ -85,9 +79,9 @@ class RightClick():
                 command=lambda: self._associate_mrk(all_=True))
         # Add an option mark all selected .con files as junk
         if ".CON" in self.context and not self.context.is_mixed:
-            self.popup_menu.add_command(label="Ignore files",
+            self.popup_menu.add_command(label="Ignore file(s)",
                                         command=self._ignore_cons)
-            self.popup_menu.add_command(label="Include files",
+            self.popup_menu.add_command(label="Include file(s)",
                                         command=self._include_cons)
         if len(self.curr_selection) == 1:
             fname = self.parent.file_treeview.get_text(self.curr_selection[0])
@@ -100,14 +94,14 @@ class RightClick():
             if BIDS_PATTERN.match(fname):
                 self.popup_menu.add_command(
                     label="Upload to archive",
-                    command=lambda: self._upload(selected_obj))
+                    command=lambda: self._upload())
             # allow any folder to be sent to another location using the
             # BIDSMERGE functionality
             if isinstance(selected_obj,
                           (BIDSTree, Project, Subject, Session)):
                 self.popup_menu.add_command(
                     label="Send to...",
-                    command=lambda: self._send_to(selected_obj))
+                    command=lambda: self._send_to())
             if path.isdir(fpath):
                 if isinstance(self.parent.preloaded_data.get(
                         self.curr_selection[0], None), Folder):
@@ -325,17 +319,22 @@ class RightClick():
                     con.is_junk.set(False)
                     con.validate()
 
-    def _send_to(self, src_obj):
+    def _send_to(self):
         """Send the selected object to another selected location."""
+        src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
+            if not isinstance(src_obj, BIDSTree):
+                # automatically convert to a BIDSTree object
+                self._toggle_bids_folder()
+                src_obj = self.parent.preloaded_data[self.curr_selection[0]]
             SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
 
     def _toggle_bids_folder(self):
         """Assign the selected folder as a BIDS-formatted folder.
 
         This will attempt to load the selected folder into a
-        BIDSController.Project object. If this isn't possible an error will be
+        BIDSController.BIDSTree object. If this isn't possible an error will be
         raised stating this.
         """
         sid = self.curr_selection[0]
@@ -347,9 +346,19 @@ class RightClick():
             # Only needed if the current selection is the same thing that has
             # been right-clicked.
             self.parent.info_notebook.data = [bids_folder]
+        else:
+            messagebox.showerror(
+                "Error",
+                "Invalid folder selected. Please select a folder which "
+                "contains the BIDS project folders.")
 
-    def _upload(self, src_obj):
+    def _upload(self):
         """Upload the selected object to the MEG_RAW archive."""
+        src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = self.parent.settings.get("ARCHIVE_PATH", None)
         if dst is not None:
+            if not isinstance(src_obj, BIDSTree):
+                # automatically convert to a BIDSTree object
+                self._toggle_bids_folder()
+                src_obj = self.parent.preloaded_data[self.curr_selection[0]]
             SendFilesWindow(self.parent, src_obj, dst, set_copied=True)

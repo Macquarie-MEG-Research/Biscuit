@@ -5,7 +5,7 @@ import os.path as path
 from tkinter import StringVar
 from datetime import date
 import shutil
-from BIDSHandler import Session
+from bidshandler import Session
 
 from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
@@ -162,7 +162,7 @@ def convert(container, settings, parent=None):
                              parent.preloaded_data)
 
         # find the first instance from the newly added folders that is a
-        # BIDSHandler.Session object and set this is the focus of the treeview.
+        # bidshandler.Session object and set this is the focus of the treeview.
         for sid in new_sids:
             if isinstance(parent.preloaded_data.get(sid, None), Session):
                 parent.file_treeview.see(sid)
