@@ -200,20 +200,22 @@ def generate_readme(data):
 def get_bidsobj_info(obj):
     """Return a string representation of a BIDS object from bidshandler."""
     if isinstance(obj, Project):
-        return '\t'.join(
+        return ' '.join(
             ['Project',
              'ID: {0}'.format(obj.ID)])
     elif isinstance(obj, Subject):
-        return '\t'.join(
+        return ' '.join(
             ['Subject',
-             'ID: {0}'.format(obj.ID)])
+             'ID: {0}'.format(obj.ID),
+             '(in Project {0})'.format(obj.project.ID)])
     elif isinstance(obj, Session):
-        return '\t'.join(
+        return ' '.join(
             ['Session',
-             'ID: {0}'.format(obj.ID)])
+             'ID: {0}'.format(obj.ID),
+             '(in {0}/{1})'.format(obj.project.ID, obj.subject.ID)])
     elif isinstance(obj, Scan):
         bt_path = obj.bids_tree.path
-        return '\t'.join(
+        return ' '.join(
             ['Scan',
              '@ {0}'.format(op.relpath(obj.raw_file, bt_path))])
 

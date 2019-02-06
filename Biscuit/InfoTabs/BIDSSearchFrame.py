@@ -1,5 +1,5 @@
 from tkinter.ttk import Label, Frame, Combobox, Button
-from tkinter import StringVar, Entry, Text, Scrollbar, filedialog
+from tkinter import StringVar, Entry, Text, Scrollbar, filedialog, messagebox
 from tkinter import END, FLAT, NORMAL, DISABLED, HORIZONTAL, NONE
 from webbrowser import open_new as open_hyperlink
 
@@ -107,15 +107,18 @@ class BIDSSearchFrame(Frame):
         help_button = Button(self, text='Help', command=self._open_help)
         help_button.grid(column=1, row=7, sticky='e')
 
+        self.rowconfigure(5, weight=1)
+
     def _export_results(self):
-        # TODO: wrap with the SendFilesWindow to track progress
         if len(self.results) != 0:
             # ask where to copy the data to
             dst = filedialog.askdirectory(title="Select BIDS folder")
             if dst != '':
                 SendFilesWindow(self, self.results, dst, opt_verify=True)
         else:
-            print('There needs to be some results to send.')
+            messagebox.showerror('No Results',
+                                 'No results to export. Please enter a set of '
+                                 'valid search parameters to export data.')
 
     def _open_help(self):
         open_hyperlink(HELP_LINK)
@@ -123,13 +126,20 @@ class BIDSSearchFrame(Frame):
     def _search(self):
         query = self.search_table.get()
         self.results = None
-        for q in query:
-            if self.results is None:
-                self.results = self.file.query(q[0], q[2], q[3],
-                                               str_to_obj(q[4]))
-            else:
-                self.results = self.results.query(q[0], q[2], q[3],
-                                                  str_to_obj(q[4]))
+        try:
+            for q in query:
+                if self.results is None:
+                    self.results = self.file.query(q[0], q[2], q[3],
+                                                   str_to_obj(q[4]))
+                else:
+                    self.results = self.results.query(q[0], q[2], q[3],
+                                                      str_to_obj(q[4]))
+        except ValueError:
+            messagebox.showerror('Invalid search',
+                                 'One or more search parameters are invalid. '
+                                 'Please ensure your search criteria is '
+                                 'correct.')
+            self.results = []
         str_results = list(get_bidsobj_info(x) for x in self.results)
         self.results_frame.config(state=NORMAL)
         # Clear all the current text.
@@ -142,6 +152,8 @@ class BIDSSearchFrame(Frame):
                 self.hyperlink.add(
                     lambda obj=self.results[i]: self._select_obj(obj)))
         # Set the frame to not be writable any more.
+        if len(self.results) == 0:
+            self.results_frame.insert(END, 'None')
         self.results_frame.config(state=DISABLED)
 
         self.result_count_label.config(
@@ -157,7 +169,6 @@ class BIDSSearchFrame(Frame):
             fpath = obj.path
         obj_sid = self.parent.file_treeview.sid_from_filepath(fpath)
         # then show it
-        print(obj_sid)
         self.parent.file_treeview.see(obj_sid)
         self.parent.file_treeview.focus(item=obj_sid)
         self.parent.file_treeview.selection_set((obj_sid,))
