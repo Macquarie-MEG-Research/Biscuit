@@ -1,40 +1,49 @@
-# Installating prerequisites
+# Installating Biscuit
 
 Biscuit is completely written in python, allowing it to be run on any computer you can install python on.
-To allow for the reading of MEG data and conversion a few libraries are required to be installed. There are a few options available depending on the current python install on your system.
+To allow for the reading of MEG data and conversion a few libraries are required to be installed.
 
-## > Already have Python installed
-Biscuit is written for python 3.4 and above, however it is recommended that you use at least the latest version of 3.6 which can be found [here](https://www.python.org/downloads/release/python-367/). If you already have python installed you can easily install Biscuit from a precompiled wheel.
-This can be downloaded from the [releases tab](https://github.com/Macquarie-MEG-Research/Biscuit/releases) on github.
-There are two ways to download and install using this. You can either just copy the link and enter
-```
-python3 -m pip install https://github.com/Macquarie-MEG-Research/Biscuit/releases/download/v0.9.3/Biscuit-0.9.3-py3-none-any.whl
-```
-(where the version may vary depending on the current release version),
+If you do not have python installed already, or only have an older version installed (such as the built-in python 2 on Macs) simply download [Python from the official website](https://www.python.org/downloads/release/python-367/).
 
-or you can download the wheel (`.whl`) file to your local disk and enter
-```
-python3 -m pip install Biscuit-0.9.3-py3-none-any.whl
-```
-into your command line within the directory the downloaded file resides.
+Biscuit can be installed easily in one of two ways:
 
-This wheel is preconfigured to download any prerequisites as well as create an executable in the scripts folder of your python install.
+## "Complete" install
+
+If you are only really going to be using your python install for Biscuit the recommended method if installation is the "Complete" method.
+This will automatically install the latest version of all of the prerequisites and install Biscuit as an executable so you can create a desktop icon for it or run it directly from the command line.
+To do this select the `Downloads > 'Complete install'` button in the above menu and download the file to somewhere memorable on your computer.
+
+## "Standard" install
+
+If you already have a pre-existing python install and do not want any particular packages to be downloaded/know how to install any prerequisites yourself the normal install can be installed by selecting the `Downloads > 'Standard install'` button from the above menu.
+The complete list of prequisites are as follows:
+
+`numpy`, `scipy`, `matplotlib`, `pandas`, `Pygments`, `Pillow`, `mne (>= 0.17.0)`, `requests` and `bidshandler (>= 0.2.1)`
+
+Unlike the complete install, this install will not create an executable to run Biscuit.
+
+### Windows installation
+
+Navigate to the folder in explorer, then hold the `shift` key and `right-click` to bring up the context menu.
+Select `'Open PowerShell window here'` to open a command prompt in the current folder.
+Enter
+```
+pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
+```
+where `X.Y.Z` is the version number of the package you downloaded.
+The `-U` command will update any previously existing version of Biscuit you may have installed.
+
+### Mac/Linux installation
+
+Using the terminal, naviate to the folder the `.whl` file was downloaded to (eg. by using `cd location_of_file`)
+Enter
+```
+python3 -m pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
+```
+where `X.Y.Z` is the version number of the package you downloaded.
+The `-U` command will update any previously existing version of Biscuit you may have installed.
 
 On linux you may also require `python3-pil.imagetk` and `python3-tk` for the GUI to function.
-
-### Important: Installing BIDSHanlder
-
-Biscuit also requires a library that is not yet on [PyPI](https://pypi.org/) and thus needs to be installed in a similar fashion as Biscuit.
-To allow Biscuit to read and handle BIDS folder correctly it uses [BIDSHandler](https://github.com/Macquarie-MEG-Research/BIDSHandler).
-
-This can be installed in a similar way to Biscuit by going to the [releases tab](https://github.com/Macquarie-MEG-Research/BIDSHandler/releases) and installing the most recent version.
-
-Biscuit should always be compatible with the most recent version, however this method of installation will be replaced with a more stable version of installing for PyPi automatically once BIDSHandler has been added to it.
-
-## > Don't have Python installed
-If you do not have a current Python install on your system, you can either install the [Anaconda](https://anaconda.org/anaconda/python) Python distribution.
-Anaconda is however a reasonably large installation, so you may prefer to simply download [Python from the website](https://www.python.org/downloads/release/python-367/) and install Biscuit using pip as above. This has the benefit of also being faster to install and gives you more control over what is installed.
-You can also follow the steps to [install MNE-Python](https://www.martinos.org/mne/stable/getting_started.html).
 
 ---
 
@@ -47,26 +56,34 @@ python3 --version
 ```
 into a command prompt should show the currently installed version of python 3.
 If an error is raised, entering `python --version` should show the current version (>3.4).
-If neither `python3 --version` or `python --version` return a value or error, then Python has not been installed correctly. You may need to ensure that python is installed to the path:
+If neither `python3 --version` or `python --version` return a value or error, then Python has not been installed correctly.
+
+**You may need to ensure that python is installed to the path. Select 'Add PythonX.Y to PATH' option:**
 [![python_path](https://docs.python.org/3/_images/win_installer.png)](https://docs.python.org/3/using/windows.html)
 
 Note that you *shouldn't* have to do this for python version 3.6 and above (but it is good to go though the "advanced" settings when installing to ensure that it is indeed added to the path to save any headaches later.)
 
 Whichever command (`python` or `python3`) is the one which shows the correctly installed version of python > 3.4, can be used to call pip explicitly for that version:
 ```
-python -m pip install <package names>
+python -m pip install <package name(s)>
 ```
 or
 ```
-python3 -m pip install <package names>
+python3 -m pip install <package name(s)>
 ```
 where `<package names>` is the list of packages to be installed (`numpy`, `scipy` etc.).
 
 ---
 
-# Installing and running Biscuit
+# Running Biscuit
 
-Installing Biscuit from the wheel creates an executable in the python scripts folder (`<python install directory>\Scripts\Biscuit.<extension>`).
+Installing Biscuit from the "complete" wheel file (`.whl`) creates an executable in the python scripts folder (`<python install directory>\Scripts\Biscuit.<extension>`).
 This executable is generally added to the path if you have administrative rights on the computer, so you can either run Biscuit by simply entering `Biscuit` into a command prompt, or you can create a shortcut to the executable (extension is platform dependent) and run Biscuit like any other executable.
 
 If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at `<python install directory>\Lib\site-packages\Biscuit\assets\bisc.<ico/png/gif>`.
+
+If installing from the "standard" install, you can create a shortcut with the following path:
+```
+python -c "from Biscuit import run;run()"
+```
+This will call python and tell it to run Biscuit.

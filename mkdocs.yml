@@ -1,3 +1,6 @@
+theme:
+  name: mkdocs
+  custom_dir: 'custom_theme/'
 site_name: Biscuit
 nav:
     - Home: index.md

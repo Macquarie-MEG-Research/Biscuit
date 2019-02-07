@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block libs %}
+    {{ super() }}
+    <script type="text/javascript" src="{{ base_url }}/js/download.js"></script>
+{% endblock %}
+
+{% block site_nav %}
+    {{ super() }}
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a onclick="GetReleases()" href="#">Complete install</a>
+                </li>
+                <li>
+                    <a onclick="GetReleases()" href="#">Standard install</a>
+                </li>
+                <li>
+                    <a href="../installation#complete-install">Not sure which version?</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+{% endblock %}
