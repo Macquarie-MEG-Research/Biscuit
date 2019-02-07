@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Elekta data - Biscuit</title>
+        <title>Adding new project settings - Biscuit</title>
         <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -67,16 +67,16 @@
     <a href="../guide_general/">General use</a>
 </li>
                                     
-<li >
-    <a href="../guide_new_proj_settings/">Adding new project settings</a>
+<li class="active">
+    <a href="./">Adding new project settings</a>
 </li>
                                     
 <li >
     <a href="../guide_kit/">KIT data</a>
 </li>
                                     
-<li class="active">
-    <a href="./">Elekta data</a>
+<li >
+    <a href="../guide_elekta/">Elekta data</a>
 </li>
                                 </ul>
                             </li>
@@ -106,12 +106,12 @@
                             </a>
                         </li>
                             <li >
-                                <a rel="next" href="../guide_kit/">
+                                <a rel="next" href="../guide_general/">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
-                            <li class="disabled">
-                                <a rel="prev" >
+                            <li >
+                                <a rel="prev" href="../guide_kit/">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -123,47 +123,35 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#converting-elekta-data">Converting Elekta data</a></li>
-            <li><a href="#fif-file-window">FIF file window</a></li>
-            <li><a href="#exporting-the-data">Exporting the data</a></li>
+        <li class="main active"><a href="#adding-new-project-settings">Adding new project settings</a></li>
+            <li><a href="#add-new-project-settings">Add new project settings</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="converting-elekta-data">Converting Elekta data</h1>
-<p>Data exported from Elekta MEG machines is stored entirely in a single <code>.fif</code> file per run. Because of this all the information required to be added can be entered on one single file.</p>
-<h2 id="fif-file-window">FIF file window</h2>
-<p><img alt="fif_initial" src="../images/screenshots/FIF_main_initial.PNG" /></p>
-<p>There are a number of fields that need to be completed before the <code>.fif</code> file is ready for conversion.</p>
-<h3 id="experimental-information">Experimental information</h3>
-<h4 id="required-information">Required information</h4>
+<h1 id="adding-new-project-settings">Adding new project settings</h1>
+<p>To add new settings or edit existing settings select <code>Options &gt; Set Defaults</code> from the menu.
+The first time you run Biscuit you will be greeted with an empty list of project settings.</p>
+<p><img alt="ps_empty" src="../images/screenshots/proj_settings_empty.PNG" /></p>
+<p>This view displays some condensed information about the project so that you can see quickly what the important current settings are.
+To add settings for a new project select the <code>Add Row</code> button.</p>
+<h3 id="add-new-project-settings">Add new project settings</h3>
+<p><img alt="new_ps_empty" src="../images/screenshots/add_project_settings_empty.PNG" /></p>
+<p>The new project settings popup allows for a fair bit of information to be entered.
+It is worth spending some time to enter in any project information here as the information is applied to all relevant data.</p>
+<h4 id="entry-field-descriptions">Entry field descriptions</h4>
 <ul>
-<li><strong>Project Name</strong>: ID of the project. This should match the project ID specified in the project settings so that any default values can be applied automatically.</li>
-<li><strong>Session ID</strong>: Session number with the particular participant.</li>
-<li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
-<li><strong>Run</strong>: An integer identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
+<li><strong>Project Title</strong>: A short title for your project. This will be placed in the readme generated.</li>
+<li><strong>Project ID</strong>: This is the ID of your project. Generally this will be an alphanumeric identifier that all experiments within a test will share. It is this value that tells Biscuit what experimental data should be using the project settings.</li>
+<li><strong>Start/End Date</strong>: Starting and finishing dates of the project. These are not required but are good to provide for record keeping. If the end date is unknown it can be left blank.</li>
+<li><strong>Project Description</strong>: A free-form field where you can enter any information about the project. As much information about the project should be included here as possible as this is the only place where you can put whatever you want.</li>
+<li><strong>Trigger Channels</strong>: This is a list where you can add as many trigger channels as you require. For each row you enter the channel number and the description of the event on this channel. This information will automatically be displayed in the channels tab where extra channels can be added if particular runs use more or less trigger channels than the default settings.</li>
+<li><strong>Participant Groups</strong>: A list of all the participant groups within the project. The default values for any project are <code>Participant</code> and <code>Control</code>. If you wish to have groups different to these values you can simply add as many groups as you require and these will appear in the Subject info entry area for the experimental data.</li>
 </ul>
-<h4 id="subject-information">Subject information</h4>
-<ul>
-<li><strong>Subject ID</strong>: The ID used to identify the participant in a confidential manner.</li>
-<li><strong>Subject DOB</strong>: The date of birth of the participant. This is entered in <em>dd/mm/yyy</em> format (sorry America!).</li>
-<li><strong>Subject Gender</strong>: One of M (Male), F (Female), U (Unknown).</li>
-<li><strong>Subject Group</strong>: The group within the study the participant belongs to. THe default values are <code>Participant</code> and <code>Control</code>, however these can be set in the <a href="../guide_general/#settings_window">project default settings</a>.</li>
-</ul>
-<h4 id="optional-information">Optional information</h4>
-<ul>
-<li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
-<li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
-</ul>
-<h4 id="channel-name-overrides">Channel name overrides</h4>
-<p>As Elekta data can contain <code>BIO</code> channels which can contain data from <code>EMG</code>, <code>ECG</code> or <code>EOG</code> sources we need some way to specify the data on these channels.
-Currently the channel names section will display all channels that have the <code>BIO</code> type.
-You can rename the channel if you wish, and also specify the type of data on the channel so that the BIDS conversion process can correctly output the right channel type.</p>
-<h2 id="exporting-the-data">Exporting the data</h2>
-<p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.</p>
-<p><img alt="fif_complete" src="../images/screenshots/FIF_main_complete.PNG" /></p>
-<p>To export you simply press this button once and a popup will appear which gives the current progress of the export process.
-Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder that will be in the file view.</p></div>
+<p>Once you have entered some information your project settings will look something like</p>
+<p><img alt="new_ps_complete" src="../images/screenshots/add_project_settings_complete.PNG" /></p>
+<p>To save the settings simply press <em>Save</em> and the new settings will appear in the list of project settings</p>
+<p><img alt="new_ps_empty" src="../images/screenshots/proj_settings_complete.PNG" /></p></div>
         </div>
 
         <footer class="col-md-12">

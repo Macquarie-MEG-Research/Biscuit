@@ -13,6 +13,7 @@
         <link href="css/font-awesome.min.css" rel="stylesheet">
         <link href="css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+    
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -22,7 +23,9 @@
         <script src="js/jquery-1.10.2.min.js" defer></script>
         <script src="js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script> 
+        <script>hljs.initHighlightingOnLoad();</script>
+    <script type="text/javascript" src="./js/download.js"></script>
+ 
     </head>
 
     <body class="homepage">
@@ -44,6 +47,7 @@
 
                 <!-- Expanded navigation -->
                 <div class="navbar-collapse collapse">
+    
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li class="active">
@@ -52,12 +56,19 @@
                             <li >
                                 <a href="installation/">Installation</a>
                             </li>
+                            <li >
+                                <a href="guide_first_time/">First-time use</a>
+                            </li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
 <li >
     <a href="guide_general/">General use</a>
+</li>
+                                    
+<li >
+    <a href="guide_new_proj_settings/">Adding new project settings</a>
 </li>
                                     
 <li >
@@ -70,6 +81,23 @@
                                 </ul>
                             </li>
                         </ul>
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a onclick="GetReleases()" href="#">Complete install</a>
+                </li>
+                <li>
+                    <a onclick="GetReleases()" href="#">Standard install</a>
+                </li>
+                <li>
+                    <a href="../installation#complete-install">Not sure which version?</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
 
                     <ul class="nav navbar-nav navbar-right">
                         <li>
@@ -190,5 +218,5 @@
 
 <!--
 MkDocs version : 1.0.4
-Build Date UTC : 2018-12-12 04:02:41
+Build Date UTC : 2019-02-07 03:41:30
 -->

@@ -8,7 +8,7 @@
         
         
         <link rel="shortcut icon" href="../img/favicon.ico">
-        <title>Elekta data - Biscuit</title>
+        <title>First-time use - Biscuit</title>
         <link href="../css/bootstrap-custom.min.css" rel="stylesheet">
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
@@ -56,10 +56,10 @@
                             <li >
                                 <a href="../installation/">Installation</a>
                             </li>
-                            <li >
-                                <a href="../guide_first_time/">First-time use</a>
+                            <li class="active">
+                                <a href="./">First-time use</a>
                             </li>
-                            <li class="dropdown active">
+                            <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
@@ -75,8 +75,8 @@
     <a href="../guide_kit/">KIT data</a>
 </li>
                                     
-<li class="active">
-    <a href="./">Elekta data</a>
+<li >
+    <a href="../guide_elekta/">Elekta data</a>
 </li>
                                 </ul>
                             </li>
@@ -106,12 +106,12 @@
                             </a>
                         </li>
                             <li >
-                                <a rel="next" href="../guide_kit/">
+                                <a rel="next" href="../installation/">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
-                            <li class="disabled">
-                                <a rel="prev" >
+                            <li >
+                                <a rel="prev" href="../guide_general/">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -123,47 +123,36 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#converting-elekta-data">Converting Elekta data</a></li>
-            <li><a href="#fif-file-window">FIF file window</a></li>
-            <li><a href="#exporting-the-data">Exporting the data</a></li>
+        <li class="main active"><a href="#first-time-use-guide">First-time use guide</a></li>
+            <li><a href="#add-new-project-settings">Add new project settings</a></li>
+            <li><a href="#exporting-data-to-a-bids-compliant-folder">Exporting data to a BIDS compliant folder</a></li>
+            <li><a href="#copying-data-off-computer-if-required">Copying data off computer (if required)</a></li>
+            <li><a href="#finishing-up">Finishing up</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="converting-elekta-data">Converting Elekta data</h1>
-<p>Data exported from Elekta MEG machines is stored entirely in a single <code>.fif</code> file per run. Because of this all the information required to be added can be entered on one single file.</p>
-<h2 id="fif-file-window">FIF file window</h2>
-<p><img alt="fif_initial" src="../images/screenshots/FIF_main_initial.PNG" /></p>
-<p>There are a number of fields that need to be completed before the <code>.fif</code> file is ready for conversion.</p>
-<h3 id="experimental-information">Experimental information</h3>
-<h4 id="required-information">Required information</h4>
-<ul>
-<li><strong>Project Name</strong>: ID of the project. This should match the project ID specified in the project settings so that any default values can be applied automatically.</li>
-<li><strong>Session ID</strong>: Session number with the particular participant.</li>
-<li><strong>Task</strong>: A shorthand identifier for the task performed.</li>
-<li><strong>Run</strong>: An integer identifier for the run or block number (often just <code>1</code>, <code>2</code> etc.).</li>
-</ul>
-<h4 id="subject-information">Subject information</h4>
-<ul>
-<li><strong>Subject ID</strong>: The ID used to identify the participant in a confidential manner.</li>
-<li><strong>Subject DOB</strong>: The date of birth of the participant. This is entered in <em>dd/mm/yyy</em> format (sorry America!).</li>
-<li><strong>Subject Gender</strong>: One of M (Male), F (Female), U (Unknown).</li>
-<li><strong>Subject Group</strong>: The group within the study the participant belongs to. THe default values are <code>Participant</code> and <code>Control</code>, however these can be set in the <a href="../guide_general/#settings_window">project default settings</a>.</li>
-</ul>
-<h4 id="optional-information">Optional information</h4>
-<ul>
-<li><strong>Is empty room</strong>: If this is selected the file is specified as the empty room data. Empty room data is copied to a different location and named based on the date of the recording. You should only select one empty room recoring per day otherwise any other existing empty room recording will be overwritten by the new one.</li>
-<li><strong>Has empty room</strong>: If this is selected the BIDS data will contain a path pointing to the location of empty room file from the same recording day. Note that there is not check on whether or not this empty room file actually exists as this data can be produced after the BIDS conversion occurs for this file. If you do not have any empty room data that was taken on the same day as this con file, <strong>do not</strong> check this box as the data will not be correct.</li>
-</ul>
-<h4 id="channel-name-overrides">Channel name overrides</h4>
-<p>As Elekta data can contain <code>BIO</code> channels which can contain data from <code>EMG</code>, <code>ECG</code> or <code>EOG</code> sources we need some way to specify the data on these channels.
-Currently the channel names section will display all channels that have the <code>BIO</code> type.
-You can rename the channel if you wish, and also specify the type of data on the channel so that the BIDS conversion process can correctly output the right channel type.</p>
-<h2 id="exporting-the-data">Exporting the data</h2>
-<p>When all the required information has been entered, the <code>Generate BIDS</code> button will become active.</p>
-<p><img alt="fif_complete" src="../images/screenshots/FIF_main_complete.PNG" /></p>
-<p>To export you simply press this button once and a popup will appear which gives the current progress of the export process.
-Once the conversion is done the popup will close and the data will available in the <code>BIDS</code> folder that will be in the file view.</p></div>
+<h1 id="first-time-use-guide">First-time use guide</h1>
+<p>At first glance Biscuit may look a little bit daunting to use, but once you are familiar with how it works it is very simple and fast to use.</p>
+<h3 id="add-new-project-settings">Add new project settings</h3>
+<p>If it is your first time using Biscuit to convert some MEG data, you must ensure that the first thing you do before trying to convert any data is to enter the default project settings for your project.
+This will allow Biscuit to automatically assign a number of values which saves a lot of time for yourself and can lead to almost automatic exporting, requiring only a few values to be selected.</p>
+<p>To add new project settings you can follow the guide <a href="../guide_new_proj_settings/">here</a>.
+It is recommended that you add these settings as soon as you know what they are so that when you take some measurements and open Biscuit for file conversion the data is already added and you do not need to worry about adding them then.
+Don't worry if you mess up the settings, they can be changed later and the old file will be overwritten with the new settings.</p>
+<h3 id="exporting-data-to-a-bids-compliant-folder">Exporting data to a BIDS compliant folder</h3>
+<p>Next, select the folder on the left-hand side that contains the newly acquired data.</p>
+<p>If you have acquired data using a Yokogawa/KIT system, you can proceed to follow the guide specifically for this data <a href="../guide_kit/">here</a>.
+If you have acquired data using an Elekta system, the specific guide can be found <a href="../guide_elekta/">here</a>.</p>
+<h3 id="copying-data-off-computer-if-required">Copying data off computer (if required)</h3>
+<p>The BIDS-compliant data exported by Biscuit will be placed in a sub-folder of a folder named <code>BIDS</code>. Depending on your settings it will most likely be placed in a folder named <code>BIDS-XX</code> where <code>XX</code> is a number. This is to chunk the data so if Biscuit is used on a computer where large amounts of data is being generated, finding the most recent data is easy for those who may need to back up the data.</p>
+<p>To transfer the data off one computer and onto another the easiest way is to use Biscuit's built in file-transfer abilities. This is recommended because it is able to transfer the data in a way that is 'BIDS-safe'. This means that you can transfer the data to another folder containing BIDS-compliant data and the new data will be merged automatically into the file hierarchy.</p>
+<p>Transferring your BIDS-compliant data is as easy as selecting the folder you want to transfer, right-click the folder name in the built-in file browser, then selecting 'Send to...'.
+This will display a pop-up which will let you select the location to transfer your files. It is <strong>highly recommnded</strong> that you select the same folder every time you do this. This is most easily achieved by using an external HDD and having a folder on it called <code>BIDS</code> (for example). Every time you transfer data off the computer using Biscuit, transfer to this BIDS folder and it will always contain the entire BIDS folder structure of your data.</p>
+<p><em>Note</em>: If you do not see the 'Send to...' option the folder hasn't been specified as a folder containing BIDS formatted data. You can fix this by right-clicking the <code>BIDS_XX</code> folder and selecting 'Assign as BIDS folder'.</p>
+<h3 id="finishing-up">Finishing up</h3>
+<p>Now that your data has been "BIDSified", you have an easy to search folder containing all the data from your various experiments.
+In the future Biscuit will be able to be used to search this data so that specific tests or recordings can be found easily to allow for easy identification for analysis purposes.</p></div>
         </div>
 
         <footer class="col-md-12">

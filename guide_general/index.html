@@ -13,6 +13,7 @@
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+    
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -22,7 +23,9 @@
         <script src="../js/jquery-1.10.2.min.js" defer></script>
         <script src="../js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script> 
+        <script>hljs.initHighlightingOnLoad();</script>
+    <script type="text/javascript" src="../js/download.js"></script>
+ 
     </head>
 
     <body>
@@ -44,6 +47,7 @@
 
                 <!-- Expanded navigation -->
                 <div class="navbar-collapse collapse">
+    
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li >
@@ -52,12 +56,19 @@
                             <li >
                                 <a href="../installation/">Installation</a>
                             </li>
+                            <li >
+                                <a href="../guide_first_time/">First-time use</a>
+                            </li>
                             <li class="dropdown active">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
 <li class="active">
     <a href="./">General use</a>
+</li>
+                                    
+<li >
+    <a href="../guide_new_proj_settings/">Adding new project settings</a>
 </li>
                                     
 <li >
@@ -70,6 +81,23 @@
                                 </ul>
                             </li>
                         </ul>
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a onclick="GetReleases()" href="#">Complete install</a>
+                </li>
+                <li>
+                    <a onclick="GetReleases()" href="#">Standard install</a>
+                </li>
+                <li>
+                    <a href="../installation#complete-install">Not sure which version?</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
 
                     <ul class="nav navbar-nav navbar-right">
                         <li>
@@ -78,12 +106,12 @@
                             </a>
                         </li>
                             <li >
-                                <a rel="next" href="../installation/">
+                                <a rel="next" href="../guide_first_time/">
                                     <i class="fa fa-arrow-left"></i> Previous
                                 </a>
                             </li>
                             <li >
-                                <a rel="prev" href="../guide_kit/">
+                                <a rel="prev" href="../guide_new_proj_settings/">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -130,29 +158,7 @@ You shouldn't ever need to or want to change this directory as this can render a
 <h2 id="settings-windows">Settings windows</h2>
 <p>To make the BIDS conversion process as quick and easy as possible, Biscuit is able to store the settings for any projects you have to reduce the amount of information needed to be entered.
 Each project has it's own settings, so any file that is given the specified project number will automatically have these settings applied to it.</p>
-<h3 id="project-settings-list">Project settings list</h3>
-<p>To add new settings or edit existing settings select <code>Options &gt; Set Defaults</code> from the menu.
-The first time you run Biscuit you will be greeted with an empty list of project settings.</p>
-<p><img alt="ps_empty" src="../images/screenshots/proj_settings_empty.PNG" /></p>
-<p>This view displays some condensed information about the project so that you can see quickly what the important current settings are.
-To add settings for a new project select the <code>Add Row</code> button.</p>
-<h3 id="add-new-project-settings">Add new project settings</h3>
-<p><img alt="new_ps_empty" src="../images/screenshots/add_project_settings_empty.PNG" /></p>
-<p>The new project settings popup allows for a fair bit of information to be entered.
-It is worth spending some time to enter in any project information here as the information is applied to all relevant data.</p>
-<h4 id="entry-field-descriptions">Entry field descriptions</h4>
-<ul>
-<li><strong>Project Title</strong>: A short title for your project. This will be placed in the readme generated.</li>
-<li><strong>Project ID</strong>: This is the ID of your project. Generally this will be an alphanumeric identifier that all experiments within a test will share. It is this value that tells Biscuit what experimental data should be using the project settings.</li>
-<li><strong>Start/End Date</strong>: Starting and finishing dates of the project. These are not required but are good to provide for record keeping. If the end date is unknown it can be left blank.</li>
-<li><strong>Project Description</strong>: A free-form field where you can enter any information about the project. As much information about the project should be included here as possible as this is the only place where you can put whatever you want.</li>
-<li><strong>Trigger Channels</strong>: This is a list where you can add as many trigger channels as you require. For each row you enter the channel number and the description of the event on this channel. This information will automatically be displayed in the channels tab where extra channels can be added if particular runs use more or less trigger channels than the default settings.</li>
-<li><strong>Participant Groups</strong>: A list of all the participant groups within the project. The default values for any project are <code>Participant</code> and <code>Control</code>. If you wish to have groups different to these values you can simply add as many groups as you require and these will appear in the Subject info entry area for the experimental data.</li>
-</ul>
-<p>Once you have entered some information your project settings will look something like</p>
-<p><img alt="new_ps_complete" src="../images/screenshots/add_project_settings_complete.PNG" /></p>
-<p>To save the settings simply press <em>Save</em> and the new settings will appear in the list of project settings</p>
-<p><img alt="new_ps_empty" src="../images/screenshots/proj_settings_complete.PNG" /></p>
+<p>For a detailed guide on how to add new project settings click <a href="../guide_new_proj_settings/">here</a>.</p>
 <h2 id="general-navigation">General navigation</h2>
 <p>Biscuit is split in two halves.
 The left side consists of a file treeview which is used to navigate the directories containing all the various files. Selecting any file will bring up information if there is info available. Most files that are not used for MEG will simply have the message that the data type is not supported. Some human-readble text files will be displayed however. This includes <em>MATLAB</em> <code>.m</code> files, <em>Python</em> <code>.py</code> scripts and <code>.txt</code> files. Both <code>.py</code> and <code>.m</code> files also support syntax highlighting (requires the <a href="https://pypi.org/project/Pygments/">pygments</a> python library)</p>

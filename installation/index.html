@@ -13,6 +13,7 @@
         <link href="../css/font-awesome.min.css" rel="stylesheet">
         <link href="../css/base.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/github.min.css">
+    
         <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!--[if lt IE 9]>
             <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
@@ -22,7 +23,9 @@
         <script src="../js/jquery-1.10.2.min.js" defer></script>
         <script src="../js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
-        <script>hljs.initHighlightingOnLoad();</script> 
+        <script>hljs.initHighlightingOnLoad();</script>
+    <script type="text/javascript" src="../js/download.js"></script>
+ 
     </head>
 
     <body>
@@ -44,6 +47,7 @@
 
                 <!-- Expanded navigation -->
                 <div class="navbar-collapse collapse">
+    
                         <!-- Main navigation -->
                         <ul class="nav navbar-nav">
                             <li >
@@ -52,12 +56,19 @@
                             <li class="active">
                                 <a href="./">Installation</a>
                             </li>
+                            <li >
+                                <a href="../guide_first_time/">First-time use</a>
+                            </li>
                             <li class="dropdown">
                                 <a href="#" class="dropdown-toggle" data-toggle="dropdown">Using Biscuit <b class="caret"></b></a>
                                 <ul class="dropdown-menu">
                                     
 <li >
     <a href="../guide_general/">General use</a>
+</li>
+                                    
+<li >
+    <a href="../guide_new_proj_settings/">Adding new project settings</a>
 </li>
                                     
 <li >
@@ -70,6 +81,23 @@
                                 </ul>
                             </li>
                         </ul>
+    <ul class="nav navbar-nav">
+        <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
+            <ul class="dropdown-menu">
+                <li>
+                    <a onclick="GetReleases()" href="#">Complete install</a>
+                </li>
+                <li>
+                    <a onclick="GetReleases()" href="#">Standard install</a>
+                </li>
+                <li>
+                    <a href="../installation#complete-install">Not sure which version?</a>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
 
                     <ul class="nav navbar-nav navbar-right">
                         <li>
@@ -83,7 +111,7 @@
                                 </a>
                             </li>
                             <li >
-                                <a rel="prev" href="../guide_general/">
+                                <a rel="prev" href="../guide_first_time/">
                                     Next <i class="fa fa-arrow-right"></i>
                                 </a>
                             </li>
@@ -95,42 +123,47 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#installating-prerequisites">Installating prerequisites</a></li>
-            <li><a href="#already-have-python-installed">&gt; Already have Python installed</a></li>
-            <li><a href="#dont-have-python-installed">&gt; Don't have Python installed</a></li>
+        <li class="main active"><a href="#installating-biscuit">Installating Biscuit</a></li>
+            <li><a href="#complete-install">"Complete" install</a></li>
+            <li><a href="#standard-install">"Standard" install</a></li>
         <li class="main "><a href="#issues-with-pip">Issues with pip</a></li>
-        <li class="main "><a href="#installing-and-running-biscuit">Installing and running Biscuit</a></li>
+        <li class="main "><a href="#running-biscuit">Running Biscuit</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="installating-prerequisites">Installating prerequisites</h1>
+<h1 id="installating-biscuit">Installating Biscuit</h1>
 <p>Biscuit is completely written in python, allowing it to be run on any computer you can install python on.
-To allow for the reading of MEG data and conversion a few libraries are required to be installed. There are a few options available depending on the current python install on your system.</p>
-<h2 id="already-have-python-installed">&gt; Already have Python installed</h2>
-<p>Biscuit is written for python 3.4 and above, however it is recommended that you use at least the latest version of 3.6 which can be found <a href="https://www.python.org/downloads/release/python-367/">here</a>. If you already have python installed you can easily install Biscuit from a precompiled wheel.
-This can be downloaded from the <a href="https://github.com/Macquarie-MEG-Research/Biscuit/releases">releases tab</a> on github.
-There are two ways to download and install using this. You can either just copy the link and enter</p>
-<pre><code>python3 -m pip install https://github.com/Macquarie-MEG-Research/Biscuit/releases/download/v0.9.3/Biscuit-0.9.3-py3-none-any.whl
+To allow for the reading of MEG data and conversion a few libraries are required to be installed.</p>
+<p>If you do not have python installed already, or only have an older version installed (such as the built-in python 2 on Macs) simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the official website</a>.</p>
+<p>Biscuit can be installed easily in one of two ways:</p>
+<h2 id="complete-install">"Complete" install</h2>
+<p>If you are only really going to be using your python install for Biscuit the recommended method if installation is the "Complete" method.
+This will automatically install the latest version of all of the prerequisites and install Biscuit as an executable so you can create a desktop icon for it or run it directly from the command line.
+To do this select the <code>Downloads &gt; 'Complete install'</code> button in the above menu and download the file to somewhere memorable on your computer.</p>
+<h2 id="standard-install">"Standard" install</h2>
+<p>If you already have a pre-existing python install and do not want any particular packages to be downloaded/know how to install any prerequisites yourself the normal install can be installed by selecting the <code>Downloads &gt; 'Standard install'</code> button from the above menu.
+The complete list of prequisites are as follows:</p>
+<p><code>numpy</code>, <code>scipy</code>, <code>matplotlib</code>, <code>pandas</code>, <code>Pygments</code>, <code>Pillow</code>, <code>mne (&gt;= 0.17.0)</code>, <code>requests</code> and <code>bidshandler (&gt;= 0.2.1)</code></p>
+<p>Unlike the complete install, this install will not create an executable to run Biscuit.</p>
+<h3 id="windows-installation">Windows installation</h3>
+<p>Navigate to the folder in explorer, then hold the <code>shift</code> key and <code>right-click</code> to bring up the context menu.
+Select <code>'Open PowerShell window here'</code> to open a command prompt in the current folder.
+Enter</p>
+<pre><code>pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
 </code></pre>
 
-<p>(where the version may vary depending on the current release version),</p>
-<p>or you can download the wheel (<code>.whl</code>) file to your local disk and enter</p>
-<pre><code>python3 -m pip install Biscuit-0.9.3-py3-none-any.whl
+<p>where <code>X.Y.Z</code> is the version number of the package you downloaded.
+The <code>-U</code> command will update any previously existing version of Biscuit you may have installed.</p>
+<h3 id="maclinux-installation">Mac/Linux installation</h3>
+<p>Using the terminal, naviate to the folder the <code>.whl</code> file was downloaded to (eg. by using <code>cd location_of_file</code>)
+Enter</p>
+<pre><code>python3 -m pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
 </code></pre>
 
-<p>into your command line within the directory the downloaded file resides.</p>
-<p>This wheel is preconfigured to download any prerequisites as well as create an executable in the scripts folder of your python install.</p>
+<p>where <code>X.Y.Z</code> is the version number of the package you downloaded.
+The <code>-U</code> command will update any previously existing version of Biscuit you may have installed.</p>
 <p>On linux you may also require <code>python3-pil.imagetk</code> and <code>python3-tk</code> for the GUI to function.</p>
-<h3 id="important-installing-bidshanlder">Important: Installing BIDSHanlder</h3>
-<p>Biscuit also requires a library that is not yet on <a href="https://pypi.org/">PyPI</a> and thus needs to be installed in a similar fashion as Biscuit.
-To allow Biscuit to read and handle BIDS folder correctly it uses <a href="https://github.com/Macquarie-MEG-Research/BIDSHandler">BIDSHandler</a>.</p>
-<p>This can be installed in a similar way to Biscuit by going to the <a href="https://github.com/Macquarie-MEG-Research/BIDSHandler/releases">releases tab</a> and installing the most recent version.</p>
-<p>Biscuit should always be compatible with the most recent version, however this method of installation will be replaced with a more stable version of installing for PyPi automatically once BIDSHandler has been added to it.</p>
-<h2 id="dont-have-python-installed">&gt; Don't have Python installed</h2>
-<p>If you do not have a current Python install on your system, you can either install the <a href="https://anaconda.org/anaconda/python">Anaconda</a> Python distribution.
-Anaconda is however a reasonably large installation, so you may prefer to simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the website</a> and install Biscuit using pip as above. This has the benefit of also being faster to install and gives you more control over what is installed.
-You can also follow the steps to <a href="https://www.martinos.org/mne/stable/getting_started.html">install MNE-Python</a>.</p>
 <hr />
 <h1 id="issues-with-pip">Issues with pip</h1>
 <p>If you are installing python 3 and the required libraries on a mac (or on a system with another python install) you may have conflicts with the internal python 2.7 install. To get around this you may need to specify excplitly the version of python the libraries are being install into.</p>
@@ -140,23 +173,29 @@ You can also follow the steps to <a href="https://www.martinos.org/mne/stable/ge
 
 <p>into a command prompt should show the currently installed version of python 3.
 If an error is raised, entering <code>python --version</code> should show the current version (&gt;3.4).
-If neither <code>python3 --version</code> or <code>python --version</code> return a value or error, then Python has not been installed correctly. You may need to ensure that python is installed to the path:
+If neither <code>python3 --version</code> or <code>python --version</code> return a value or error, then Python has not been installed correctly.</p>
+<p><strong>You may need to ensure that python is installed to the path. Select 'Add PythonX.Y to PATH' option:</strong>
 <a href="https://docs.python.org/3/using/windows.html"><img alt="python_path" src="https://docs.python.org/3/_images/win_installer.png" /></a></p>
 <p>Note that you <em>shouldn't</em> have to do this for python version 3.6 and above (but it is good to go though the "advanced" settings when installing to ensure that it is indeed added to the path to save any headaches later.)</p>
 <p>Whichever command (<code>python</code> or <code>python3</code>) is the one which shows the correctly installed version of python &gt; 3.4, can be used to call pip explicitly for that version:</p>
-<pre><code>python -m pip install &lt;package names&gt;
+<pre><code>python -m pip install &lt;package name(s)&gt;
 </code></pre>
 
 <p>or</p>
-<pre><code>python3 -m pip install &lt;package names&gt;
+<pre><code>python3 -m pip install &lt;package name(s)&gt;
 </code></pre>
 
 <p>where <code>&lt;package names&gt;</code> is the list of packages to be installed (<code>numpy</code>, <code>scipy</code> etc.).</p>
 <hr />
-<h1 id="installing-and-running-biscuit">Installing and running Biscuit</h1>
-<p>Installing Biscuit from the wheel creates an executable in the python scripts folder (<code>&lt;python install directory&gt;\Scripts\Biscuit.&lt;extension&gt;</code>).
+<h1 id="running-biscuit">Running Biscuit</h1>
+<p>Installing Biscuit from the "complete" wheel file (<code>.whl</code>) creates an executable in the python scripts folder (<code>&lt;python install directory&gt;\Scripts\Biscuit.&lt;extension&gt;</code>).
 This executable is generally added to the path if you have administrative rights on the computer, so you can either run Biscuit by simply entering <code>Biscuit</code> into a command prompt, or you can create a shortcut to the executable (extension is platform dependent) and run Biscuit like any other executable.</p>
-<p>If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at <code>&lt;python install directory&gt;\Lib\site-packages\Biscuit\assets\bisc.&lt;ico/png/gif&gt;</code>.</p></div>
+<p>If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at <code>&lt;python install directory&gt;\Lib\site-packages\Biscuit\assets\bisc.&lt;ico/png/gif&gt;</code>.</p>
+<p>If installing from the "standard" install, you can create a shortcut with the following path:</p>
+<pre><code>python -c &quot;from Biscuit import run;run()&quot;
+</code></pre>
+
+<p>This will call python and tell it to run Biscuit.</p></div>
         </div>
 
         <footer class="col-md-12">
