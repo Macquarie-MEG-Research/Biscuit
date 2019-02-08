@@ -24,6 +24,11 @@
         <script src="../js/bootstrap-3.0.3.min.js" defer></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
         <script>hljs.initHighlightingOnLoad();</script>
+    <script type='text/javascript' src="../js/get_version.js"></script>
+    <script type='text/javascript' src="../js/jquery-1.10.2.min.js"></script>
+    <script type='text/javascript'> 
+        GetVersion();
+    </script>
     <script type="text/javascript" src="../js/download.js"></script>
  
     </head>
@@ -86,10 +91,10 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
             <ul class="dropdown-menu">
                 <li>
-                    <a onclick="GetReleases()" href="#">Complete install</a>
+                    <a onclick="GetReleases()" href="#" id="complete_link">Complete install</a>
                 </li>
                 <li>
-                    <a onclick="GetReleases()" href="#">Standard install</a>
+                    <a onclick="GetReleases()" href="#" id="standard_link">Standard install</a>
                 </li>
                 <li>
                         <a href="https://github.com/Macquarie-MEG-Research/Biscuit">Source code (GitHub)</a>
