@@ -20,9 +20,15 @@
                 <li>
                         <a href="https://github.com/Macquarie-MEG-Research/Biscuit">Source code (GitHub)</a>
                     </li>
+                {% if page == nav.homepage %}
+                <li>
+                    <a href="installation#complete-install">Not sure which version?</a>
+                </li>
+                {% else %}
                 <li>
                     <a href="../installation#complete-install">Not sure which version?</a>
                 </li>
+                {% endif %}
             </ul>
         </li>
     </ul>
