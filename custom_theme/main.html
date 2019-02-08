@@ -2,6 +2,11 @@
 
 {% block libs %}
     {{ super() }}
+    <script type='text/javascript' src="{{ base_url }}/js/get_version.js"></script>
+    <script type='text/javascript' src="{{ base_url }}/js/jquery-1.10.2.min.js"></script>
+    <script type='text/javascript'> 
+        GetVersion();
+    </script>
     <script type="text/javascript" src="{{ base_url }}/js/download.js"></script>
 {% endblock %}
 
@@ -12,15 +17,15 @@
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">Downloads <b class="caret"></b></a>
             <ul class="dropdown-menu">
                 <li>
-                    <a onclick="GetReleases()" href="#">Complete install</a>
+                    <a onclick="GetReleases()" href="#" id="complete_link">Complete install</a>
                 </li>
                 <li>
-                    <a onclick="GetReleases()" href="#">Standard install</a>
+                    <a onclick="GetReleases()" href="#" id="standard_link">Standard install</a>
                 </li>
                 <li>
                         <a href="https://github.com/Macquarie-MEG-Research/Biscuit">Source code (GitHub)</a>
                     </li>
-                {% if page == nav.homepage %}
+                {% if page.is_homepage %}
                 <li>
                     <a href="installation#complete-install">Not sure which version?</a>
                 </li>
