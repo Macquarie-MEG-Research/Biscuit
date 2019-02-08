@@ -43,8 +43,8 @@ class FileTreeview(EnhancedTreeview):
                  curr_children], curr_children))
 
         # we want to put folders above files (it looks nicer!!)
-        try:
-            for file in os.listdir(dir_):
+        for file in os.listdir(dir_):
+            try:
                 fullpath = op.normpath(op.join(dir_, file))
 
                 # need to check to see whether or not the file/folder already
@@ -64,10 +64,10 @@ class FileTreeview(EnhancedTreeview):
                                     values=[ext, fullpath],
                                     text=fname, open=False,
                                     tags=(ext))
-        except PermissionError:
-            # user doesn't have sufficient permissions to open folder so it
-            # won't be included
-            pass
+            except PermissionError:
+                # user doesn't have sufficient permissions to open folder so it
+                # won't be included
+                pass
 
     def get_filepath(self, sid):
         """ Return the file path corresponding to the provided sid """
@@ -148,12 +148,9 @@ class FileTreeview(EnhancedTreeview):
             # found then follow it back down.
             temp_fpath = op.dirname(fpath)
             while True:
-                print(temp_fpath)
                 if temp_fpath in self.index_cache:
-                    print('found in cache')
                     sid = self.index_cache[temp_fpath]
                     for child in self.all_children(item=sid):
-                        print(self.item(child)['values'][1])
                         if child['values'][1] == fpath:
                             return child
                 _temp_fpath = op.dirname(temp_fpath)
@@ -198,7 +195,7 @@ class FileTreeview(EnhancedTreeview):
                     new_files.append(fpath)
             # add all the new folders
             for dir_ in dirs:
-                fpath = op.join(root, dir_)
+                fpath = op.normpath(op.join(root, dir_))
                 if self.index_cache.get(fpath, None) is None:
                     new_files.append(fpath)
         return new_files
@@ -218,7 +215,7 @@ class FileTreeview(EnhancedTreeview):
                 contained_files.add(fpath)
             # add all the new folders
             for dir_ in dirs:
-                fpath = op.join(root, dir_)
+                fpath = op.normpath(op.join(root, dir_))
                 contained_files.add(fpath)
         prev_files = set(self.index_cache.keys())
         removed_files = (prev_files - contained_files) - set([self.root_path])

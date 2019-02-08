@@ -96,16 +96,20 @@ class KITData(BIDSContainer):
             # apply some values
             # TODO: clean this up a bit...
             """ Project settings """
-            try:
-                if self.proj_name.get() == '':
-                    # only set the name from the folder name if we don't
-                    # already have one (eg from a save)
+            if self.proj_name.get() == '':
+                # only set the name from the folder name if we don't
+                # already have one (eg from a save)
+                try:
                     proj_name = self.parent.file_treeview.item(
                         self._id)['text'].split('_')[2]
                     self.proj_name.set(proj_name)
-            except IndexError:
-                # the proj_name will already be an empty string by default
-                pass
+                except IndexError:
+                    # Look at the parent folder name instead.
+                    parent_folder = self.parent.file_treeview.parent(
+                        self._id)
+                    proj_name = self.parent.file_treeview.item(
+                        parent_folder)['text']
+                    self.proj_name.set(proj_name)
             # set the settings via the setter.
             try:
                 self.settings = self.proj_settings

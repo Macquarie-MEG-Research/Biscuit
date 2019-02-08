@@ -12,7 +12,7 @@ from Biscuit.CustomWidgets import WidgetTable
 from Biscuit.Management.CustomVars import OptionsVar
 from Biscuit.Management.tkHyperlinkManager import HyperlinkManager
 
-HELP_LINK = "https://github.com/Macquarie-MEG-Research/BIDSHandler/blob/master/README.md#querying-bids-data"  # noqa
+HELP_LINK = "https://macquarie-meg-research.github.io/BIDSHandler/usage_docs/querying_data.html"  # noqa
 
 
 class BIDSSearchFrame(Frame):
