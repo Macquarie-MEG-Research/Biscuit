@@ -121,3 +121,4 @@ class SessionInfoFrame(Frame):
             widget.check_valid()
         if not self.file.validation_initialised:
             self.file.init_validation()
+        self.file._set_bids_button_state()
