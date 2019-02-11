@@ -9,7 +9,7 @@ class FileTreeview(EnhancedTreeview):
         self.master = master
         super(FileTreeview, self).__init__(self.master, *args, **kwargs)
 
-        self.root_path = directory
+        self.root_path = op.normpath(directory)
 
         self.index_cache = dict()
 
@@ -86,6 +86,47 @@ class FileTreeview(EnhancedTreeview):
             else:
                 self.index_cache[self.root_path] = ''
 
+    def ordered_insert(self, parent, *args, **kwargs):
+        """
+        Allows for objects to be inserted in the correct location
+        alphabetically. They will be sorted by their text fields.
+        This should be extended so that it is sorted by text > then any values
+        in order.
+
+        Returns the id of the object that has been inserted
+        """
+        sort_text = kwargs.get('text', None).lower()
+        if sort_text is not None:
+            child_folders = [i for i in self.get_children(parent) if
+                             op.isdir(self.item(i)['values'][1])]
+            child_files = [i for i in self.get_children(parent) if
+                           not op.isdir(self.item(i)['values'][1])]
+            if op.isdir(kwargs['values'][1]):
+                # first iterate over the children that are folders
+                if len(child_folders) != 0:
+                    for i, child in enumerate(child_folders):
+                        if sort_text < self.item(child)['text'].lower():
+                            index = i
+                            break
+                    else:
+                        index = i + 1
+                else:
+                    index = 0
+            else:
+                folder_num = len(child_folders)
+                if len(child_files) != 0:
+                    for i, child in enumerate(child_files):
+                        if sort_text < self.item(child)['text'].lower():
+                            index = i + folder_num
+                            break
+                    else:
+                        index = i + folder_num + 1
+                else:
+                    index = folder_num
+
+            return self.insert(parent, index, *args, **kwargs)
+        raise ValueError("No 'text' argument provided.")
+
     def refresh(self):
         """
         Refresh the treeview to include any newly added or removed files.
@@ -107,16 +148,11 @@ class FileTreeview(EnhancedTreeview):
             parent = self.sid_from_filepath(base)
             fname, ext = op.splitext(file)
 
-            if op.isdir(fullpath):
-                sid = self.ordered_insert(parent,
-                                          values=[ext, fullpath],
-                                          text=fname,
-                                          open=False)
-            else:
-                sid = self.insert(parent, 'end',
-                                  values=[ext, fullpath],
-                                  text=fname, open=False,
-                                  tags=(ext))
+            #if op.isdir(fullpath):
+            sid = self.ordered_insert(parent,
+                                      values=[ext, fullpath],
+                                      text=fname,
+                                      open=False)
             self.index_cache[fullpath] = sid
             added_sids.append(sid)
         # remove any removed files from the filetree
