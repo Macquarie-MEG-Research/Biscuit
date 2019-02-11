@@ -18,7 +18,7 @@ class BIDSFile(FileInfo):
 
         self._create_vars()
 
-        if 'emptyroom' in self.file:
+        if 'emptyroom' in self.file.lower():
             self.is_empty_room.set(True)
 
     def _create_vars(self):
