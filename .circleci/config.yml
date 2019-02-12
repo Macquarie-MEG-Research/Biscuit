@@ -1,0 +1,50 @@
+version: 2
+jobs:
+    build-docs:
+        docker:
+            - image: python:3.7
+        steps:
+            - checkout
+            - run:
+                name: Install dependencies
+                command: pip install mkdocs
+            - run:
+                name: Build docs
+                command: mkdocs build
+            - persist_to_workspace:
+                root: html_docs
+                paths: site
+    deploy-docs:
+        docker:
+            - image: node:8.10.0
+        steps:
+            - checkout
+            - attach_workspace:
+                at: html_docs
+            - run:
+                name: Disable jekyll builds
+                command: touch html_docs/site/.nojekyll
+            - run:
+                name: Install and configure dependencies
+                command: |
+                  npm install -g --silent gh-pages@2.0.1
+                  git config user.email "mq-meg-circle@mq.edu.au"
+                  git config user.name "circle CI"
+            - add_ssh_keys:
+                fingerprints:
+                    - "22:ce:64:e1:5a:08:c0:ba:d6:3e:0d:21:9f:13:67:a9"
+            - run:
+                name: Deploy docs to gh-pages branch
+                command: gh-pages --dotfiles --message "[skip ci] Auto-update" --dist html_docs/site
+
+workflows:
+    version: 2
+    build:
+        jobs:
+            - build-docs
+            - deploy-docs:
+                requires:
+                    - build-docs
+                filters:
+                    branches:
+                        only: master
