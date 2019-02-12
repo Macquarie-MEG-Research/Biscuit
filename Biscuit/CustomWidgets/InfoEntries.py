@@ -18,8 +18,6 @@ class InfoMaster():
         self._label = Label(self._master, text="{0}: ".format(label))
         self._value = value
 
-        #self._data = data
-
         self._validate_cmd = validate_cmd
 
     def set_bads_callback(self, bad_values=None, associated_data=None):
@@ -154,7 +152,6 @@ class InfoEntry(InfoMaster):
         self.bad_values = bad_values
 
         # draw the label and entry box
-        #self._label = Label(self._master, text="{0}: ".format(data[0]))
         if bad_values == []:
             self._value = Entry(self._master, textvariable=value)
         else:
@@ -169,7 +166,6 @@ class InfoEntry(InfoMaster):
             self._value.check_valid()
 
     def _set_value(self, value):
-        #super(InfoEntry, self)._set_value(value)
         self._value.config(textvariable=value)
 
     @property
@@ -194,7 +190,6 @@ class InfoLabel(InfoMaster):
         self._value = Label(self._master, text=value)
 
     def _set_value(self, value):
-        #super(InfoLabel, self)._set_value(value)
         self._value.config(text="{0}".format(value))
 
 
@@ -211,7 +206,6 @@ class InfoCheck(InfoMaster):
                                       command=self._validate_cmd)
 
     def _set_value(self, value):
-        #super(InfoCheck, self)._set_value(value)
         self._value.config(variable=value)
 
     @property
@@ -247,7 +241,6 @@ class InfoList(InfoMaster):
             lbl.grid(row=self._value.grid_size()[1])
 
     def _set_value(self, value):
-            #super(InfoList, self)._set_value(value)
             self._draw_list(value)
             self._value.grid()
 

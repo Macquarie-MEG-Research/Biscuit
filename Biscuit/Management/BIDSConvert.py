@@ -11,7 +11,7 @@ from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.Windows import ProgressPopup
 from Biscuit.utils.utils import threaded, assign_bids_data, assign_bids_folder
-
+from Biscuit.utils.constants import MRK_PRE, MRK_POST
 from Biscuit.utils.timeutils import get_chunk_num, get_year
 
 
@@ -113,32 +113,18 @@ def convert(container, settings, parent=None):
                 mrks = None
                 # process the list of mrks:
                 if job.hpi is not None:
-                    if isinstance(job.hpi, list):
-                        if len(job.hpi) == 1:
-                            # only have one marker coil
-                            mrks = job.hpi[0].file
-                        elif len(job.hpi) == 2:
-                            # initiate an empty list
-                            mrks = [None, None]
-                            for mrk in job.hpi:
-                                if mrk.acquisition.get() == 'pre':
-                                    mrks[0] = mrk.file
-                                elif mrk.acquisition.get() == 'post':
-                                    mrks[1] = mrk.file
-                                else:
-                                    # in this case it isn't specified. Best we
-                                    # can do it just add it. Maybe raise a
-                                    # message?
-                                    mrks.append(mrk.file)
-                            # drop any None values just in case:
-                            for _ in range(mrks.count(None)):
-                                mrks.remove(None)
-
+                    mrks = {acq: mrk.file for acq, mrk in job.hpi.items()}
+                    if len(mrks.values()) == 2:
+                        mrks_list = [mrks[MRK_PRE], mrks[MRK_POST]]
+                    elif len(mrks.values()) == 1:
+                        mrks_list = list(mrks_list.values())[0]
+                    else:
+                        mrks_list = None
                 try:
                     raw_to_bids(subject_id=subject_id, task=task,
                                 raw_file=job.raw, output_path=target_folder,
                                 session_id=sess_id, kind='meg',
-                                event_id=event_ids, hpi=mrks, run=run,
+                                event_id=event_ids, hpi=mrks_list, run=run,
                                 emptyroom=emptyroom, extra_data=extra_data,
                                 subject_group=subject_group,
                                 readme_text=container.readme, verbose=True,

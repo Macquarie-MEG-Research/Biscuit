@@ -1,6 +1,7 @@
+from tkinter import StringVar, BooleanVar
+
 from .FileInfo import FileInfo
 from Biscuit.Management import OptionsVar
-from tkinter import StringVar, BooleanVar
 
 
 class BIDSFile(FileInfo):
@@ -34,7 +35,7 @@ class BIDSFile(FileInfo):
         self.is_empty_room.trace("w", self.propagate_emptyroom_data)
         self.has_empty_room = BooleanVar()
 
-        self.hpi = []
+        self.hpi = dict()
 
         self.loaded = False
 
@@ -76,7 +77,7 @@ class BIDSFile(FileInfo):
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
         is_valid &= self.run.get() != ''
-        is_valid &= (self.hpi != [])
+        is_valid &= (self.hpi != dict())
         return is_valid
 
     def get_event_data(self):
@@ -106,10 +107,7 @@ class BIDSFile(FileInfo):
 
         data['run'] = self.run.get()        # run
         data['tsk'] = self.task.get()       # task
-        if self.hpi is not None:
-            data['hpi'] = [hpi.file for hpi in self.hpi]        # marker coils
-        else:
-            data['hpi'] = None
+        data['hpi'] = self.hpi              # marker coils
         data['ier'] = self.is_empty_room.get()      # is empty room data?
         data['her'] = self.has_empty_room.get()     # has empty room data?
 
@@ -121,7 +119,7 @@ class BIDSFile(FileInfo):
         task = state.get('tsk', '')
         self.task.options = [task]
         self.task.set(task)
-        # these will be just the file paths for now
+        # support old and new format hpi storage
         self.hpi = state.get('hpi', None)
         self.is_empty_room.set(state.get('ier', False))
         self.has_empty_room.set(state.get('her', False))
