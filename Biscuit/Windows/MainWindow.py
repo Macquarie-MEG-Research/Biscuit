@@ -374,7 +374,7 @@ class MainWindow(Frame):
         self._clear_tags()
         if con_file is not None:
             # get the associated mrk files if any
-            for mrk_file in con_file.hpi:
+            for mrk_file in con_file.hpi.values():
                 # these are mrk_file objects, so their id will be the id of
                 # their entry in the treeview
                 self.file_treeview.item(mrk_file.ID, tags=['ASSOC_FILES'])

@@ -1,40 +1,42 @@
 from tkinter import simpledialog, ACTIVE
 from tkinter.ttk import Label, Button, Frame
 
+from Biscuit.utils.constants import MRK_PRE, MRK_POST
+
 # need to fix the style issues here. Maybe just write this custom instead of
 # subclassing from the simpledialog.Dialog class
 
 
-class CheckSavePopup(simpledialog.Dialog):
+class CheckMrkPopup(simpledialog.Dialog):
     def body(self, master):
         self.master = master
         self.frame = Frame(self.master)
         self.frame.grid(sticky='nsew')
-        Label(self.frame, text=("Are you sure you want to exit? You may have "
-                                "unsaved data...")).grid(row=0, columnspan=3)
+        Label(self.frame,
+              text=("Is the selected .mrk recorded before or after the "
+                    "selected con file(s)?")).grid(row=0, columnspan=3)
 
     def buttonbox(self):
-        w = Button(self.frame, text="Save and Exit", width=15,
-                   command=self.save, default=ACTIVE)
+        w = Button(self.frame, text="Before", width=15,
+                   command=self.before, default=ACTIVE)
         w.grid(column=0, row=1, padx=5, pady=5)
-        w = Button(self.frame, text="Go back!", width=15, command=self.cancel)
+        w = Button(self.frame, text="After", width=15, command=self.after)
         w.grid(column=1, row=1, padx=5, pady=5)
-        w = Button(self.frame, text="Exit", width=15, command=self.exit)
+        w = Button(self.frame, text="Cancel", width=15, command=self.exit)
         w.grid(column=2, row=1, padx=5, pady=5)
 
-        self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
 
-    def save(self, event=None):
-        self.result = "save"
+    def before(self, event=None):
+        self.result = MRK_PRE
         self.end()
 
-    def cancel(self, event=None):
-        self.result = "cancel"
+    def after(self, event=None):
+        self.result = MRK_POST
         self.end()
 
     def exit(self, event=None):
-        self.result = "exit"
+        self.result = None
         self.end()
 
     def end(self):

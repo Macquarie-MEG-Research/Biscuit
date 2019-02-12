@@ -26,23 +26,36 @@ class con_file(BIDSFile):
             # an empty room file is good in it's default state
             self.is_good = True
 
-    def _create_vars(self):
+#region public methods
+
+    def bad_channels(self):
         """
-        Create the required Variables
+        Take the channel list and get any bad channels and set the channels in
+        the associated raw as bad.
+        Returns the list of bads channels
         """
-        super(con_file, self)._create_vars()
+        bads = []
 
-        # a list of channel names that are 'interesting'
-        # a channel is interesting if any of it's values are not the default
-        # ones or the user has selected the channel from the list in the
-        # channels tab to enter info
-        # TODO: replace with self.event_data ??
-        self.interesting_channels = set()
-        self.channel_names = []
+        for ch_data in self.tab_info.values():
+            if ch_data[1].get() == 1:
+                bads.append(ch_data[0].get())
 
-        self.tab_info = {}
+        return bads
 
-        self.associated_channel_tab = None
+    # TODO: maybe not have this return two lists??
+    def get_event_data(self):
+        """ Returns the list of trigger channels associated with the data
+            and the descriptions """
+        trigger_channels = []
+        descriptions = []
+        for ch_num in self.interesting_channels:
+            ch_data = self.tab_info[ch_num]
+            if ch_data[2].get() == 1:
+                # TODO: +1 for adult system I think...
+                trigger_channels.append(str(ch_num))    # +1 for MNE
+                descriptions.append(ch_data[3].get())
+
+        return trigger_channels, descriptions
 
     def load_data(self):
         # reads in various other pieces of information required
@@ -146,6 +159,8 @@ class con_file(BIDSFile):
 
         self.loaded = True
 
+#region private methods
+
     def _apply_settings(self):
         """ Check the current settings and add any new channels from them """
         default_triggers = None
@@ -175,35 +190,29 @@ class con_file(BIDSFile):
                     if self.associated_channel_tab is not None:
                         self.associated_channel_tab.channels_table.nameselection.set(self.channel_names[i])  # noqa
                         self.associated_channel_tab.channels_table.add_row_from_selection(None)  # noqa
+                else:
+                    desc_var = self.tab_info[i][3]
+                    desc_var.set(desc)
 
-    # TODO: maybe not have this return two lists??
-    def get_event_data(self):
-        """ Returns the list of trigger channels associated with the data
-            and the descriptions """
-        trigger_channels = []
-        descriptions = []
-        for ch_num in self.interesting_channels:
-            ch_data = self.tab_info[ch_num]
-            if ch_data[2].get() == 1:
-                # TODO: +1 for adult system I think...
-                trigger_channels.append(str(ch_num))    # +1 for MNE
-                descriptions.append(ch_data[3].get())
-
-        return trigger_channels, descriptions
-
-    def bad_channels(self):
+    def _create_vars(self):
         """
-        Take the channel list and get any bad channels and set the channels in
-        the associated raw as bad.
-        Returns the list of bads channels
+        Create the required Variables
         """
-        bads = []
+        super(con_file, self)._create_vars()
 
-        for ch_data in self.tab_info.values():
-            if ch_data[1].get() == 1:
-                bads.append(ch_data[0].get())
+        # a list of channel names that are 'interesting'
+        # a channel is interesting if any of it's values are not the default
+        # ones or the user has selected the channel from the list in the
+        # channels tab to enter info
+        # TODO: replace with self.event_data ??
+        self.interesting_channels = set()
+        self.channel_names = []
 
-        return bads
+        self.tab_info = {}
+
+        self.associated_channel_tab = None
+
+#region class methods
 
     def __getstate__(self):
         # call the parent method

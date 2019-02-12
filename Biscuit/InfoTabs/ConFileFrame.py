@@ -102,7 +102,8 @@ class ConFileFrame(Frame):
 
         self.task_info.value = self.file.task
         self.run_info.value = self.file.run
-        self.mrks_info.value = self.file.hpi
+        self.mrks_info.value = ['{0}: {1}'.format(item, str(value)) for
+                                item, value in self.file.hpi.items()]
         self.mrks_info.validate_cmd = self.file.validate
         self.is_junk_info.value = self.file.is_junk
         self.is_junk_info.validate_cmd = self.file.validate

@@ -7,6 +7,8 @@ from bidshandler import BIDSTree, Project, Subject, Session
 from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
+from Biscuit.Windows.CheckMrkPopup import CheckMrkPopup
+from Biscuit.utils.constants import MRK_MULT
 
 # pattern to match with folder names to determine if the folder is the result
 # of the export process.
@@ -28,6 +30,8 @@ class RightClick():
         self.progress.set('None')
 
         self.context = context
+
+        self.mrk_popup = None
 
 #region public methods
 
@@ -148,17 +152,24 @@ class RightClick():
                                       "only select up to two .mrk files to be "
                                       "associated with any .con file"))
                         return
-                    else:
-                        if self.parent.settings.get(
-                                'SHOW_ASSOC_MESSAGE', True):
-                            messagebox.showinfo(
-                                "Select",
-                                ("Please select the .con file(s) "
-                                 "associated with this file.\nOnce you "
-                                 "have selected all required files, "
-                                 "right click and press 'associate' "
-                                 "again"))
-                        self.parent.set_treeview_mode("ASSOCIATE-CON")
+                    elif self.context.group_size == 1:
+                        mrk_file = self.parent.preloaded_data[
+                            self.curr_selection[0]]
+                        if mrk_file.acquisition.get() == MRK_MULT:
+                            self.mrk_popup = CheckMrkPopup(self.parent,
+                                                           "check")
+                            if self.mrk_popup.result is None:
+                                return
+                    if self.parent.settings.get(
+                            'SHOW_ASSOC_MESSAGE', True):
+                        messagebox.showinfo(
+                            "Select",
+                            ("Please select the .con file(s) "
+                                "associated with this file.\nOnce you "
+                                "have selected all required files, "
+                                "right click and press 'associate' "
+                                "again"))
+                    self.parent.set_treeview_mode("ASSOCIATE-CON")
                 elif '.CON' in self.context and not self.context.is_mixed:
                     if self.parent.settings.get(
                             'SHOW_ASSOC_MESSAGE', True):
@@ -219,6 +230,14 @@ class RightClick():
                                           "files to be associated with any "
                                           ".con file"))
                             return
+                        elif self.context.group_size == 1:
+                            mrk_file = self.parent.preloaded_data[
+                                self.curr_selection[0]]
+                            if mrk_file.acquisition.get() == MRK_MULT:
+                                self.mrk_popup = CheckMrkPopup(self.parent,
+                                                               "check")
+                                if self.mrk_popup.result is None:
+                                    return
                         pid = self.parent.file_treeview.parent(
                             self.curr_selection[0])
                         for id_ in self.prev_selection + self.curr_selection:
@@ -248,7 +267,11 @@ class RightClick():
                 # now associate the mrk files with the con files:
                 if cont is None:
                     for cf in con_files:
-                        cf.hpi = mrk_files
+                        if self.mrk_popup is None:
+                            for mrk in mrk_files:
+                                cf.hpi[mrk.acquisition.get()] = mrk
+                        else:
+                            cf.hpi[self.mrk_popup.result] = mrk_files[0]
                         cf.validate()
                     # check if the con file is the currently selected file
                     if self.parent.treeview_select_mode == "ASSOCIATE-CON":
@@ -259,6 +282,7 @@ class RightClick():
                     self.parent.set_treeview_mode("NORMAL")
                 if cont is False:
                     self.parent.set_treeview_mode("NORMAL")
+                self.mrk_popup = None
 
     def _create_folder(self):
         """

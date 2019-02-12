@@ -12,21 +12,21 @@ from Biscuit.utils.utils import assign_bids_folder
 
 """ Save format specification/taken names:
     # FileInfo:
-    file:   file name
-    jnk:    is junk
+    file:   file name           string
+    jnk:    is junk             bool
     # BIDSFile:
-    run:    run
-    tsk:    task
-    hpi:    marker coils
-    ier:    is empty room
-    her:    has empty room
+    run:    run                 int
+    tsk:    task                string
+    hpi:    marker coils        dict
+    ier:    is empty room       bool
+    her:    has empty room      bool
     # BIDSContainer:
-    prj:    project ID
-    sid:    session ID
-    sji:    subject ID
-    sja:    subject age
-    sjs:    subject gender
-    sjg:    subject group
+    prj:    project ID          string
+    sid:    session ID          string
+    sji:    subject ID          string
+    sja:    subject age         int
+    sjs:    subject gender      string
+    sjg:    subject group       string
     # KITData:
     dwr:    dewar position
     # con_file:
@@ -36,7 +36,7 @@ from Biscuit.utils.utils import assign_bids_folder
     evt:    event info
     # mrk_file
     # TODO: This will probably change at some point once the spec is decided on
-    acq:    acquisition ('pre' or 'post', file isn't saved if 'n/a')
+    acq:    acquisition ('pre', 'post' or 'mult', file isn't saved if 'n/a')
 """
 
 
@@ -164,12 +164,24 @@ class SaveManager():
                     if isinstance(obj, con_file):
                         obj.load_data()
                         mrk_paths = obj.hpi
-                        for i, mrk_path in enumerate(mrk_paths):
-                            sid = self.get_file_id(mrk_path)
-                            try:
-                                mrk_paths[i] = self.parent.preloaded_data[sid]
-                            except KeyError:
-                                mrk_paths[i] = mrk_file(id_=sid, file=mrk_path)
+                        if isinstance(mrk_paths, dict):
+                            for key, value in mrk_paths.items():
+                                sid = self.get_file_id(value)
+                                try:
+                                    mrk_paths[key] = self.parent.preloaded_data[sid]  # noqa
+                                except KeyError:
+                                    mrk_paths[key] = mrk_file(id_=sid,
+                                                              file=value)
+                        elif isinstance(mrk_paths, list):
+                            new_mrk_data = dict()
+                            for mrk_path in mrk_paths:
+                                sid = self.get_file_id(mrk_path)
+                                try:
+                                    mrk = self.parent.preloaded_data[sid]
+                                except KeyError:
+                                    mrk = mrk_file(id_=sid, file=mrk_path)
+                                new_mrk_data[mrk.acquisition.get()] = mrk
+                            obj.hpi = new_mrk_data
                         # also validate the con file:
                         obj.validate()
                 except FileNotFoundError:
