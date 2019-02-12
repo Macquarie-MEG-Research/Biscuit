@@ -133,49 +133,46 @@
         <div class="container">
                 <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
     <ul class="nav bs-sidenav">
-        <li class="main active"><a href="#installating-biscuit">Installating Biscuit</a></li>
+        <li class="main active"><a href="#installing-biscuit">Installing Biscuit</a></li>
+            <li><a href="#there-are-two-different-install-options-for-biscuit">There are two different install options for Biscuit:</a></li>
             <li><a href="#complete-install">"Complete" install</a></li>
             <li><a href="#standard-install">"Standard" install</a></li>
-        <li class="main "><a href="#issues-with-pip">Issues with pip</a></li>
-        <li class="main "><a href="#running-biscuit">Running Biscuit</a></li>
+            <li><a href="#running-biscuit">Running Biscuit</a></li>
     </ul>
 </div></div>
                 <div class="col-md-9" role="main">
 
-<h1 id="installating-biscuit">Installating Biscuit</h1>
-<p>Biscuit is completely written in python, allowing it to be run on any computer you can install python on.
+<h1 id="installing-biscuit">Installing Biscuit</h1>
+<p>Biscuit is completely written in Python, allowing it to be run on any computer you can install Python on.
 To allow for the reading of MEG data and conversion a few libraries are required to be installed.</p>
-<p>If you do not have python installed already, or only have an older version installed (such as the built-in python 2 on Macs) simply download <a href="https://www.python.org/downloads/release/python-367/">Python from the official website</a>.</p>
-<p>Biscuit can be installed easily in one of two ways:</p>
-<h2 id="complete-install">"Complete" install</h2>
-<p>If you are only really going to be using your python install for Biscuit the recommended method if installation is the "Complete" method.
-This will automatically install the latest version of all of the prerequisites and install Biscuit as an executable so you can create a desktop icon for it or run it directly from the command line.
-To do this select the <code>Downloads &gt; 'Complete install'</code> button in the above menu and download the file to somewhere memorable on your computer.</p>
-<h2 id="standard-install">"Standard" install</h2>
-<p>If you already have a pre-existing python install and do not want any particular packages to be downloaded/know how to install any prerequisites yourself the normal install can be installed by selecting the <code>Downloads &gt; 'Standard install'</code> button from the above menu.
-The complete list of prequisites are as follows:</p>
+<p>If you do not have Python installed already, or only have an older version installed (such as the built-in python 2 on Macs) simply download <a href="https://www.python.org/downloads/">Python from the official website</a>.</p>
+<h3 id="there-are-two-different-install-options-for-biscuit">There are two different install options for Biscuit:</h3>
+<h3 id="complete-install">"Complete" install</h3>
+<p>If you are only going to be using Python for Biscuit the it is recommended that you download the "complete" version.
+This will automatically install the latest version of Biscuit with all required prerequisites.
+To install, enter the following into a command prompt:
+<pre><code id="gh_download_command_complete">If you can read this, download the file from the link in the dropdown or from the github source release page.</code></pre></p>
+<h3 id="standard-install">"Standard" install</h3>
+<p>If you already have a pre-existing python install and do not want any particular packages to be downloaded, or know how to install any prerequisites yourself, the normal install can be installed by entering the following into a command prompt:</p>
+<pre><code id="gh_download_command_standard">If you can read this, download the file from the link in the dropdown or from the github source release page.</code></pre>
+
+<p>The complete list of prequisites are as follows:</p>
 <p><code>numpy</code>, <code>scipy</code>, <code>matplotlib</code>, <code>pandas</code>, <code>Pygments</code>, <code>Pillow</code>, <code>mne (&gt;= 0.17.0)</code>, <code>requests</code> and <code>bidshandler (&gt;= 0.2.1)</code></p>
 <p>Unlike the complete install, this install will not create an executable to run Biscuit.</p>
-<h3 id="windows-installation">Windows installation</h3>
-<p>Navigate to the folder in explorer, then hold the <code>shift</code> key and <code>right-click</code> to bring up the context menu.
-Select <code>'Open PowerShell window here'</code> to open a command prompt in the current folder.
-Enter</p>
-<pre><code>pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
-</code></pre>
-
-<p>where <code>X.Y.Z</code> is the version number of the package you downloaded.
-The <code>-U</code> command will update any previously existing version of Biscuit you may have installed.</p>
-<h3 id="maclinux-installation">Mac/Linux installation</h3>
-<p>Using the terminal, naviate to the folder the <code>.whl</code> file was downloaded to (eg. by using <code>cd location_of_file</code>)
-Enter</p>
-<pre><code>python3 -m pip install -U Biscuit-X.Y.Zcomplete-py3-none-any.whl
-</code></pre>
-
-<p>where <code>X.Y.Z</code> is the version number of the package you downloaded.
-The <code>-U</code> command will update any previously existing version of Biscuit you may have installed.</p>
-<p>On linux you may also require <code>python3-pil.imagetk</code> and <code>python3-tk</code> for the GUI to function.</p>
 <hr />
-<h1 id="issues-with-pip">Issues with pip</h1>
+<h2 id="running-biscuit">Running Biscuit</h2>
+<p>Installing Biscuit from the "complete" wheel file (<code>.whl</code>) creates an executable in the python scripts folder (<code>&lt;python install directory&gt;\Scripts\Biscuit.&lt;extension&gt;</code>).
+This executable is generally added to the path if you have administrative rights on the computer, so you can either run Biscuit by simply entering <code>Biscuit</code> into a command prompt, or you can create a shortcut to the executable (extension is platform dependent) and run Biscuit like any other executable.
+The easiest way to do this is to simply create a shortcut with the location pointing to <code>Biscuit</code>.</p>
+<p>If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at <code>&lt;python install directory&gt;\Lib\site-packages\Biscuit\assets\bisc.&lt;ico/png/gif&gt;</code>.</p>
+<p>If installing from the "standard" install, you can create a shortcut with the following path:</p>
+<pre><code>python -c &quot;from Biscuit import run;run()&quot;
+</code></pre>
+
+<p>This will call python and tell it to run Biscuit.</p>
+<hr />
+<h3 id="potential-issues">Potential issues</h3>
+<h4 id="pip-is-not-recognized-as-an-internal-or-external-command">&gt; <code>'pip' is not recognized as an internal or external command</code>:</h4>
 <p>If you are installing python 3 and the required libraries on a mac (or on a system with another python install) you may have conflicts with the internal python 2.7 install. To get around this you may need to specify excplitly the version of python the libraries are being install into.</p>
 <p>Entering</p>
 <pre><code>python3 --version
@@ -195,17 +192,7 @@ If neither <code>python3 --version</code> or <code>python --version</code> retur
 <pre><code>python3 -m pip install &lt;package name(s)&gt;
 </code></pre>
 
-<p>where <code>&lt;package names&gt;</code> is the list of packages to be installed (<code>numpy</code>, <code>scipy</code> etc.).</p>
-<hr />
-<h1 id="running-biscuit">Running Biscuit</h1>
-<p>Installing Biscuit from the "complete" wheel file (<code>.whl</code>) creates an executable in the python scripts folder (<code>&lt;python install directory&gt;\Scripts\Biscuit.&lt;extension&gt;</code>).
-This executable is generally added to the path if you have administrative rights on the computer, so you can either run Biscuit by simply entering <code>Biscuit</code> into a command prompt, or you can create a shortcut to the executable (extension is platform dependent) and run Biscuit like any other executable.</p>
-<p>If you create a shortcut to the executable and want to have the nice Biscuit icon it can be found at <code>&lt;python install directory&gt;\Lib\site-packages\Biscuit\assets\bisc.&lt;ico/png/gif&gt;</code>.</p>
-<p>If installing from the "standard" install, you can create a shortcut with the following path:</p>
-<pre><code>python -c &quot;from Biscuit import run;run()&quot;
-</code></pre>
-
-<p>This will call python and tell it to run Biscuit.</p></div>
+<p>where <code>&lt;package names&gt;</code> is the list of packages to be installed (<code>numpy</code>, <code>scipy</code> etc.).</p></div>
         </div>
 
         <footer class="col-md-12">

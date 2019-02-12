@@ -8,7 +8,13 @@ function GetVersion()
         }
         var version = release.tag_name;
 
+        var asset_standard = release.assets[0];
+        var asset_complete = release.assets[1];
+
         document.getElementById("complete_link").innerText = "Complete install (" + version + ")";
         document.getElementById("standard_link").innerText = "Standard install (" + version + ")";
+
+        document.getElementById("gh_download_command_complete").innerText = "pip install -U " + asset_complete.browser_download_url;
+        document.getElementById("gh_download_command_standard").innerText = "pip install -U " + asset_standard.browser_download_url;
     });
 }
