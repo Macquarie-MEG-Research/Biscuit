@@ -41,7 +41,10 @@ workflows:
     version: 2
     build:
         jobs:
-            - build-docs
+            - build-docs:
+                filters:
+                    branches:
+                        only: master
             - deploy-docs:
                 requires:
                     - build-docs
