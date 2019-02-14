@@ -104,7 +104,7 @@ class WidgetTable(Frame):
         self.style = style
 
         self.entry_config = {'readonlybackground': OSCONST.TEXT_RONLY_BG,
-                             'highlightbackground': OSCONST.TEXT_BG}
+                             'highlightbackground': OSCONST.CANVAS_BG}
 
         # the index we need to redraw the rows after
         self.first_redraw_row = 0

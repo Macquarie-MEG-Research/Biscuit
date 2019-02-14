@@ -1,5 +1,5 @@
-from tkinter import (Toplevel, Frame, Button, Text, END, FLAT, DISABLED, Label,
-                     messagebox)
+from tkinter import Toplevel, Text, END, FLAT, DISABLED, messagebox
+from tkinter.ttk import Frame, Button, Label
 from webbrowser import open_new as open_hyperlink
 
 from Biscuit.utils.constants import OSCONST

@@ -1,4 +1,4 @@
-from tkinter.ttk import Label, Frame, Combobox, Button
+from tkinter.ttk import Label, Combobox, Button, Frame
 from tkinter import StringVar, Entry, Text, Scrollbar, filedialog, messagebox
 from tkinter import END, FLAT, NORMAL, DISABLED, HORIZONTAL, NONE
 from webbrowser import open_new as open_hyperlink

@@ -40,23 +40,27 @@ class OSConstMap():
 
 OSCONST = OSConstMap()
 
-# TODO: replace this with just Biscuit.__version__??
 OSCONST.VERSION = Biscuit.__version__
 
-# tkinter.canvas background colour
+# tkinter.canvas background colour.
 OSCONST.CANVAS_BG_WIN = None        # System default ('#F0F0F0')
 OSCONST.CANVAS_BG_MAC = '#ECECEC'
 OSCONST.CANVAS_BG_LNX = '#D9D9D9'
 
-# tkinter.entry background colour (I think?)
+# tkinter.Text background colour.
 OSCONST.TEXT_BG_WIN = '#F0F0F0'
-OSCONST.TEXT_BG_MAC = '#E9E9E9'
+OSCONST.TEXT_BG_MAC = 'white'
 OSCONST.TEXT_BG_LNX = '#D9D9D9'
 
 # tkinter.entry readonlybackground colour.
 OSCONST.TEXT_RONLY_BG_WIN = None
 OSCONST.TEXT_RONLY_BG_MAC = '#E0E0E0'
 OSCONST.TEXT_RONLY_BG_LNX = None
+
+#tkinter.entry highlightbackground colour.
+OSCONST.ENTRY_HLBG_WIN = None
+OSCONST.ENTRY_HLBG_MAC = '#E9E9E9'
+OSCONST.ENTRY_HLBG_LNX = None
 
 # Keyboard shortcut to add a new row in the widget table.
 OSCONST.ADDROW_WIN = '<Control-n>'

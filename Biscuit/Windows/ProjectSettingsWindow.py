@@ -81,7 +81,8 @@ class ProjectSettingsWindow(Toplevel):
                              Entry],
             add_options=None,
             data_array=self.settings.get('DefaultTriggers', []),
-            sort_column=0)
+            sort_column=0,
+            max_rows=10)
         self.channels_table.grid(column=0, columnspan=2, row=9, sticky='nsew')
 
         # Groups table
@@ -92,7 +93,8 @@ class ProjectSettingsWindow(Toplevel):
             pattern=[StringVar],
             widgets_pattern=[Entry],
             add_options=None,
-            data_array=self.settings.get('Groups', []))
+            data_array=self.settings.get('Groups', []),
+            max_rows=10)
         self.groups_table.grid(column=2, columnspan=2, row=9, sticky='nsew')
 
         # Tasks table
@@ -103,7 +105,8 @@ class ProjectSettingsWindow(Toplevel):
             pattern=[StringVar],
             widgets_pattern=[lambda x: ValidatedEntry(x, force_dtype='alnum')],
             add_options=None,
-            data_array=self.settings.get('Tasks', []))
+            data_array=self.settings.get('Tasks', []),
+            max_rows=10)
         self.tasks_table.grid(column=4, columnspan=2, row=9, sticky='nsew')
 
         # Frame at bottom for buttons
