@@ -348,7 +348,7 @@ class WidgetTable(Frame):
         self.first_redraw_row = 0
         self._correct_idx_refs()
         self._apply_data()
-        self.sf.configure_view(resize_canvas='')
+        self._resize_to_max(resize_canvas='xy')
 
     def get(self, values=True):
         """
@@ -433,7 +433,7 @@ class WidgetTable(Frame):
         """
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self.sf.configure_view(resize_canvas='x')
+            self._resize_to_max(resize_canvas='xy')
 
     def _apply_data(self):
         """
@@ -713,14 +713,11 @@ class WidgetTable(Frame):
 
         if self.max_rows is not None:
             if len(self.data) > self.max_rows:
-                if self.headings is None:
-                    max_x, max_y = self.sf.frame.grid_bbox(
-                        column=self.sf.frame.grid_size()[0],
-                        row=self.max_rows + self.row_offset)[:2]
-                else:
-                    max_x, max_y = self.sf.frame.grid_bbox(
-                        column=self.sf.frame.grid_size()[0],
-                        row=self.max_rows + self.row_offset - 1)[:2]
+                max_x, max_y = self.sf.frame.grid_bbox(
+                    column=0,
+                    row=self.sf.frame.grid_size()[1] - 2 - self.max_rows,
+                    col2=self.sf.frame.grid_size()[0] - 1,
+                    row2=self.sf.frame.grid_size()[1] - 1)[2:]
 
         self.sf.block_resize = False
         self.sf.configure_view(max_size=(max_x, max_y), **config)

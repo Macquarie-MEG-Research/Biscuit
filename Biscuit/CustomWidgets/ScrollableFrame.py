@@ -12,6 +12,8 @@ class ScrollableFrame(Frame):
     To make use of this fuctionality, pack anything into the .frame Frame of
     this object
     """
+    block = False
+
     def __init__(self, master, *args, **kwargs):
         self.master = master
         Frame.__init__(self, self.master, *args, **kwargs)
@@ -28,16 +30,23 @@ class ScrollableFrame(Frame):
         self.vsb = Scrollbar(self, orient='vertical')
         self.hsb = Scrollbar(self, orient='horizontal')
 
+        self.drawn_scrollbars = []
+
         self.canvas = Canvas(self, bd=0, bg=OSCONST.CANVAS_BG,
                              highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
+
+        # configure scroll bars
+        self.hsb.config(command=self.canvas.xview)
+        self.canvas.config(xscrollcommand=self.hsb.set)
+        self.vsb.config(command=self.canvas.yview)
+        self.canvas.config(yscrollcommand=self.vsb.set)
 
         # everything will go in this frame
         self.frame = Frame(self.canvas)
         self.frame.grid(row=0, column=0, sticky='nsew')
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
-
 
         self.bind("<Configure>", self.configure_view)
 
@@ -69,26 +78,37 @@ class ScrollableFrame(Frame):
         x_size = None
         y_size = None
         if 'x' in resize_canvas:
+            # find the new x size to draw
             if max_size[0] is not None:
                 x_size = min(max_size[0], bbox[2])
             else:
                 x_size = bbox[2]
         if 'y' in resize_canvas:
+            # find the new y size to draw
             if max_size[1] is not None:
                 y_size = min(max_size[1], bbox[3])
             else:
                 y_size = bbox[3]
+
         self._resize_canvas(x_size, y_size)
-        if bbox[2] > x_size:
+
+        xview_size = int(self.canvas.config('width')[4])
+        yview_size = int(self.canvas.config('height')[4])
+
+        # determine if x scroll bar has to be drawn
+        if bbox[2] > xview_size and 'x' not in self.drawn_scrollbars:
             self._config_scrollbars('x')
-        else:
+        elif bbox[2] <= xview_size and 'x' in self.drawn_scrollbars:
             self._config_scrollbars('x', False)
-        if bbox[3] > y_size:
+        # determine if y scroll bar has to be drawn
+        if bbox[3] > yview_size and 'y' not in self.drawn_scrollbars:
             self._config_scrollbars('y')
-        else:
+        elif bbox[3] <= yview_size and 'y' in self.drawn_scrollbars:
             self._config_scrollbars('y', False)
+
         if move_to_bottom:
             self.canvas.yview_moveto(1.0)
+
         self.canvas.config(scrollregion=bbox)
 
     def reattach(self):
@@ -101,7 +121,7 @@ class ScrollableFrame(Frame):
 
     def _config_scrollbars(self, dir_, draw=True):
         """Only draw scroll bars if required.
-        
+
         Parameters
         ----------
         dir_ : string : ('x', 'y')
@@ -113,16 +133,20 @@ class ScrollableFrame(Frame):
             if draw:
                 self.hsb.grid(row=1, column=0, sticky='ew')
                 self.hsb.config(command=self.canvas.xview)
-                self.canvas.config(xscrollcommand=self.hsb.set)
+                self.drawn_scrollbars.append('x')
             else:
-                self.hsb.grid_remove()
-        elif dir_ == 'y':
+                self.hsb.grid_forget()
+                self.drawn_scrollbars.remove('x')
+        if dir_ == 'y':
             if draw:
+                print('drawing new scroll bar')
                 self.vsb.grid(row=0, column=1, sticky='ns')
                 self.vsb.config(command=self.canvas.yview)
-                self.canvas.config(yscrollcommand=self.vsb.set)
+                self.drawn_scrollbars.append('y')
             else:
-                self.vsb.grid_remove()
+                print('removing scroll bar')
+                self.vsb.grid_forget()
+                self.drawn_scrollbars.remove('y')
 
     def _on_mousewheel(self, event):
         if self.vsb.get() != (0.0, 1.0):
@@ -142,17 +166,18 @@ class ScrollableFrame(Frame):
         height : int
             Height of the frame.
         """
-        if not self.block_resize:
-            if width is not None or height is not None:
-                self.block_resize = True
-            else:
-                self.block_resize = False
-            canvas_config = dict()
-            if width is not None:
-                canvas_config['width'] = width
-            if height is not None:
-                canvas_config['height'] = height
-            self.canvas.config(**canvas_config)
+        if self.block_resize:
+            return
+        if width is not None or height is not None:
+            self.block_resize = True
+        else:
+            self.block_resize = False
+        canvas_config = dict()
+        if width is not None:
+            canvas_config['width'] = width
+        if height is not None:
+            canvas_config['height'] = height
+        self.canvas.config(**canvas_config)
 
     def _unbind_to_mousewheel(self, event):
         self.canvas.unbind_all("<MouseWheel>")
