@@ -23,6 +23,9 @@ class ScrollableFrame(Frame):
         # size to call self.configure_view again but with no arguments.
         self.block_resize = False
 
+        # cached canvas view dimensions
+        self._view_dimensions = None
+
         self.grid(sticky='nsew')
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -80,13 +83,15 @@ class ScrollableFrame(Frame):
         if 'x' in resize_canvas:
             # find the new x size to draw
             if max_size[0] is not None:
-                x_size = min(max_size[0], bbox[2])
+                x_size = max(min(max_size[0], bbox[2]),
+                             self._view_dimensions[0])
             else:
                 x_size = bbox[2]
         if 'y' in resize_canvas:
             # find the new y size to draw
             if max_size[1] is not None:
-                y_size = min(max_size[1], bbox[3])
+                y_size = max(min(max_size[1], bbox[3]),
+                             self._view_dimensions[1])
             else:
                 y_size = bbox[3]
 
@@ -110,6 +115,8 @@ class ScrollableFrame(Frame):
             self.canvas.yview_moveto(1.0)
 
         self.canvas.config(scrollregion=bbox)
+
+        self._view_dimensions = (xview_size, yview_size)
 
     def reattach(self):
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")

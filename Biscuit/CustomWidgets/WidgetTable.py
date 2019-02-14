@@ -433,7 +433,7 @@ class WidgetTable(Frame):
         """
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self._resize_to_max(resize_canvas='xy')
+            self._resize_to_max(resize_canvas='xy', move_to_bottom=True)
 
     def _apply_data(self):
         """
