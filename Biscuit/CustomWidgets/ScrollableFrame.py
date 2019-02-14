@@ -12,6 +12,8 @@ class ScrollableFrame(Frame):
     To make use of this fuctionality, pack anything into the .frame Frame of
     this object
     """
+    block = False
+
     def __init__(self, master, *args, **kwargs):
         self.master = master
         Frame.__init__(self, self.master, *args, **kwargs)
@@ -21,27 +23,33 @@ class ScrollableFrame(Frame):
         # size to call self.configure_view again but with no arguments.
         self.block_resize = False
 
+        # cached canvas view dimensions
+        self._view_dimensions = None
+
         self.grid(sticky='nsew')
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
 
         self.vsb = Scrollbar(self, orient='vertical')
-        self.vsb.grid(row=0, column=1, sticky='ns')
         self.hsb = Scrollbar(self, orient='horizontal')
-        self.hsb.grid(row=1, column=0, sticky='ew')
 
-        self.canvas = Canvas(self, bd=0, yscrollcommand=self.vsb.set,
-                             xscrollcommand=self.hsb.set,
-                             bg=OSCONST.CANVAS_BG, highlightthickness=0)
+        self.drawn_scrollbars = []
+
+        self.canvas = Canvas(self, bd=0, bg=OSCONST.CANVAS_BG,
+                             highlightthickness=0)
         self.canvas.grid(row=0, column=0, sticky='nsew')
+
+        # configure scroll bars
+        self.hsb.config(command=self.canvas.xview)
+        self.canvas.config(xscrollcommand=self.hsb.set)
+        self.vsb.config(command=self.canvas.yview)
+        self.canvas.config(yscrollcommand=self.vsb.set)
 
         # everything will go in this frame
         self.frame = Frame(self.canvas)
         self.frame.grid(row=0, column=0, sticky='nsew')
 
         self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
-        self.vsb.config(command=self.canvas.yview)
-        self.hsb.config(command=self.canvas.xview)
 
         self.bind("<Configure>", self.configure_view)
 
@@ -50,19 +58,7 @@ class ScrollableFrame(Frame):
         self.bind('<Enter>', self._bind_to_mousewheel)
         self.bind('<Leave>', self._unbind_to_mousewheel)
 
-    def _bind_to_mousewheel(self, event):
-        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
-
-    def _unbind_to_mousewheel(self, event):
-        self.canvas.unbind_all("<MouseWheel>")
-
-    def _on_mousewheel(self, event):
-        if self.vsb.get() != (0.0, 1.0):
-            if os_name() == 'Windows':
-                self.canvas.yview_scroll(int(-1 * (event.delta / 120)),
-                                         "units")
-            else:
-                self.canvas.yview_scroll(-event.delta, "units")
+#region public methods
 
     def configure_view(self, event=None, move_to_bottom=False,
                        max_size=(None, None), resize_canvas='xy'):
@@ -85,19 +81,85 @@ class ScrollableFrame(Frame):
         x_size = None
         y_size = None
         if 'x' in resize_canvas:
+            # find the new x size to draw
             if max_size[0] is not None:
-                x_size = min(max_size[0], bbox[2])
+                x_size = max(min(max_size[0], bbox[2]),
+                             self._view_dimensions[0])
             else:
                 x_size = bbox[2]
         if 'y' in resize_canvas:
+            # find the new y size to draw
             if max_size[1] is not None:
-                y_size = min(max_size[1], bbox[3])
+                y_size = max(min(max_size[1], bbox[3]),
+                             self._view_dimensions[1])
             else:
                 y_size = bbox[3]
+
         self._resize_canvas(x_size, y_size)
+
+        xview_size = int(self.canvas.config('width')[4])
+        yview_size = int(self.canvas.config('height')[4])
+
+        # determine if x scroll bar has to be drawn
+        if bbox[2] > xview_size and 'x' not in self.drawn_scrollbars:
+            self._config_scrollbars('x')
+        elif bbox[2] <= xview_size and 'x' in self.drawn_scrollbars:
+            self._config_scrollbars('x', False)
+        # determine if y scroll bar has to be drawn
+        if bbox[3] > yview_size and 'y' not in self.drawn_scrollbars:
+            self._config_scrollbars('y')
+        elif bbox[3] <= yview_size and 'y' in self.drawn_scrollbars:
+            self._config_scrollbars('y', False)
+
         if move_to_bottom:
             self.canvas.yview_moveto(1.0)
+
         self.canvas.config(scrollregion=bbox)
+
+        self._view_dimensions = (xview_size, yview_size)
+
+    def reattach(self):
+        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
+
+#region private methods
+
+    def _bind_to_mousewheel(self, event):
+        self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+
+    def _config_scrollbars(self, dir_, draw=True):
+        """Only draw scroll bars if required.
+
+        Parameters
+        ----------
+        dir_ : string : ('x', 'y')
+            Direction to draw scroll bars in.
+        draw : bool
+            Whether to draw them or not (ie. un-draw)
+        """
+        if dir_ == 'x':
+            if draw:
+                self.hsb.grid(row=1, column=0, sticky='ew')
+                self.hsb.config(command=self.canvas.xview)
+                self.drawn_scrollbars.append('x')
+            else:
+                self.hsb.grid_forget()
+                self.drawn_scrollbars.remove('x')
+        if dir_ == 'y':
+            if draw:
+                self.vsb.grid(row=0, column=1, sticky='ns')
+                self.vsb.config(command=self.canvas.yview)
+                self.drawn_scrollbars.append('y')
+            else:
+                self.vsb.grid_forget()
+                self.drawn_scrollbars.remove('y')
+
+    def _on_mousewheel(self, event):
+        if self.vsb.get() != (0.0, 1.0):
+            if os_name() == 'Windows':
+                self.canvas.yview_scroll(int(-1 * (event.delta / 120)),
+                                         "units")
+            else:
+                self.canvas.yview_scroll(-event.delta, "units")
 
     def _resize_canvas(self, width, height):
         """Resize the canvas to the specified size
@@ -109,68 +171,18 @@ class ScrollableFrame(Frame):
         height : int
             Height of the frame.
         """
-        if not self.block_resize:
-            if width is not None or height is not None:
-                self.block_resize = True
-            else:
-                self.block_resize = False
-            canvas_config = dict()
-            if width is not None:
-                canvas_config['width'] = width
-            if height is not None:
-                canvas_config['height'] = height
-            self.canvas.config(**canvas_config)
+        if self.block_resize:
+            return
+        if width is not None or height is not None:
+            self.block_resize = True
+        else:
+            self.block_resize = False
+        canvas_config = dict()
+        if width is not None:
+            canvas_config['width'] = width
+        if height is not None:
+            canvas_config['height'] = height
+        self.canvas.config(**canvas_config)
 
-    def reattach(self):
-        self.canvas.create_window((0, 0), window=self.frame, anchor="nw")
-
-
-if __name__ == "__main__":
-    from tkinter import Label, W, Button, Tk
-
-    class main(Frame):
-        def __init__(self, master):
-            self.master = master
-            Frame.__init__(self, self.master)
-
-            self.df = Frame(self.master)
-
-            self.last1 = 20
-            self.last2 = 40
-
-            self.sf = ScrollableFrame(self.master)
-            self.sf.grid(row=0, column=0)
-            Button(self.master, text="add", command=self.add_1).grid(
-                row=1, column=0)
-
-            self.sf2 = ScrollableFrame(self.master)
-            self.sf2.grid(row=0, column=1)
-            Button(self.master, text="add2", command=self.add_2).grid(
-                row=1, column=1)
-
-            for i in range(20):
-                lbl = Label(self.sf.frame, text="hi {0}".format(i))
-                lbl.grid(row=i, sticky=W)
-            for i in range(40):
-                lbl = Label(self.sf2.frame, text="there {0}".format(i))
-                lbl.grid(row=i, sticky=W)
-
-            self.master.grid_rowconfigure(0, weight=1)
-            self.master.grid_columnconfigure(0, weight=1)
-            self.master.grid_columnconfigure(1, weight=1)
-
-        def add_1(self):
-            lbl = Label(self.sf.frame, text="added")
-            lbl.grid(column=0, row=self.last1)
-            self.last1 += 1
-            self.sf.configure_view(move_to_bottom=True)
-
-        def add_2(self):
-            lbl = Label(self.sf2.frame, text="added")
-            lbl.grid(column=0, row=self.last2)
-            self.last2 += 1
-            self.sf2.configure_view()
-
-    root = Tk()
-    m = main(master=root)
-    m.mainloop()
+    def _unbind_to_mousewheel(self, event):
+        self.canvas.unbind_all("<MouseWheel>")

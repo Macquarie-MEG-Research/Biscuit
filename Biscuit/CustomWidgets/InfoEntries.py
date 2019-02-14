@@ -157,7 +157,7 @@ class InfoEntry(InfoMaster):
         else:
             self._value = ValidatedEntry(self._master, bad_values=bad_values,
                                          textvariable=value,
-                                         highlightbackground='#E9E9E9',
+                                         highlightbackground=OSCONST.ENTRY_HLBG,
                                          validate_cmd=validate_cmd,
                                          force_dtype=force_dtype)
 

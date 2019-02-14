@@ -3,6 +3,7 @@ import os.path as path
 from os import makedirs, replace, rename
 from tkinter import StringVar
 from datetime import datetime
+from warnings import warn
 
 from bidshandler import BIDSTree
 
@@ -207,7 +208,7 @@ class SaveManager():
                         try:
                             pickle.dump(file, f)
                         except (TypeError, AttributeError):
-                            print('error saving file: {0}'.format(file))
+                            warn('error saving file: {0}'.format(file))
                             raise
                 if isinstance(file, BIDSTree):
                     BIDSTree_paths.append(file.path)
