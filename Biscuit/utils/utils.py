@@ -274,15 +274,3 @@ def threaded(func):
         thread.start()
         return thread
     return wrapper
-
-
-if __name__ == "__main__":
-    # TODO: move to tests
-    a = [1, 2, 3]
-    print(a)
-    a = flatten(a)
-    print(a)
-    b = [[1, 2], [6, 7]]
-    print(b)
-    b = flatten(b)
-    print(b)

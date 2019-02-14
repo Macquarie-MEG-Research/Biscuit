@@ -146,12 +146,10 @@ class ScrollableFrame(Frame):
                 self.drawn_scrollbars.remove('x')
         if dir_ == 'y':
             if draw:
-                print('drawing new scroll bar')
                 self.vsb.grid(row=0, column=1, sticky='ns')
                 self.vsb.config(command=self.canvas.yview)
                 self.drawn_scrollbars.append('y')
             else:
-                print('removing scroll bar')
                 self.vsb.grid_forget()
                 self.drawn_scrollbars.remove('y')
 

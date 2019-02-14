@@ -1,6 +1,7 @@
 from tkinter import WORD, END, StringVar
 from tkinter.scrolledtext import ScrolledText
 from tkinter.ttk import Frame, Button, Label
+from warnings import warn
 try:
     from pygments import lex
     from pygments.lexers.python import Python3Lexer
@@ -8,10 +9,10 @@ try:
     HAS_PYGMENTS = True
 except ImportError:
     HAS_PYGMENTS = False
-    print("Python library `pygments` not found. This isn't an issue, however "
-          "if you install it you can have nice syntax highlighting when "
-          "opening files containing code such as matlab (.m) or python (.py) "
-          "files.")
+    warn("Python library `pygments` not found. This isn't an issue, however "
+         "if you install it you can have nice syntax highlighting when "
+         "opening files containing code such as matlab (.m) or python (.py) "
+         "files.")
 from datetime import datetime
 
 from Biscuit.utils.utils import threaded

@@ -87,7 +87,8 @@ class BIDSSearchFrame(Frame):
         self.results_frame = Text(frame, relief=FLAT, undo=False, takefocus=0,
                                   bg=OSCONST.TEXT_BG, wrap=NONE,
                                   xscrollcommand=xscrollbar.set,
-                                  yscrollcommand=yscrollbar.set)
+                                  yscrollcommand=yscrollbar.set,
+                                  state=DISABLED)
 
         self.results_frame.grid(row=0, column=0, sticky='nsew')
 
