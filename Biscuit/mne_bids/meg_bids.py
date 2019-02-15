@@ -486,8 +486,8 @@ def raw_to_bids(subject_id, task, raw_file, output_path, session_id=None,
         json files.
         Currently supported keys are:
         'InstitutionName', 'ManufacturersModelName','DewarPosition',
-        'Name' (Name of the project), 'DeviceSerialNumber', 'chm' (continuous
-        head movement) (bool)
+        'Name' (Name of the project), 'DeviceSerialNumber', and
+        'ContinuousHeadLocalization' (bool)
     subject_group : string
         the group within the study the participant belongs to.
     readme_text : string

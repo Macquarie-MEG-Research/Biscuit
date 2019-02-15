@@ -98,7 +98,8 @@ class ConFileFrame(Frame):
         self.channel_info.value = self.file.info['Channels']
         self.meas_date_info.value = self.file.info['Measurement date']
         self.gains_info.value = self.file.info['gains']
-        self.reTHM_info.value = str(self.file.extra_data.get('chm', False))
+        self.reTHM_info.value = str(
+            self.file.extra_data.get('ContinuousHeadLocalization', False))
 
         self.task_info.value = self.file.task
         self.run_info.value = self.file.run

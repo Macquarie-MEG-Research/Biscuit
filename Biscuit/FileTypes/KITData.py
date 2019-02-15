@@ -162,17 +162,21 @@ class KITData(BIDSContainer):
                 else:
                     stim_code = 'channel'
                     slope = '+'
+                hpi = [mrk_file.file for mrk_file in con_file.hpi]
+                # TODO: this will only support a single mrk file for now...
+                hpi = hpi[0]
                 raw = read_raw_kit(
                     con_file.file,
-                    # construct a list of the file paths
-                    mrk=[mrk_file.file for mrk_file in
-                         con_file.hpi],
+                    # Construct a list of the file paths.
+                    # TODO: Order the mrk files in order of 'pre' and 'post'
+                    # here.
+                    mrk=hpi,
                     elp=self.contained_files['.elp'][0].file,
                     hsp=self.contained_files['.hsp'][0].file,
                     stim=trigger_channels, stim_code=stim_code,
                     slope=slope)
                 bads = con_file.bad_channels()
-                # set the bads
+                # Set the bads.
                 raw.info['bads'] = bads
 
                 # change the channel type of any channels that are triggers
@@ -204,7 +208,11 @@ class KITData(BIDSContainer):
                     'ManufacturersModelName': 'KIT-160',
                     'DewarPosition': self.dewar_position.get(),
                     'Name': self.proj_name.get(),
-                    'DeviceSerialNumber': con_file.info['Serial Number']}
+                    'DeviceSerialNumber': con_file.info['Serial Number'],
+                    'DigitizedLandmarks':
+                        len(self.contained_files['.elp']) != 0,
+                    'DigitizedHeadPoints':
+                        len(self.contained_files['.hsp']) != 0}
 
             self.jobs.add(con_file)
 

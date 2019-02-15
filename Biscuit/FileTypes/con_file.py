@@ -93,7 +93,7 @@ class con_file(BIDSFile):
             # determine whether the data has continuous head movement data
             file.seek(0x1D0)
             reTHM_offset, = unpack('i', file.read(0x4))
-            self.extra_data['chm'] = (reTHM_offset != 0)
+            self.extra_data['ContinuousHeadLocalization'] = (reTHM_offset != 0)
 
             # Get all the channel information here separately from mne.
             # This way the data is intrinsically linked to the con file

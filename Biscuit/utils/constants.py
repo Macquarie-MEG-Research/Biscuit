@@ -2,6 +2,7 @@
 
 from platform import system as os_name
 import os
+import Biscuit
 
 import Biscuit
 
