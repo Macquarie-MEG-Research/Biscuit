@@ -4,6 +4,7 @@ from tkinter.ttk import Frame, Label, Separator
 from Biscuit.CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
                                                InfoList, InfoChoice)
 from Biscuit.Management import OptionsVar
+from Biscuit.utils.constants import MRK_NA
 
 
 class ConFileFrame(Frame):
@@ -92,6 +93,18 @@ class ConFileFrame(Frame):
             "produce erroneous results.")
         self.grid()
 
+    def _get_mrk_labels(self):
+        mrk_names = []
+        # Write the list of file names in a nice way.
+        # If the mrk is pre- or post- the recording specify this, otherwise
+        # just write the path.
+        for key, value in self.file.hpi.items():
+            if key != MRK_NA:
+                mrk_names.append('{0}: {1}'.format(key, str(value)))
+            else:
+                mrk_names.append(str(value))
+        return mrk_names
+
     def update_widgets(self):
         self.institution_info.value = self.file.info['Institution name']
         self.serial_num_info.value = self.file.info['Serial Number']
@@ -103,8 +116,7 @@ class ConFileFrame(Frame):
 
         self.task_info.value = self.file.task
         self.run_info.value = self.file.run
-        self.mrks_info.value = ['{0}: {1}'.format(item, str(value)) for
-                                item, value in self.file.hpi.items()]
+        self.mrks_info.value = self._get_mrk_labels()
         self.mrks_info.validate_cmd = self.file.validate
         self.is_junk_info.value = self.file.is_junk
         self.is_junk_info.validate_cmd = self.file.validate

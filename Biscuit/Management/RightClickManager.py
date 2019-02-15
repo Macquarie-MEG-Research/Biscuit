@@ -8,7 +8,7 @@ from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 from Biscuit.Windows.CheckMrkPopup import CheckMrkPopup
-from Biscuit.utils.constants import MRK_MULT
+from Biscuit.utils.constants import MRK_MULT, MRK_NA
 
 # pattern to match with folder names to determine if the folder is the result
 # of the export process.
@@ -134,10 +134,11 @@ class RightClick():
         """
         con_files = []
         if all_ and self.parent.treeview_select_mode == "NORMAL":
-            mrk_files = [self.parent.preloaded_data[sid] for sid in
-                         self.curr_selection]
+            if len(self.curr_selection) == 1:
+                mrk_files = {MRK_NA: self.parent.preloaded_data[
+                    self.curr_selection[0]]}
             # get the parent folder and then find all .con file children
-            parent = self.parent.file_treeview.parent(mrk_files[0].ID)
+            parent = self.parent.file_treeview.parent(mrk_files[MRK_NA].ID)
             container = self.parent.preloaded_data[parent]
             for con in container.contained_files['.con']:
                 con.hpi = mrk_files

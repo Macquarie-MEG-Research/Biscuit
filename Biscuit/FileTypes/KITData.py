@@ -162,9 +162,7 @@ class KITData(BIDSContainer):
                 else:
                     stim_code = 'channel'
                     slope = '+'
-                hpi = [mrk_file.file for mrk_file in con_file.hpi]
-                # TODO: this will only support a single mrk file for now...
-                hpi = hpi[0]
+                hpi = [mrk_file.file for mrk_file in con_file.hpi.values()]
                 raw = read_raw_kit(
                     con_file.file,
                     # Construct a list of the file paths.

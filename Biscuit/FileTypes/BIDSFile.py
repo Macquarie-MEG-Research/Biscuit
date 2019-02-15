@@ -105,11 +105,12 @@ class BIDSFile(FileInfo):
     def __getstate__(self):
         data = super(BIDSFile, self).__getstate__()
 
-        data['run'] = self.run.get()        # run
-        data['tsk'] = self.task.get()       # task
-        data['hpi'] = self.hpi              # marker coils
-        data['ier'] = self.is_empty_room.get()      # is empty room data?
-        data['her'] = self.has_empty_room.get()     # has empty room data?
+        data['run'] = self.run.get()                                      # run
+        data['tsk'] = self.task.get()                                    # task
+        # marker coils:
+        data['hpi'] = {key: value.file for key, value in self.hpi.items()}
+        data['ier'] = self.is_empty_room.get()            # is empty room data?
+        data['her'] = self.has_empty_room.get()          # has empty room data?
 
         return data
 
@@ -120,6 +121,6 @@ class BIDSFile(FileInfo):
         self.task.options = [task]
         self.task.set(task)
         # support old and new format hpi storage
-        self.hpi = state.get('hpi', None)
+        self.hpi = state.get('hpi', dict())
         self.is_empty_room.set(state.get('ier', False))
         self.has_empty_room.set(state.get('her', False))

@@ -26,6 +26,10 @@ class con_file(BIDSFile):
             # an empty room file is good in it's default state
             self.is_good = True
 
+        self.trace_names = dict()
+
+        self._track_mrks()
+
 #region public methods
 
     def bad_channels(self):
@@ -211,6 +215,23 @@ class con_file(BIDSFile):
         self.tab_info = {}
 
         self.associated_channel_tab = None
+
+    def _track_mrks(self):
+        """Add a trace function to any assigned mrk files to see if their
+        acquisition type changes."""
+        for key, hpi in self.hpi.items():
+            self.trace_names[key] = (hpi.acquisition.trace(
+                'w',
+                lambda *args: self._update_mrk_info(key, hpi, *args)))
+
+    def _update_mrk_info(self, key, hpi, *args):
+        """Change the key for the mrk file in the list of mrk's."""
+        # first remove the previous trace on the variable
+        hpi.acquisition.trace_remove('write', self.trace_names[key])
+        del self.trace_names[key]
+        del self.hpi[key]
+        self.hpi[hpi.acquisition.get()] = hpi
+        self._track_mrks()
 
 #region class methods
 

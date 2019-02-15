@@ -9,7 +9,6 @@ from bidshandler import Session
 
 from mne_bids import write_raw_bids, make_bids_basename, make_bids_folders
 
-#from Biscuit.mne_bids import raw_to_bids
 from Biscuit.Management import StreamedVar
 from Biscuit.utils.bids_postprocess import (update_sidecar, write_readme,
                                             update_participants,
@@ -112,17 +111,6 @@ def convert(container, settings, parent=None):
                     extra_data['AssociatedEmptyRoom'] = emptyroom_path
 
             job_name.set("Task: {0}, Run: {1}".format(task, run))
-
-            mrks = None
-            # process the list of mrks:
-            if job.hpi is not None:
-                mrks = {acq: mrk.file for acq, mrk in job.hpi.items()}
-                if len(mrks.values()) == 2:
-                    mrks_list = [mrks[MRK_PRE], mrks[MRK_POST]]
-                elif len(mrks.values()) == 1:
-                    mrks_list = list(mrks_list.values())[0]
-                else:
-                    mrks_list = None
 
             try:
                 bids_name = make_bids_basename(

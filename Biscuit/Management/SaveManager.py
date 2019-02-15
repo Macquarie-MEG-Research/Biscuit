@@ -183,6 +183,8 @@ class SaveManager():
                                     mrk = mrk_file(id_=sid, file=mrk_path)
                                 new_mrk_data[mrk.acquisition.get()] = mrk
                             obj.hpi = new_mrk_data
+                        # track the mrk's states
+                        obj._track_mrks()
                         # also validate the con file:
                         obj.validate()
                 except FileNotFoundError:
