@@ -35,7 +35,6 @@ class mrk_file(FileInfo):
             self.requires_save = False
 
     def __getstate__(self):
-        print(self.requires_save)
         data = super(mrk_file, self).__getstate__()
 
         data['acq'] = self.acquisition.get()        # acquisition

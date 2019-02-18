@@ -1,4 +1,5 @@
 from tkinter import messagebox
+from warnings import warn
 
 from mne.io import read_raw_kit
 from mne.io.constants import FIFF
@@ -163,6 +164,10 @@ class KITData(BIDSContainer):
                     stim_code = 'channel'
                     slope = '+'
                 hpi = [mrk_file.file for mrk_file in con_file.hpi.values()]
+                if len(hpi) != 1:
+                    warn('Unfortunately mne-bids can only handle one marker '
+                         'file at a time at the moment... Using first one.')
+                hpi = hpi[0]
                 raw = read_raw_kit(
                     con_file.file,
                     # Construct a list of the file paths.

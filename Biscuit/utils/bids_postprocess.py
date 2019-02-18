@@ -2,6 +2,8 @@
 
 from collections import OrderedDict as odict
 import json
+import os
+import os.path as op
 
 import pandas as pd
 
@@ -10,7 +12,11 @@ def clean_emptyroom(fpath):
     """Clean the directory containing the empty room data to only include the
     file required (sidecar and raw data)
     """
-    pass
+    # keep anything ending in `_meg`
+    for fname in os.listdir(fpath):
+        name = op.splitext(fname)[0]
+        if not name.endswith('_meg'):
+            os.remove(op.join(fpath, fname))
 
 
 def modify_dataset_description(fname, name):
@@ -29,10 +35,7 @@ def update_participants(fname, data):
     participant_id = data[0]
     group = data[1]
     if 'group' not in df:
-        if len(df) == 1:
-            df.assign(group=[group])
-        else:
-            raise ValueError('Data provided is invalid')
+        df = df.assign(group=[group])
     else:
         for i in range(len(df)):
             if df.ix[i, 'participant_id'] == participant_id:

@@ -1,10 +1,12 @@
-#from contextlib import redirect_stdout
+from contextlib import redirect_stdout
 from time import sleep
 import os
 import os.path as op
 from tkinter import StringVar
 from datetime import date
 import shutil
+from warnings import warn
+
 from bidshandler import Session
 
 from mne_bids import write_raw_bids, make_bids_basename, make_bids_folders
@@ -12,10 +14,10 @@ from mne_bids import write_raw_bids, make_bids_basename, make_bids_folders
 from Biscuit.Management import StreamedVar
 from Biscuit.utils.bids_postprocess import (update_sidecar, write_readme,
                                             update_participants,
-                                            modify_dataset_description)
+                                            modify_dataset_description,
+                                            clean_emptyroom)
 from Biscuit.Windows import ProgressPopup
 from Biscuit.utils.utils import threaded, assign_bids_data, assign_bids_folder
-from Biscuit.utils.constants import MRK_PRE, MRK_POST
 from Biscuit.utils.timeutils import get_chunk_num, get_year
 
 
@@ -58,24 +60,60 @@ def convert(container, settings, parent=None):
 
     p = ProgressPopup(parent, progress, job_name)
 
-    # get the variables for the raw_to_bids conversion function:
-    subject_id = container.subject_ID.get()
-    sess_id = container.session_ID.get()
-    if sess_id == '':
-        sess_id = None
-    subject_group = container.subject_group.get()
-
     target_folder = op.join(bids_folder_path,
                             container.proj_name.get())
 
     # redict the stout to the StreamedVar as a way of capturing progress
-    #with redirect_stdout(progress):
-    for job in container.jobs:
-        if not job.is_junk.get():
+    with redirect_stdout(progress):
+        for job in container.jobs:
+            if job.is_junk.get():
+                continue
 
             extra_data = job.extra_data
 
             emptyroom_path = ''
+            rec_date = None
+            if 'Measurement date' in job.info:
+                date_vals = job.info['Measurement date'].split('/')
+                date_vals.reverse()
+                rec_date = ''.join(date_vals)
+
+            # also check to see if the file is meant to have an associated
+            # empty room file
+            if job.has_empty_room.get() is True:
+                # we will auto-construct a file path based on the date of
+                # creation of the con file
+                # TODO: make this more robust?
+                emptyroom_path = ('sub-emptyroom/ses-{0}/meg/'
+                                  'sub-emptyroom_ses-{0}_task-'
+                                  'noise_meg.con'.format(rec_date))
+
+            # get the variables for the raw_to_bids conversion function:
+            if job.is_empty_room.get():
+                if rec_date is None:
+                    warn('Recording date is not known. Emptry room cannot be '
+                         'exported.')
+                    continue
+                subject_id = 'emptyroom'
+                sess_id = rec_date
+                subject_group = 'n/a'
+                task = 'noise'
+                run = None
+                job.raw.info['subject_info'] = None
+            else:
+                subject_id = container.subject_ID.get()
+                sess_id = container.session_ID.get()
+                if sess_id == '':
+                    sess_id = None
+                subject_group = container.subject_group.get()
+                task = job.task.get()
+                if task == 'None':
+                    task = None
+                run = job.run.get()
+                if run == '':
+                    run = None
+                if emptyroom_path != '':
+                    extra_data['AssociatedEmptyRoom'] = emptyroom_path
 
             # TODO: change this to just use the event_info property
             trigger_channels, descriptions = job.get_event_data()
@@ -83,32 +121,6 @@ def convert(container, settings, parent=None):
             # assume there is only one for now??
             event_ids = dict(zip(descriptions,
                                  [int(i) for i in trigger_channels]))
-
-            # also check to see if the file is meant to have an associated
-            # empty room file
-            if job.has_empty_room.get() is True:
-                # we will auto-construct a file path based on the date of
-                # creation of the con file
-                date_vals = job.info['Measurement date'].split('/')
-                date_vals.reverse()
-                rec_date = ''.join(date_vals)
-                # TODO: make this more robust?
-                emptyroom_path = ('sub-emptyroom/ses-{0}/meg/'
-                                  'sub-emptyroom_ses-{0}_task-'
-                                  'noise_meg.con'.format(rec_date))
-
-            if job.is_empty_room.get():
-                task = 'noise'
-                run = None
-            else:
-                task = job.task.get()
-                if task == 'None':
-                    task = 'n/a'
-                run = job.run.get()
-                if run == '':
-                    run = 'n/a'
-                if emptyroom_path != '':
-                    extra_data['AssociatedEmptyRoom'] = emptyroom_path
 
             job_name.set("Task: {0}, Run: {1}".format(task, run))
 
@@ -132,17 +144,6 @@ def convert(container, settings, parent=None):
                     kind='meg',
                     output_path=target_folder,
                     make_dir=False)
-                print(bids_path)
-                """
-                raw_to_bids(subject_id=subject_id, task=task,
-                            raw_file=job.raw, output_path=target_folder,
-                            session_id=sess_id, kind='meg',
-                            event_id=event_ids, hpi=mrks, run=run,
-                            emptyroom=emptyroom, extra_data=extra_data,
-                            subject_group=subject_group,
-                            readme_text=container.readme, verbose=True,
-                            **container.make_specific_data)
-                """
 
                 update_sidecar(op.join(bids_path,
                                        '{0}_meg.json'.format(bids_name)),
@@ -150,21 +151,22 @@ def convert(container, settings, parent=None):
                 update_participants(op.join(target_folder,
                                             'participants.tsv'),
                                     ('sub-{0}'.format(subject_id),
-                                     subject_group))
+                                        subject_group))
                 write_readme(op.join(target_folder, 'README.txt'),
                              container.readme)
                 modify_dataset_description(
                     op.join(target_folder, 'dataset_description.json'),
                     container.proj_name.get())
+                if subject_id == 'emptyroom':
+                    clean_emptyroom(bids_path)
 
             except:  # noqa
                 # We want to actually just catch any error and print a
                 # message.
-                progress.set("An error occurred during the conversion "
-                             "process.\nPlease check the python console "
-                             "to see the error.")
+                progress.curr_value.set("An error occurred during the "
+                                        "conversion process.\nPlease check "
+                                        "the python console to see the error.")
                 has_error = True
-                print('ahhh')
                 raise
 
     new_sids = parent.file_treeview.refresh()
@@ -200,11 +202,11 @@ def convert(container, settings, parent=None):
             if not op.exists(dst):
                 os.makedirs(dst)
             shutil.copy(file, dst)
-        print("Conversion done! Closing window in 3...")
+        progress.curr_value.set("Conversion done! Closing window in 3...")
         sleep(1)
-        print("Conversion done! Closing window in 2...")
+        progress.curr_value.set("Conversion done! Closing window in 2...")
         sleep(1)
-        print("Conversion done! Closing window in 1...")
+        progress.curr_value.set("Conversion done! Closing window in 1...")
         sleep(1)
         p._exit()
 
