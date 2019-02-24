@@ -140,6 +140,8 @@ class WidgetTable(Frame):
 
         self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
+        self.sf.configure_view()
+
 #region public methods
 
     def add_row_data(self, idx, data=None):
@@ -285,7 +287,7 @@ class WidgetTable(Frame):
         else:
             self.add_rows()
 
-        self._resize_to_max(move_to_bottom=True)
+        self._resize_to_max(resize_canvas='xy', move_to_bottom=True)
 
     def add_row_from_selection(self, event):
         """ Add a new row from the list of possible rows to add """
@@ -433,7 +435,6 @@ class WidgetTable(Frame):
         """
         if not isinstance(self.add_options, list):
             self.add_row_from_button()
-            self._resize_to_max(resize_canvas='xy', move_to_bottom=True)
 
     def _apply_data(self):
         """

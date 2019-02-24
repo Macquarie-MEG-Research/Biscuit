@@ -51,7 +51,6 @@ class SendFilesWindow(Toplevel):
         self.title('Transfer files')
 
         # define some variables we need
-        self.has_access = False
         self.force_override = BooleanVar(value=False)
         if opt_verify:
             self.verify = BooleanVar(value=False)
@@ -143,6 +142,21 @@ class SendFilesWindow(Toplevel):
         """Check whether or not the user is authenicated to write to the
         archive.
         """
+
+        """ Should be able to replace on windows:
+        import ctypes
+
+        a = ctypes.windll.shell32.ShellExecuteW(
+            None,
+            'runas',
+            "cmd",
+            "/c run as \\\\file.cogsci.mq.edu.au",
+            None,
+            1)
+
+        a should be > 32
+        """
+
         # TODO: make more generic? (and check if this even works???)
         auth = dict()
         if not os.access(OSCONST.SVR_PATH, os.W_OK):
@@ -157,7 +171,6 @@ class SendFilesWindow(Toplevel):
                 del auth
                 try:
                     check_call(auth_cmd)
-                    self.has_access = True
                     del auth_cmd
                 except CalledProcessError:
                     # authentication didn't work...
@@ -167,8 +180,6 @@ class SendFilesWindow(Toplevel):
                 # the user entered either no password, username or both.
                 # see if they want to enter a new one...
                 pass
-        else:
-            self.has_access = True
 
     @threaded
     def _transfer(self):

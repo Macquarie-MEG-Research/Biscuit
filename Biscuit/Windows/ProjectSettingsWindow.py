@@ -131,10 +131,11 @@ class ProjectSettingsWindow(Toplevel):
         self.frame.grid_columnconfigure(5, weight=1)
         # final column has weight = 0 to keep it stuck to RHS of frame
         self.frame.grid_columnconfigure(6, weight=0)
+
         self.frame.grid_rowconfigure(0, weight=0)
         self.frame.grid_rowconfigure(1, weight=0)
         self.frame.grid_rowconfigure(2, weight=0)
-        self.frame.grid_rowconfigure(3, weight=1)
+        self.frame.grid_rowconfigure(3, weight=1)   # description
         self.frame.grid_rowconfigure(8, weight=0)
         self.frame.grid_rowconfigure(9, weight=1)
         self.frame.grid_rowconfigure(10, weight=0)

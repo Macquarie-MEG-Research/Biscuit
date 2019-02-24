@@ -376,14 +376,22 @@ class RightClick():
                 "Error",
                 "Invalid folder selected. Please select a folder which "
                 "contains the BIDS project folders.")
+            raise TypeError
 
     def _upload(self):
         """Upload the selected object to the MEG_RAW archive."""
         src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = self.parent.settings.get("ARCHIVE_PATH", None)
-        if dst is not None:
-            if not isinstance(src_obj, BIDSTree):
-                # automatically convert to a BIDSTree object
+        if dst is None:
+            messagebox.showerror("No path set!",
+                                 "No Archive path has been set. Please set "
+                                 "one in the settings.")
+            return
+        if not isinstance(src_obj, BIDSTree):
+            # automatically convert to a BIDSTree object
+            try:
                 self._toggle_bids_folder()
                 src_obj = self.parent.preloaded_data[self.curr_selection[0]]
-            SendFilesWindow(self.parent, src_obj, dst, set_copied=True)
+            except TypeError:
+                return
+        SendFilesWindow(self.parent, src_obj, dst, set_copied=True)
