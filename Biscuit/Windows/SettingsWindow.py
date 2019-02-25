@@ -1,7 +1,7 @@
 from tkinter import Toplevel, StringVar, BooleanVar, IntVar, DISABLED, NORMAL
 from tkinter import Button as tkButton
 from tkinter.ttk import Frame, Label, Button, Checkbutton, Entry
-import os.path as path
+import os.path as op
 import pickle
 from PIL import Image, ImageTk
 
@@ -27,8 +27,8 @@ class SettingsWindow(Toplevel):
 
         self.title('Biscuit Settings')
 
-        self.settings_file = path.join(OSCONST.USRDIR,
-                                       'settings.pkl')
+        self.settings_file = op.join(OSCONST.USRDIR,
+                                     'settings.pkl')
 
         self.protocol('WM_DELETE_WINDOW', self.exit)
 
@@ -75,10 +75,11 @@ class SettingsWindow(Toplevel):
                      'The default number of projects to be shown in the '
                      '"Set defaults" window. To see the rest of the project '
                      'settings the window will have to be scrolled down.')
-        self.proj_lines_entry = ValidatedEntry(frame,
-                                               textvariable=self.proj_lines,
-                                               force_dtype='int',
-                                               highlightbackground=OSCONST.ENTRY_HLBG)
+        self.proj_lines_entry = ValidatedEntry(
+            frame,
+            textvariable=self.proj_lines,
+            force_dtype='int',
+            highlightbackground=OSCONST.ENTRY_HLBG)
         self.proj_lines_entry.grid(column=1, row=1, columnspan=2, sticky='ew',
                                    padx=2)
 
@@ -104,11 +105,12 @@ class SettingsWindow(Toplevel):
                      'WARNING! This should be set up when first setting up '
                      'Biscuit.\nChanging wid-way through a year can have '
                      'unintended side-effects.')
-        self.chunk_entry = ValidatedEntry(frame,
-                                          textvariable=self.chunk_freq,
-                                          state=DISABLED,
-                                          force_dtype='int',
-                                          highlightbackground=OSCONST.ENTRY_HLBG)
+        self.chunk_entry = ValidatedEntry(
+            frame,
+            textvariable=self.chunk_freq,
+            state=DISABLED,
+            force_dtype='int',
+            highlightbackground=OSCONST.ENTRY_HLBG)
         self.chunk_entry.grid(column=1, row=3, padx=2, sticky='ew')
         week_lbl = Label(frame, text='(days)')
         week_lbl.grid(column=2, row=3, sticky='e')

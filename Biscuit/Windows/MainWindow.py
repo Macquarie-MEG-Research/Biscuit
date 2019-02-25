@@ -8,7 +8,7 @@ from tkinter.ttk import Frame, Style, Button, Label
 
 from copy import deepcopy
 import pickle
-import os.path as path
+import os.path as op
 from os import makedirs
 
 import webbrowser
@@ -54,9 +54,9 @@ class MainWindow(Frame):
         self.treeview_text_size = OSCONST.TREEVIEW_TEXT_SIZE
         Frame.__init__(self, self.master)
 
-        self.proj_settings_file = path.join(OSCONST.USRDIR,
-                                            'proj_settings.pkl')
-        self.settings_file = path.join(OSCONST.USRDIR, 'settings.pkl')
+        self.proj_settings_file = op.join(OSCONST.USRDIR,
+                                          'proj_settings.pkl')
+        self.settings_file = op.join(OSCONST.USRDIR, 'settings.pkl')
 
         # sort out some styling
         style = Style()
@@ -161,7 +161,7 @@ class MainWindow(Frame):
 
         # now we want to validate the settings tp ensure that the path
         # specified actually exists etc
-        if not path.exists(self.settings["DATA_PATH"]):
+        if not op.exists(self.settings["DATA_PATH"]):
             # the specified path for the data doesn't exist.
             # this is probably due to changing computer or something...
             # get the user to enter a new path
@@ -171,8 +171,8 @@ class MainWindow(Frame):
         #    self._get_matlab_location()
 
     def _write_settings(self):
-        if not path.exists(path.dirname(self.settings_file)):
-            makedirs(path.dirname(self.settings_file))
+        if not op.exists(op.dirname(self.settings_file)):
+            makedirs(op.dirname(self.settings_file))
         with open(self.settings_file, 'wb') as settings:
             pickle.dump(self.settings, settings)
 
@@ -408,7 +408,7 @@ class MainWindow(Frame):
                 self.selected_files[0])['values'][0]
             file_path = self.file_treeview.item(
                 self.selected_files[0])['values'][1]
-            if path.isdir(file_path):
+            if op.isdir(file_path):
                 self.context.set('FOLDER')
             else:
                 self.context.set(dtype.upper())
@@ -431,7 +431,7 @@ class MainWindow(Frame):
                         data.load_data()
             else:
                 ext, path_ = self.file_treeview.item(id_)['values']
-                if path.isdir(path_):
+                if op.isdir(path_):
                     # create a Folderlike object (Folder or KITData)
                     is_KIT = KITData.generate_file_list(
                         id_, self.file_treeview, validate=True)

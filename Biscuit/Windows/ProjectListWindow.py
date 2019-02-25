@@ -1,15 +1,12 @@
 from tkinter import Toplevel, StringVar, messagebox
 from tkinter.ttk import Frame, Label, Button
-import os.path as path
+import os.path as op
 import pickle
 from platform import system as os_name
 
 from Biscuit.CustomWidgets.WidgetTable import WidgetTable
 from Biscuit.Windows import ProjectSettingsWindow
 from Biscuit.utils.constants import OSCONST
-
-# TODO: add max number of lines option to force window from getting too big
-# with lots of settings.
 
 
 class ProjectListWindow(Toplevel):
@@ -27,8 +24,8 @@ class ProjectListWindow(Toplevel):
 
         self.title('Project Settings')
 
-        self.proj_settings_file = path.join(OSCONST.USRDIR,
-                                            'proj_settings.pkl')
+        self.proj_settings_file = op.join(OSCONST.USRDIR,
+                                          'proj_settings.pkl')
 
         self.protocol("WM_DELETE_WINDOW", self.exit)
 
