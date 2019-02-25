@@ -9,6 +9,8 @@ from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 from Biscuit.Windows.CheckMrkPopup import CheckMrkPopup
 from Biscuit.utils.constants import MRK_MULT, MRK_NA
+from Biscuit.utils.authorise import authorise
+
 
 # pattern to match with folder names to determine if the folder is the result
 # of the export process.
@@ -394,4 +396,12 @@ class RightClick():
                 src_obj = self.parent.preloaded_data[self.curr_selection[0]]
             except TypeError:
                 return
+
+        access = authorise(dst)
+        if not access:
+            messagebox.showerror("Error",
+                                 "Invalid username or password. Please try "
+                                 "again.")
+            return
+
         SendFilesWindow(self.parent, src_obj, dst, set_copied=True)

@@ -2,6 +2,8 @@ from tkinter import Toplevel
 from tkinter.ttk import Frame, Button, Label, Entry
 
 
+#TODO: REMOVE
+
 class AuthPopup(Toplevel):
     def __init__(self, master, auth=dict()):
         self.master = master
