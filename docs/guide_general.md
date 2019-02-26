@@ -44,7 +44,15 @@ The right side displays all the file information for the selected file. This vie
 Once a some data has been converted into BIDS format it will appear in a subfolder named `BIDS-20XX-YY` where `XX` will be the year and `YY` will be the fortnight number (this can be configured in the settings window if you do not want the export process to check the BIDS data. This is only like this for institutions who may want to back up data regularly).
 
 Right-clicking on this folder will bring up a context menu with the option to "assign as BIDS folder".
+![bids_assign](images/screenshots/BIDS_assign.PNG)
 Selecting this option will check whether the folder contains data that conforms to the BIDS specification, and if so it will parse some of the data and load it into a data structure. This information can then be seen when selecting the Folder itself, or the subsequent project, subject or session folders.
 
-After indicating to Biscuit that a folder contains BIDS compliant data, it can be transferred to an external device by selecting "sent to..." from the right click menu of a folder.
-A prompt will appear that lets you select a folder to transfer to. If you have a folder on an external drive already containing BIDS data it is this folder you should select to ensure the transfer works correctly.
+Once a folder is recognised to be a BIDS folder, a number of new options become available.
+Firstly it is possible to search for data within the BIDS folder.
+![bids_seach](images/screenshots/BIDS_search_screen.PNG)
+Multiple search terms may be chained together, and clicking the result automatically opens up the location in the file tree that the project/subject/session/scan resides in.
+
+Secondly it is possible to transfer the BIDS data to another location by using the "send to..." context menu option.
+![bids_sendto](images/screenshots/BIDS_sendto.PNG)
+It is **HIGHLY RECOMMENDED** that you use this method to transfer data to another location as it will retain any BIDS data including automatically transferring any associated empty room data.
+![bids_transfer](images/screenshots/BIDS_transfer.PNG)
