@@ -140,7 +140,7 @@ class WidgetTable(Frame):
 
         self.bind(OSCONST.ADDROW, self._add_row_from_key)
 
-        self.sf.configure_view()
+        self.sf.configure_view(needs_update=True)
 
 #region public methods
 
@@ -721,7 +721,8 @@ class WidgetTable(Frame):
                     row2=self.sf.frame.grid_size()[1] - 1)[2:]
 
         self.sf.block_resize = False
-        self.sf.configure_view(max_size=(max_x, max_y), **config)
+        self.sf.configure_view(max_size=(max_x, max_y), needs_update=True,
+                               **config)
 
 #region properties
 

@@ -108,7 +108,9 @@ class BIDSSearchFrame(Frame):
         help_button = Button(self, text='Help', command=self._open_help)
         help_button.grid(column=1, row=7, sticky='e')
 
-        self.rowconfigure(5, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(2, weight=1)
+        self.grid_rowconfigure(5, weight=1)
 
     def _export_results(self):
         if len(self.results) != 0:

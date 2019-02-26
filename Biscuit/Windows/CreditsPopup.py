@@ -85,7 +85,10 @@ class CreditsPopup(Toplevel):
                                "version but may be required for certain "
                                "functionality. DO NOT press 'yes' unless you "
                                "know what you are doing and how to revert to "
-                               "a previous mne-bids version!",
+                               "a previous mne-bids version!"
+                               "If you process do not close the credits "
+                               "window until the subsequent command window "
+                               "has popped up then disappeared again.",
                                parent=self):
             self.temp_dir = update_mne_bids()
 

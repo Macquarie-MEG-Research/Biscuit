@@ -63,7 +63,8 @@ class ScrollableFrame(Frame):
 #region public methods
 
     def configure_view(self, event=None, move_to_bottom=False,
-                       max_size=(None, None), resize_canvas='xy'):
+                       max_size=(None, None), resize_canvas='xy',
+                       needs_update=False):
         """
         Configure the size of the scrollable frame.
 
@@ -79,9 +80,11 @@ class ScrollableFrame(Frame):
             stretched. One of `'x'`, `'y'`, or `'xy'` for the x-direction,
             y-direction, or both respectively.
         """
-        bbox = self.canvas.bbox(ALL)
+        if not needs_update:
+            return
         x_size = None
         y_size = None
+        bbox = self.canvas.bbox(ALL)
         if 'x' in resize_canvas:
             # find the new x size to draw
             if max_size[0] is not None:
@@ -135,7 +138,7 @@ class ScrollableFrame(Frame):
         height : int
             Height of the frame.
         """
-        if self.block_resize:
+        if self.block_resize or (width is None and height is None):
             return
         if width is not None or height is not None:
             self.block_resize = True
