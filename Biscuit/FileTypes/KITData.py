@@ -1,5 +1,5 @@
 from tkinter import messagebox
-from warnings import warn
+#from warnings import warn
 
 from mne.io import read_raw_kit
 from mne.io.constants import FIFF
@@ -16,15 +16,42 @@ class KITData(BIDSContainer):
     def __init__(self, id_=None, file=None, settings=dict(), parent=None):
         super(KITData, self).__init__(id_, file, settings, parent)
 
-    def _create_vars(self):
-        super(KITData, self)._create_vars()
+#region public methods
 
-        # KIT specific variables
-        self.dewar_position = OptionsVar(value='supine',
-                                         options=["supine", "upright"])
-        self.con_map = dict()
-        self.is_valid = False
-        self.contains_required_files = False
+    def autodetect_emptyroom(self):
+        """ Autodetect whether or not an empty room file is contained within
+        the project.
+
+        If a .con file is found that is specified as empty room, any other .con
+        files with the same date will automatically have their 'has empty room'
+        property set as true
+        """
+        if self.loaded:
+            emptryroom_job = None
+            for job in self.jobs:
+                if job.is_empty_room.get():
+                    if emptryroom_job is None:
+                        emptryroom_job = job
+                    else:
+                        # we can only have one empty room file.
+                        # Raise an error message
+                        messagebox.showerror(
+                            "Warning",
+                            "You may only select one empty room file at a time"
+                            " within a project folder. Please deselect the "
+                            "other empty room file to continue.")
+                        return False
+
+            if emptryroom_job:
+                er_date = emptryroom_job.info.get('Measurement date', '')
+                for job in self.jobs:
+                    if job != emptryroom_job:
+                        if job.info.get('Measurement date', None) == er_date:
+                            job.has_empty_room.set(True)
+            else:
+                for job in self.jobs:
+                    job.has_empty_room.set(False)
+        return True
 
     def initial_processing(self):
         self.load_data()
@@ -141,6 +168,13 @@ class KITData(BIDSContainer):
             'electrode': self.contained_files['.elp'][0].file,
             'hsp': self.contained_files['.hsp'][0].file}
 
+#region private methods
+
+    def _apply_settings(self):
+        super(KITData, self)._apply_settings()
+        for job in self.jobs:
+            job._apply_settings()
+
     # TODO: fix up 'jobs' stuff
     def _create_raws(self):
         # refresh to avoid adding the con files each time
@@ -164,16 +198,17 @@ class KITData(BIDSContainer):
                     stim_code = 'channel'
                     slope = '+'
                 hpi = [mrk_file.file for mrk_file in con_file.hpi.values()]
-                if len(hpi) != 1:
-                    warn('Unfortunately mne-bids can only handle one marker '
-                         'file at a time at the moment... Using first one.')
-                hpi = hpi[0]
+                #if len(hpi) != 1:
+                #    warn('Unfortunately mne-bids can only handle one marker '
+                #         'file at a time at the moment... Using first one.')
+                if len(hpi) == 0:
+                    raise ValueError('Con file has no associated mrk file.')
+                con_file.converted_hpi = hpi[0]
                 raw = read_raw_kit(
                     con_file.file,
                     # Construct a list of the file paths.
-                    # TODO: Order the mrk files in order of 'pre' and 'post'
                     # here.
-                    mrk=hpi,
+                    mrk=hpi[0],
                     elp=self.contained_files['.elp'][0].file,
                     hsp=self.contained_files['.hsp'][0].file,
                     stim=trigger_channels, stim_code=stim_code,
@@ -221,10 +256,15 @@ class KITData(BIDSContainer):
 
         return True
 
-    def _apply_settings(self):
-        super(KITData, self)._apply_settings()
-        for job in self.jobs:
-            job._apply_settings()
+    def _create_vars(self):
+        super(KITData, self)._create_vars()
+
+        # KIT specific variables
+        self.dewar_position = OptionsVar(value='supine',
+                                         options=["supine", "upright"])
+        self.con_map = dict()
+        self.is_valid = False
+        self.contains_required_files = False
 
     def _ensure_no_multiple_emptyrooms(self):
         """ Detect if there are multiple empty room files and revert the
@@ -242,40 +282,7 @@ class KITData(BIDSContainer):
                 for job in emptyroom_files:
                     job.is_empty_room.set(False)
 
-    def autodetect_emptyroom(self):
-        """ Autodetect whether or not an empty room file is contained within
-        the project.
-
-        If a .con file is found that is specified as empty room, any other .con
-        files with the same date will automatically have their 'has empty room'
-        property set as true
-        """
-        if self.loaded:
-            emptryroom_job = None
-            for job in self.jobs:
-                if job.is_empty_room.get():
-                    if emptryroom_job is None:
-                        emptryroom_job = job
-                    else:
-                        # we can only have one empty room file.
-                        # Raise an error message
-                        messagebox.showerror(
-                            "Warning",
-                            "You may only select one empty room file at a time"
-                            " within a project folder. Please deselect the "
-                            "other empty room file to continue.")
-                        return False
-
-            if emptryroom_job:
-                er_date = emptryroom_job.info.get('Measurement date', '')
-                for job in self.jobs:
-                    if job != emptryroom_job:
-                        if job.info.get('Measurement date', None) == er_date:
-                            job.has_empty_room.set(True)
-            else:
-                for job in self.jobs:
-                    job.has_empty_room.set(False)
-        return True
+#region static methods
 
     @staticmethod
     def generate_file_list(folder_id, treeview, validate=False):
@@ -316,6 +323,8 @@ class KITData(BIDSContainer):
                 if len(lst) == 0:
                     return False
             return True
+
+#region class methods
 
     def __getstate__(self):
         data = super(KITData, self).__getstate__()

@@ -30,6 +30,10 @@ class con_file(BIDSFile):
 
         self._track_mrks()
 
+        # temporary variable until the BIDS specification says how to properly
+        # handle multiple marker files
+        self.converted_hpi = None
+
 #region public methods
 
     def bad_channels(self):

@@ -29,6 +29,30 @@ def modify_dataset_description(fname, name):
         file.write('\n')
 
 
+def update_markers(confile, fpath):
+    # TODO: shouldn't be needed once PR goes through on github
+    """Update the markers provided and ensure that the BIDS output contains
+    all the markers."""
+    print('updating markers')
+    if len(confile.hpi.keys()) == 1:
+        # If there is only one marker for the con file we don't need to do
+        # anything.
+        return
+    converted = None
+    not_converted = None
+    for key, value in confile.hpi.items():
+        if value == confile.converted_hpi:
+            converted = key
+        else:
+            not_converted = key
+    print(fpath)
+    print(converted)
+    print(not_converted)
+    # take the currently existing marker file and add the correct `acq` value
+    # copy the other marker file to the correct location with the correct name
+    # also.
+
+
 def update_participants(fname, data):
     # add/modify the groups property
     df = pd.read_csv(fname, sep='\t')

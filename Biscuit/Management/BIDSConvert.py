@@ -15,7 +15,7 @@ from Biscuit.Management import StreamedVar
 from Biscuit.utils.bids_postprocess import (update_sidecar, write_readme,
                                             update_participants,
                                             modify_dataset_description,
-                                            clean_emptyroom)
+                                            clean_emptyroom, update_markers)
 from Biscuit.Windows import ProgressPopup
 from Biscuit.utils.utils import threaded, assign_bids_data, assign_bids_folder
 from Biscuit.utils.timeutils import get_chunk_num, get_year
@@ -157,6 +157,7 @@ def convert(container, settings, parent=None):
                 modify_dataset_description(
                     op.join(target_folder, 'dataset_description.json'),
                     container.proj_name.get())
+                #update_markers(job, bids_path)
                 if subject_id == 'emptyroom':
                     clean_emptyroom(bids_path)
 
