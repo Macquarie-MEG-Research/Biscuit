@@ -1,15 +1,12 @@
 from tkinter import Toplevel, IntVar, StringVar, BooleanVar
 from tkinter.ttk import Frame, Label, Button, Progressbar, Checkbutton
 import os
-import os.path as path
-from subprocess import check_call, CalledProcessError
+import os.path as op
 
 from bidshandler import BIDSTree
 
-from Biscuit.Windows.AuthPopup import AuthPopup
 from Biscuit.Management import RangeVar, ToolTipManager
 from Biscuit.utils.utils import get_fsize, threaded
-from Biscuit.utils.constants import OSCONST
 from Biscuit.utils.BIDSCopy import BIDSCopy
 
 ttm = ToolTipManager()
@@ -51,7 +48,6 @@ class SendFilesWindow(Toplevel):
         self.title('Transfer files')
 
         # define some variables we need
-        self.has_access = False
         self.force_override = BooleanVar(value=False)
         if opt_verify:
             self.verify = BooleanVar(value=False)
@@ -66,7 +62,7 @@ class SendFilesWindow(Toplevel):
             for root, _, files in os.walk(src.path):
                 self.file_count += len(files)
                 for file in files:
-                    fpath = path.join(root, file)
+                    fpath = op.join(root, file)
                     fsize = os.stat(fpath).st_size
                     total_file_size += fsize
         fsize = get_fsize(total_file_size)
@@ -84,8 +80,6 @@ class SendFilesWindow(Toplevel):
         self.protocol("WM_DELETE_WINDOW", self._exit)
 
         self._create_widgets()
-        # make sure that it is possible to write to MEG_RAW
-        self._check_write_access()
 
         self.deiconify()
         self.focus_set()
@@ -139,37 +133,6 @@ class SendFilesWindow(Toplevel):
         btn_exit.grid(column=3, row=0, sticky='w')
         btn_frame.grid(column=0, row=4, columnspan=2)
 
-    def _check_write_access(self):
-        """Check whether or not the user is authenicated to write to the
-        archive.
-        """
-        # TODO: make more generic? (and check if this even works???)
-        auth = dict()
-        if not os.access(OSCONST.SVR_PATH, os.W_OK):
-            # create a popup to get the username and password
-            AuthPopup(self, auth)
-
-            if auth.get('uname', None) and auth.get('pword', None):
-                auth_cmd = OSCONST.ACCESS_CMD.format(
-                    unc_path=OSCONST.SVR_PATH,
-                    uname=auth.get('uname', ''),
-                    pword=auth.get('pword', ''))
-                del auth
-                try:
-                    check_call(auth_cmd)
-                    self.has_access = True
-                    del auth_cmd
-                except CalledProcessError:
-                    # authentication didn't work...
-                    # raise a popup saying the password may have been wrong...?
-                    pass
-            else:
-                # the user entered either no password, username or both.
-                # see if they want to enter a new one...
-                pass
-        else:
-            self.has_access = True
-
     @threaded
     def _transfer(self):
         """Transfer all the files in each of the sources to the destination."""
@@ -194,7 +157,7 @@ class SendFilesWindow(Toplevel):
         ----------
         src : Instance of bidshandler.(BIDSTree, Project, Subject, Setting)"""
         if not src.path.endswith('_copied'):
-            fname = path.basename(src.path)
+            fname = op.basename(src.path)
             new_path = "{0}_copied".format(src.path)
             os.rename(src.path, new_path)
             # fix the path in the BIDSTree object also

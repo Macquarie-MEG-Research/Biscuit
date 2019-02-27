@@ -137,13 +137,11 @@ class FileInfo():
         change across loads (such as id)
         """
 
-        if not self.requires_save:
-            return
-        else:
-            data = dict()
+        data = dict()
+        if self.requires_save:
             data['file'] = self._file
             data['jnk'] = self.is_junk.get()
-            return data
+        return data
 
     def __setstate__(self, state):
         self.__init__(file=state['file'])

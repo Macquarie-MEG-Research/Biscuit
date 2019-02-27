@@ -1,9 +1,10 @@
 from tkinter import Toplevel, Text, END, FLAT, DISABLED, messagebox
 from tkinter.ttk import Frame, Button, Label
 from webbrowser import open_new as open_hyperlink
+import shutil
 
 from Biscuit.utils.constants import OSCONST
-from Biscuit.utils.Update import get_latest_release, do_update
+from Biscuit.utils.Update import get_latest_release, do_update, update_mne_bids
 from Biscuit.utils.version import Version
 from Biscuit.Management.tkHyperlinkManager import HyperlinkManager
 
@@ -20,6 +21,8 @@ class CreditsPopup(Toplevel):
         self.git_link = "https://github.com/Macquarie-MEG-Research/Biscuit"
 
         self.title('Credits')
+
+        self.temp_dir = None
 
         # img = PhotoImage(file='assets/bisc.png')
 
@@ -71,10 +74,25 @@ class CreditsPopup(Toplevel):
                                    "({0})".format(str(latest_version)),
                                    parent=self):
                 do_update(latest_release)
-            # TODO: will need to have biscuit close and re-open to apply update
         else:
             messagebox.showinfo("Up to date!", "Biscuit is up to date.",
                                 parent=self)
+        # check if we want mne-bids to be updated also:
+        if messagebox.askyesno("Update MNE-BIDS",
+                               "Would you like to update MNE-BIDS to the "
+                               "most recent version of the master branch?"
+                               "This may be less stable than the release "
+                               "version but may be required for certain "
+                               "functionality. DO NOT press 'yes' unless you "
+                               "know what you are doing and how to revert to "
+                               "a previous mne-bids version!"
+                               "If you process do not close the credits "
+                               "window until the subsequent command window "
+                               "has popped up then disappeared again.",
+                               parent=self):
+            self.temp_dir = update_mne_bids()
 
     def _exit(self):
+        if self.temp_dir is not None:
+            shutil.rmtree(self.temp_dir)
         self.destroy()

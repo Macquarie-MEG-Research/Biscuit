@@ -8,7 +8,9 @@ from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
 from Biscuit.Windows.CheckMrkPopup import CheckMrkPopup
-from Biscuit.utils.constants import MRK_MULT
+from Biscuit.utils.constants import MRK_MULT, MRK_NA
+from Biscuit.utils.authorise import authorise
+
 
 # pattern to match with folder names to determine if the folder is the result
 # of the export process.
@@ -134,10 +136,11 @@ class RightClick():
         """
         con_files = []
         if all_ and self.parent.treeview_select_mode == "NORMAL":
-            mrk_files = [self.parent.preloaded_data[sid] for sid in
-                         self.curr_selection]
+            if len(self.curr_selection) == 1:
+                mrk_files = {MRK_NA: self.parent.preloaded_data[
+                    self.curr_selection[0]]}
             # get the parent folder and then find all .con file children
-            parent = self.parent.file_treeview.parent(mrk_files[0].ID)
+            parent = self.parent.file_treeview.parent(mrk_files[MRK_NA].ID)
             container = self.parent.preloaded_data[parent]
             for con in container.contained_files['.con']:
                 con.hpi = mrk_files
@@ -348,11 +351,16 @@ class RightClick():
         src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
-            if not isinstance(src_obj, BIDSTree):
-                # automatically convert to a BIDSTree object
-                self._toggle_bids_folder()
-                src_obj = self.parent.preloaded_data[self.curr_selection[0]]
-            SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
+            if isinstance(src_obj, (BIDSTree, Project, Subject, Session)):
+                SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
+            else:
+                # try and convert the object to a BIDSTree
+                try:
+                    self._toggle_bids_folder()
+                    src_obj = self.parent.preloaded_data[
+                        self.curr_selection[0]]
+                except TypeError:
+                    return
 
     def _toggle_bids_folder(self):
         """Assign the selected folder as a BIDS-formatted folder.
@@ -375,14 +383,30 @@ class RightClick():
                 "Error",
                 "Invalid folder selected. Please select a folder which "
                 "contains the BIDS project folders.")
+            raise TypeError
 
     def _upload(self):
         """Upload the selected object to the MEG_RAW archive."""
         src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = self.parent.settings.get("ARCHIVE_PATH", None)
-        if dst is not None:
-            if not isinstance(src_obj, BIDSTree):
-                # automatically convert to a BIDSTree object
+        if dst is None:
+            messagebox.showerror("No path set!",
+                                 "No Archive path has been set. Please set "
+                                 "one in the settings.")
+            return
+        if not isinstance(src_obj, BIDSTree):
+            # automatically convert to a BIDSTree object
+            try:
                 self._toggle_bids_folder()
                 src_obj = self.parent.preloaded_data[self.curr_selection[0]]
-            SendFilesWindow(self.parent, src_obj, dst, set_copied=True)
+            except TypeError:
+                return
+
+        access = authorise(dst)
+        if not access:
+            messagebox.showerror("Error",
+                                 "Invalid username or password. Please try "
+                                 "again.")
+            return
+
+        SendFilesWindow(self.parent, src_obj, dst, set_copied=True)

@@ -64,8 +64,6 @@ class SaveManager():
         self.saved_time = StringVar()
         self.saved_time.set("Last saved:\tNever")
 
-        self.treeview_ids = []
-
 #region public methods
 
     def get_file_id(self, path_):
@@ -74,7 +72,7 @@ class SaveManager():
         path.
         """
         try:
-            return self.parent.file_treeview.sid_from_filepath(path_)
+            return self.parent.file_treeview.sid_from_filepath(path_, False)
         except KeyError:
             raise FileNotFoundError
 
@@ -85,11 +83,6 @@ class SaveManager():
         This needs some error handling!!
         """
         _data = self.parent.preloaded_data
-
-        # get the list of all children to the treeview:
-        self.treeview_ids = list(self.parent.file_treeview.all_children())
-        # remove root
-        self.treeview_ids.remove('')
 
         containers_to_load = []
 
@@ -183,6 +176,8 @@ class SaveManager():
                                     mrk = mrk_file(id_=sid, file=mrk_path)
                                 new_mrk_data[mrk.acquisition.get()] = mrk
                             obj.hpi = new_mrk_data
+                        # track the mrk's states
+                        obj._track_mrks()
                         # also validate the con file:
                         obj.validate()
                 except FileNotFoundError:

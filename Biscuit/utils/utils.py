@@ -4,6 +4,7 @@ from os import makedirs
 from math import log
 from tkinter import messagebox
 from copy import copy
+from threading import Thread
 
 from bidshandler import BIDSTree, Project, Subject, Session, Scan, MappingError
 from bidshandler.utils import _get_bids_params
@@ -266,7 +267,6 @@ def threaded(func):
     Simple function to be used as a decorator to allow the
     decorated function to be threaded automatically
     """
-    from threading import Thread
 
     @wraps(func)
     def wrapper(*args, **kwargs):

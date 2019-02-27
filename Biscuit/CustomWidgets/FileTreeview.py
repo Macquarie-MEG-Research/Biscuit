@@ -165,13 +165,17 @@ class FileTreeview(EnhancedTreeview):
             self.selection_set([''])
         return added_sids
 
-    def sid_from_filepath(self, fpath):
+    def sid_from_filepath(self, fpath, search=True):
         """ Return the sid in the treeview with the given filepath
 
         Parameters
         ----------
         fpath : str
             Filepath to match
+        search : bool
+            Whether to force a search for the file path.
+            This is required when we do a refresh as the file path may not have
+            been added to the index_cache.
 
         """
         # Normalise the path just to ensure there are no issues.
@@ -179,6 +183,8 @@ class FileTreeview(EnhancedTreeview):
         try:
             return self.index_cache[fpath]
         except KeyError:
+            if not search:
+                raise
             # In this case the file isn't in the cache, however it may still
             # be in the tree. Recurse up the base paths until an object is
             # found then follow it back down.
@@ -187,14 +193,14 @@ class FileTreeview(EnhancedTreeview):
                 if temp_fpath in self.index_cache:
                     sid = self.index_cache[temp_fpath]
                     for child in self.all_children(item=sid):
-                        if child['values'][1] == fpath:
+                        if self.item(child)['values'][1] == fpath:
                             return child
                 _temp_fpath = op.dirname(temp_fpath)
                 # ensure we cannot get stuck in an infinte loop
                 if _temp_fpath != temp_fpath:
                     temp_fpath = _temp_fpath
                 else:
-                    break
+                    raise
 
     def sid_from_text(self, text, _all=False):
         """ Return the sid(s) in the treeview with the given text
