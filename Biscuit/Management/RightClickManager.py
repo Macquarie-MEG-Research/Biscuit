@@ -351,11 +351,16 @@ class RightClick():
         src_obj = self.parent.preloaded_data[self.curr_selection[0]]
         dst = filedialog.askdirectory(title="Select BIDS folder")
         if dst != '':
-            if not isinstance(src_obj, BIDSTree):
-                # automatically convert to a BIDSTree object
-                self._toggle_bids_folder()
-                src_obj = self.parent.preloaded_data[self.curr_selection[0]]
-            SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
+            if isinstance(src_obj, (BIDSTree, Project, Subject, Session)):
+                SendFilesWindow(self.parent, src_obj, dst, opt_verify=True)
+            else:
+                # try and convert the object to a BIDSTree
+                try:
+                    self._toggle_bids_folder()
+                    src_obj = self.parent.preloaded_data[
+                        self.curr_selection[0]]
+                except TypeError:
+                    return
 
     def _toggle_bids_folder(self):
         """Assign the selected folder as a BIDS-formatted folder.
