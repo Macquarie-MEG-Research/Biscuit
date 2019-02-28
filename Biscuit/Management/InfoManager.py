@@ -7,11 +7,10 @@ from Biscuit.FileTypes import FileInfo, Folder, FIFData
 from Biscuit.InfoTabs import (FifFileFrame, SessionInfoFrame, ConFileFrame,
                               EventInfoFrame, GenericInfoFrame,
                               ScrolledTextInfoFrame, ChannelInfoFrame,
-                              MrkFileFrame, BIDSSearchFrame)
+                              BIDSSearchFrame)
 
 # some global names:
 T_CON = 'con_tab'
-T_MRK = 'mrk_tab'
 T_FIF = 'fif_tab'
 T_EVENTS = 'events_tab'
 T_MISC = 'general_tab'
@@ -74,21 +73,16 @@ class InfoManager(Notebook):
         self.add(self.scrolltext_tab, text="File contents")
         self._tabs[T_SCROLLTEXT] = 6
 
-        # mrk file tab
-        self.mrk_info_tab = MrkFileFrame(self)
-        self.add(self.mrk_info_tab, text="File Info")
-        self._tabs[T_MRK] = 7
-
         # BIDS info frame
         self.bids_tab = GenericInfoFrame(self)
         self.add(self.bids_tab, text="BIDS")
-        self._tabs[T_BIDS] = 8
+        self._tabs[T_BIDS] = 7
 
         # TODO: replace the BIDS frame with this?
         # BIDS search frame
         self.bids_search_tab = BIDSSearchFrame(self, parent=self.parent)
         self.add(self.bids_search_tab, text="BIDS")
-        self._tabs[T_SEARCH] = 9
+        self._tabs[T_SEARCH] = 8
 
     def determine_tabs(self):
         """
@@ -123,10 +117,6 @@ class InfoManager(Notebook):
             else:
                 self.info_tab.file = self.data[0]
                 self.display_tabs(T_MISC)
-        # If a .mrk file is selected then show the mrk tab
-        elif self.context == '.MRK':
-            self.mrk_info_tab.file = self.data[0]
-            self.display_tabs(T_MRK)
         # if it's a folder we want folder session info
         elif self.context == 'FOLDER':
 

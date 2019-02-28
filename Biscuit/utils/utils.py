@@ -5,6 +5,10 @@ from math import log
 from tkinter import messagebox
 from copy import copy
 from threading import Thread
+from datetime import datetime
+
+import numpy as np
+from mne.io.kit.kit import get_kit_info
 
 from bidshandler import BIDSTree, Project, Subject, Session, Scan, MappingError
 from bidshandler.utils import _get_bids_params
@@ -235,6 +239,25 @@ def get_fsize(size):
     return '{0:.3f}{1}'.format(size / (1024 ** power), SUFFIXES[power])
 
 
+def get_mrk_meas_date(mrk):
+    """Find the measurement date from a KIT marker file.
+
+    Parameters
+    ----------
+    mrk : instance of mrk_file
+        Marker file to find date of.
+    """
+    info = get_kit_info(mrk.file, False)[0]
+    meas_date = info.get('meas_date', None)
+    if isinstance(meas_date, (tuple, list, np.ndarray)):
+        meas_date = meas_date[0]
+    if meas_date is not None:
+        meas_datetime = datetime.fromtimestamp(meas_date)
+    else:
+        meas_datetime = datetime.min
+    return meas_datetime
+
+
 def get_object_class(dtype):
     from Biscuit.FileTypes import (con_file, mrk_file, elp_file, hsp_file,
                                    tsv_file, json_file, generic_file, FIFData)
@@ -274,3 +297,41 @@ def threaded(func):
         thread.start()
         return thread
     return wrapper
+
+
+def validate_markers(filetree, markers, confiles=[]):
+    """Check whether the selected markers are in the same folder"""
+    cont = True
+    issue = False
+    if len(markers) > 2:
+        cont = messagebox.askretrycancel(
+            "Error",
+            ("Too many .mrk files selected. You may only select up to two "
+             ".mrk files to be associated with any .con file. Retry or press "
+             "'cancel' to stop associating."))
+        issue = True
+    # Make sure they are all in the same folder.
+    if len(markers) == 2:
+        if (filetree.parent(markers[0].ID) !=
+                filetree.parent(markers[1].ID)):
+            cont = messagebox.askretrycancel(
+                "Error",
+                ("You have selected .mrk file(s) in different "
+                 "folders. Please select files in the same folder or "
+                 "press 'cancel' to stop associating."))
+            issue = True
+    # If we have already selected one or more a con file(s), make sure
+    # they are in the same folder as that file.
+    if confiles != []:
+        pid = filetree.parent(markers[0].ID)
+        for sid in markers + confiles:
+            if filetree.parent(sid.ID) != pid:
+                cont = messagebox.askretrycancel(
+                    "Error",
+                    ("You have selected .con and .mrk file(s) "
+                     "in different folders. Please select the "
+                     "correct file or press 'cancel' to stop "
+                     "associating."))
+                issue = True
+                break
+    return issue, cont

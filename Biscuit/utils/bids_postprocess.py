@@ -4,6 +4,12 @@ from collections import OrderedDict as odict
 import json
 import os
 import os.path as op
+import shutil
+
+
+from Biscuit.utils.utils import get_mrk_meas_date
+from bidshandler.utils import _get_bids_params, _bids_params_are_subsets
+from mne_bids import make_bids_basename
 
 import pandas as pd
 
@@ -29,28 +35,64 @@ def modify_dataset_description(fname, name):
         file.write('\n')
 
 
-def update_markers(confile, fpath):
+def update_markers(confile, fpath, bids_name):
     # TODO: shouldn't be needed once PR goes through on github
     """Update the markers provided and ensure that the BIDS output contains
     all the markers."""
-    print('updating markers')
-    if len(confile.hpi.keys()) == 1:
+
+    bids_params = _get_bids_params(bids_name)
+    folder = None
+    for f in os.listdir(fpath):
+        if op.isdir(op.join(fpath, f)):
+            if _bids_params_are_subsets(_get_bids_params(f), bids_params):
+                # this is the folder containing the BIDS data we want.
+                folder = op.join(fpath, f)
+                break
+    if folder is None:
+        # In this case it is broken. Do nothing I guess...
+        return
+    fnames = list(os.listdir(folder))   # cache for safety
+    # do a check for any existing marker files with acq in their title
+    for fname in fnames:
+        params = _get_bids_params(fname)
+        if params['file'] == 'markers':
+            if params.get('acq', None) is not None:
+                os.remove(op.join(folder, fname))
+                continue
+
+    if len(confile.hpi) != 2:
         # If there is only one marker for the con file we don't need to do
         # anything.
         return
-    converted = None
-    not_converted = None
-    for key, value in confile.hpi.items():
-        if value == confile.converted_hpi:
-            converted = key
-        else:
-            not_converted = key
-    print(fpath)
-    print(converted)
-    print(not_converted)
-    # take the currently existing marker file and add the correct `acq` value
-    # copy the other marker file to the correct location with the correct name
-    # also.
+
+    # First entry in the list will always be the one that gets converted.
+    converted = confile.hpi[0]
+    not_converted = confile.hpi[1]
+
+    # determine which marker is pre and which is post
+    confile.hpi.sort(key=get_mrk_meas_date)
+    order = ['pre', 'post']
+    if confile.hpi.index(converted) != 0:
+        order = ['post', 'pre']
+
+    fnames = list(os.listdir(folder))   # recache for safety
+    for fname in fnames:
+        params = _get_bids_params(fname)
+        if params['file'] == 'markers':
+            params['suffix'] = params.pop('file') + params.pop('ext')
+            bname = make_bids_basename(subject=params.get('sub', None),
+                                       session=params.get('ses', None),
+                                       run=params.get('run', None),
+                                       task=params.get('task', None),
+                                       suffix=params.get('suffix', None),
+                                       acquisition=order[0])
+            os.rename(op.join(folder, fname), op.join(folder, bname))
+            bname = bname.replace('acq-{0}'.format(order[0]),
+                                  'acq-{0}'.format(order[1]))
+            shutil.copy(not_converted.file,
+                        op.join(folder, op.basename(not_converted.file)))
+            os.rename(op.join(folder, op.basename(not_converted.file)),
+                      op.join(folder, bname))
 
 
 def update_participants(fname, data):

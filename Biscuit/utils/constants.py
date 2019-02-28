@@ -98,11 +98,3 @@ OSCONST.SVR_PATH = "\\\\file.cogsci.mq.edu.au\\MEG_RAW\\BIDS"
 
 # TODO: Not needed/won't work on a mac...
 OSCONST.ACCESS_CMD = 'NET USE "{unc_path}" "{pword}" /USER:"MQAUTH\\{uname}"'
-
-#region other constants
-
-# marker timings
-MRK_NA = 'n/a'
-MRK_PRE = 'pre'
-MRK_POST = 'post'
-MRK_MULT = 'mult'   # both pre- and post-
