@@ -36,8 +36,6 @@ This can be obtained by downloading and building the most recent version of the 
 
 To find the update button press 'Info' > 'Credits', then select 'Update' on the pop up. This also allows for easy updating of Biscuit.
 
-**Note** that the auto updater will install the "complete" version.
-
 ---
 
 ## Running Biscuit

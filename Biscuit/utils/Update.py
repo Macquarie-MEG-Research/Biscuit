@@ -13,18 +13,23 @@ import requests
 GIT_API = 'https://api.github.com'
 
 
-def get_latest_release():
-    owner = 'Macquarie-MEG-Research'
-    repo = 'Biscuit'
-    cmd = '/repos/{0}/{1}/releases/latest'.format(owner, repo)
-    r = requests.get(GIT_API + cmd)
-    data = r.json()
-
-    return data
+def determine_version():
+    """Determine whether the complete or normal versions of Biscuit are
+    installed"""
+    python_path = sys.executable
+    scripts = op.join(op.dirname(python_path), 'Scripts')
+    if 'Biscuit' in [op.splitext(fname)[0] for fname in os.listdir(scripts)]:
+        return 'complete'
+    else:
+        return 'normal'
 
 
 def do_update(data):
-    asset = data.get('assets', [None])[0]
+    if determine_version() == 'complete':
+        src = 1
+    else:
+        src = 0
+    asset = data.get('assets', [None])[src]
     if asset is not None:
         whl_url = asset['browser_download_url']
 
@@ -34,6 +39,16 @@ def do_update(data):
     update_args = ['-m', 'pip', 'install', '-U', whl_url]
 
     run_elevated(python_path, update_args)
+
+
+def get_latest_release():
+    owner = 'Macquarie-MEG-Research'
+    repo = 'Biscuit'
+    cmd = '/repos/{0}/{1}/releases/latest'.format(owner, repo)
+    r = requests.get(GIT_API + cmd)
+    data = r.json()
+
+    return data
 
 
 def run_elevated(python_path, update_args):
