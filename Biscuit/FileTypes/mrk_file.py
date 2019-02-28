@@ -1,7 +1,6 @@
 from os.path import basename
 
 from .FileInfo import FileInfo
-from Biscuit.utils.utils import get_mrk_meas_date
 
 
 class mrk_file(FileInfo):

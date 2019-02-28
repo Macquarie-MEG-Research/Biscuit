@@ -26,6 +26,13 @@ The complete list of prequisites are as follows:
 
 Unlike the complete install, this install will not create an executable to run Biscuit.
 
+#### Current issue with MNE-BIDS
+
+Due to Biscuit requiring some newer features included in MNE-BIDS it is required to have the most recent version from GitHub.
+This can be obtained by downloading and building the most recent version of the master branch, or, if you want it done automatically the update feature in Biscuit is currently able to also install the most recent version from GitHub.
+To find the update button press 'Info' > 'Credits', then select 'Update' on the pop up. This also allows for easy updating of Biscuit.
+**Note** that the auto updater will install the "complete" version.
+
 ---
 
 ## Running Biscuit
