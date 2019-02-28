@@ -347,7 +347,7 @@ class MainWindow(Frame):
         # we won't have a problem with this yet since the data *has* to be
         # preloaded before we can do assignment of mrk's to con's
         if self.context == '.CON':
-            self._highlight_associated_mrks(event)
+            self.highlight_associated_mrks(event)
 
     def _clear_tags(self, *event):
         tag_list = ['ASSOC_FILES']
@@ -359,7 +359,7 @@ class MainWindow(Frame):
 
     # might want to make this function a bit more general to apply and remove
     # generic modifcations
-    def _highlight_associated_mrks(self, event):
+    def highlight_associated_mrks(self, event):
         """
         Give any .mrk items that are associated with the selected .con file the
         'ASSOC_FILES' tag.
@@ -374,7 +374,7 @@ class MainWindow(Frame):
         self._clear_tags()
         if con_file is not None:
             # get the associated mrk files if any
-            for mrk_file in con_file.hpi.values():
+            for mrk_file in con_file.hpi:
                 # these are mrk_file objects, so their id will be the id of
                 # their entry in the treeview
                 self.file_treeview.item(mrk_file.ID, tags=['ASSOC_FILES'])

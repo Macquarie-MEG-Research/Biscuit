@@ -197,13 +197,12 @@ class KITData(BIDSContainer):
                 else:
                     stim_code = 'channel'
                     slope = '+'
-                hpi = [mrk_file.file for mrk_file in con_file.hpi.values()]
+                hpi = [mrk_file.file for mrk_file in con_file.hpi]
                 #if len(hpi) != 1:
                 #    warn('Unfortunately mne-bids can only handle one marker '
                 #         'file at a time at the moment... Using first one.')
                 if len(hpi) == 0:
                     raise ValueError('Con file has no associated mrk file.')
-                con_file.converted_hpi = hpi[0]
                 raw = read_raw_kit(
                     con_file.file,
                     # Construct a list of the file paths.

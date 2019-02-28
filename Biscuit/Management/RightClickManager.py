@@ -7,9 +7,8 @@ from bidshandler import BIDSTree, Project, Subject, Session
 from Biscuit.FileTypes import con_file, Folder, BIDSContainer
 from Biscuit.utils.utils import create_folder, assign_bids_folder
 from Biscuit.Windows.SendFilesWindow import SendFilesWindow
-from Biscuit.Windows.CheckMrkPopup import CheckMrkPopup
-from Biscuit.utils.constants import MRK_MULT, MRK_NA
 from Biscuit.utils.authorise import authorise
+from Biscuit.utils.utils import validate_markers
 
 
 # pattern to match with folder names to determine if the folder is the result
@@ -33,7 +32,7 @@ class RightClick():
 
         self.context = context
 
-        self.mrk_popup = None
+        self.cached_selection = None
 
 #region public methods
 
@@ -71,11 +70,14 @@ class RightClick():
                                             command=self._associate_mrk)
             else:
                 pass
-                #self.popup_menu.add_command(label="Convert to BIDS",
-                # command=self._folder_to_bids)
+
         elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
-            self.popup_menu.add_command(label="Associate",
-                                        command=self._associate_mrk)
+            if (('.MRK' in self.context and
+                 self.parent.treeview_select_mode == 'ASSOCIATE-MRK') or
+                    ('.CON' in self.context and
+                     self.parent.treeview_select_mode == 'ASSOCIATE-CON')):
+                self.popup_menu.add_command(label="Associate",
+                                            command=self._associate_mrk)
 
         # give the option to associate one or more mrk files with all con files
         if (".MRK" in self.context and
@@ -128,164 +130,107 @@ class RightClick():
             if isinstance(parent_obj, BIDSContainer):
                 parent_obj.extra_files.append(fpath)
 
-    # TODO: clean this up
     def _associate_mrk(self, all_=False):
         """
         Allow the user to select an .mrk file if a .con file has been
         selected (or vice-versa) and associate the mrk file with the con file.
         """
-        con_files = []
-        if all_ and self.parent.treeview_select_mode == "NORMAL":
-            if len(self.curr_selection) == 1:
-                mrk_files = {MRK_NA: self.parent.preloaded_data[
-                    self.curr_selection[0]]}
-            # get the parent folder and then find all .con file children
-            parent = self.parent.file_treeview.parent(mrk_files[MRK_NA].ID)
+        # First do a simple check for a mixed selection.
+        if self.context.is_mixed:
+            cont = messagebox.askretrycancel(
+                "Error",
+                ("You have not selected only .mrk or only .con files. Please "
+                 "select a single file type at a time or press 'cancel' to "
+                 "stop associating."))
+            if not cont:
+                self.parent.treeview_select_mode = "NORMAL"
+            self.curr_selection = self.prev_selection
+            return
+
+        mrk_files = None
+        con_files = None
+        issue = False
+        cont = True
+        # Set the current selection to the appropriate type
+        if '.MRK' in self.context:
+            mrk_files = [self.parent.preloaded_data[sid] for
+                         sid in self.curr_selection]
+        elif '.CON' in self.context:
+            con_files = [self.parent.preloaded_data[sid] for
+                         sid in self.curr_selection]
+        else:
+            # TODO: improve message/dialog
+            messagebox.showerror("Error", "Invalid file selection")
+            self.curr_selection = self.prev_selection
+            return
+
+        # Associate selected mrk files with all other con files in folder.
+        if all_:
+            # This can only be called if we have mrk files selected.
+            # Get the parent folder and then find all .con file children.
+            parent = self.parent.file_treeview.parent(mrk_files[0].ID)
             container = self.parent.preloaded_data[parent]
             for con in container.contained_files['.con']:
                 con.hpi = mrk_files
                 con.validate()
-        else:
-            if self.parent.treeview_select_mode == "NORMAL":
-                # initialise the association process
-                if '.MRK' in self.context and not self.context.is_mixed:
-                    if self.context.group_size > 2:
-                        messagebox.showerror(
-                            "Error", ("Too many .mrk files selected. You may "
-                                      "only select up to two .mrk files to be "
-                                      "associated with any .con file"))
-                        return
-                    elif self.context.group_size == 1:
-                        mrk_file = self.parent.preloaded_data[
-                            self.curr_selection[0]]
-                        if mrk_file.acquisition.get() == MRK_MULT:
-                            self.mrk_popup = CheckMrkPopup(self.parent,
-                                                           "check")
-                            if self.mrk_popup.result is None:
-                                return
-                    if self.parent.settings.get(
-                            'SHOW_ASSOC_MESSAGE', True):
-                        messagebox.showinfo(
-                            "Select",
-                            ("Please select the .con file(s) "
-                                "associated with this file.\nOnce you "
-                                "have selected all required files, "
-                                "right click and press 'associate' "
-                                "again"))
-                    self.parent.set_treeview_mode("ASSOCIATE-CON")
-                elif '.CON' in self.context and not self.context.is_mixed:
-                    if self.parent.settings.get(
-                            'SHOW_ASSOC_MESSAGE', True):
-                        messagebox.showinfo(
-                            "Select",
-                            ("Please select the .mrk file(s) associated "
-                             "with this file.\nOnce you have selected "
-                             "all required files, right click and press "
-                             "'associate' again"))
-                    self.parent.set_treeview_mode("ASSOCIATE-MRK")
-                else:
-                    messagebox.showerror("Error", "Invalid file selection")
-            elif self.parent.treeview_select_mode.startswith("ASSOCIATE"):
-                # complete the association process
-                cont = None
-                if self.parent.treeview_select_mode == "ASSOCIATE-CON":
-                    # in this case expect the user to have selected one or
-                    # more .mrk files
-                    if ".CON" in self.context and not self.context.is_mixed:
-                        # make sure that the .con and .mrk files are in the
-                        # same folder
-                        pid = self.parent.file_treeview.parent(
-                            self.curr_selection[0])
-                        for id_ in self.prev_selection + self.curr_selection:
-                            if id_ not in self.parent.file_treeview.get_children(pid):  # noqa
-                                cont = messagebox.askretrycancel(
-                                    "Error",
-                                    ("You have selected .con and .mrk file(s) "
-                                     "in different folders. Please select the "
-                                     "correct file or press 'cancel' to stop "
-                                     "associating."))
-                                if cont is False:
-                                    self.parent.set_treeview_mode("NORMAL")
-                                    return
-                                else:
-                                    return
-                        # the previously selected files will be .mrk files:
-                        mrk_files = [self.parent.preloaded_data[sid] for sid in
-                                     self.prev_selection]
-                        con_files = [self.parent.preloaded_data[sid] for sid in
-                                     self.curr_selection]
-                    else:
-                        cont = messagebox.askretrycancel(
-                            "Error", ("The files you selected are not valid.\n"
-                                      "Would you like to select the correct "
-                                      ".con files, or cancel?"))
-                elif self.parent.treeview_select_mode == "ASSOCIATE-MRK":
-                    # in this case expect the user to have selected one or more
-                    #  .mrk files
-                    if ".MRK" in self.context and not self.context.is_mixed:
-                        # make sure that the .con and .mrk files are in the
-                        # same folder
-                        if self.context.group_size > 2:
-                            # make sure no more than 2 mrk files selected
-                            messagebox.showerror(
-                                "Error", ("Too many .mrk files selected. You "
-                                          "may only select up to two .mrk "
-                                          "files to be associated with any "
-                                          ".con file"))
-                            return
-                        elif self.context.group_size == 1:
-                            mrk_file = self.parent.preloaded_data[
-                                self.curr_selection[0]]
-                            if mrk_file.acquisition.get() == MRK_MULT:
-                                self.mrk_popup = CheckMrkPopup(self.parent,
-                                                               "check")
-                                if self.mrk_popup.result is None:
-                                    return
-                        pid = self.parent.file_treeview.parent(
-                            self.curr_selection[0])
-                        for id_ in self.prev_selection + self.curr_selection:
-                            if id_ not in self.parent.file_treeview.get_children(pid):  # noqa
-                                cont = messagebox.askretrycancel(
-                                    "Error",
-                                    ("You have selected .con and .mrk file(s) "
-                                     "in different folders. Please select the "
-                                     "correct file or press 'cancel' to stop "
-                                     "associating."))
-                                if cont is False:
-                                    self.parent.set_treeview_mode("NORMAL")
-                                    return
-                                else:
-                                    return
-                        # the previously selected files will be .con files:
-                        con_files = [self.parent.preloaded_data[sid] for sid in
-                                     self.prev_selection]
-                        mrk_files = [self.parent.preloaded_data[sid] for sid in
-                                     self.curr_selection]
-                    else:
-                        cont = messagebox.askretrycancel(
-                            "Error", ("The files you selected are not valid.\n"
-                                      "Would you like to select the correct "
-                                      ".mrk files, or cancel?"))
+            return
 
-                # now associate the mrk files with the con files:
-                if cont is None:
-                    for cf in con_files:
-                        if self.mrk_popup is None:
-                            for mrk in mrk_files:
-                                cf.hpi[mrk.acquisition.get()] = mrk
-                        else:
-                            cf.hpi[self.mrk_popup.result] = mrk_files[0]
-                        cf.validate()
-                    # check if the con file is the currently selected file
-                    if self.parent.treeview_select_mode == "ASSOCIATE-CON":
-                        # if so, redraw the info panel and call the mrk
-                        # association function so GUI is updated
-                        self.parent.info_notebook.determine_tabs()
-                        self.parent._highlight_associated_mrks(None)
-                    self.parent.set_treeview_mode("NORMAL")
-                if cont is False:
-                    self.parent.set_treeview_mode("NORMAL")
-                self.mrk_popup = None
+        if self.parent.treeview_select_mode == "NORMAL":
+            # Change the treeview mode and display a message if needed.
+            if '.MRK' in self.context:
+                # Make sure the markers are in the same folder and there aren't
+                # too many.
+                issue, cont = validate_markers(self.parent.file_treeview,
+                                               mrk_files)
+                if not issue:
+                    self.parent.set_treeview_mode("ASSOCIATE-CON")
+                    self.cached_selection = mrk_files
+            elif '.CON' in self.context:
+                self.parent.set_treeview_mode("ASSOCIATE-MRK")
+                self.cached_selection = con_files
+            # Finish up if there is no issue. If there is we want to handle it
+            # correctly later.
+            if not issue:
+                if self.parent.settings.get('SHOW_ASSOC_MESSAGE', True):
+                    msg = ("Please select the {0} file(s) associated with "
+                           "this file.\nOnce you have selected all required "
+                           "files, right click and press 'associate' again")
+                    # getting the context from the variable is a bit hacky...
+                    ctx = list(self.context.get())[0].lower()
+                    new_ctx = {'.con': '.mrk', '.mrk': '.con'}.get(ctx)
+                    messagebox.showinfo("Select", msg.format(new_ctx))
+                return
+
+        # make sure the marker files and con files are in the same location
+        elif self.parent.treeview_select_mode == "ASSOCIATE-MRK":
+            con_files = self.cached_selection
+            issue, cont = validate_markers(self.parent.file_treeview,
+                                           mrk_files, con_files)
+        elif self.parent.treeview_select_mode == "ASSOCIATE-CON":
+            mrk_files = self.cached_selection
+            issue, cont = validate_markers(self.parent.file_treeview,
+                                           mrk_files, con_files)
+
+        # Handle any issues/check for continuation.
+        if issue:
+            if not cont:
+                self.parent.set_treeview_mode("NORMAL")
+            self.curr_selection = self.prev_selection
+            return
+
+        if self.parent.treeview_select_mode.startswith('ASSOCIATE'):
+            # Now associate the mrk files with the con files:
+            for cf in con_files:
+                cf.hpi = mrk_files
+                cf.validate()
+            # Check if the con file is the currently selected file.
+            if self.parent.treeview_select_mode == "ASSOCIATE-CON":
+                # if so, redraw the info panel and call the mrk
+                # association function so GUI is updated
+                self.parent.info_notebook.determine_tabs()
+                self.parent.highlight_associated_mrks(None)
+            self.parent.set_treeview_mode("NORMAL")
+            self.cached_selection = None
 
     def _create_folder(self):
         """

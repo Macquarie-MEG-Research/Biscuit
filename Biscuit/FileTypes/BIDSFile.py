@@ -35,7 +35,7 @@ class BIDSFile(FileInfo):
         self.is_empty_room.trace("w", self.propagate_emptyroom_data)
         self.has_empty_room = BooleanVar()
 
-        self.hpi = dict()
+        self.hpi = list()
 
         self.loaded = False
 
@@ -77,7 +77,7 @@ class BIDSFile(FileInfo):
         if self.is_empty_room.get() or self.is_junk.get():
             return is_valid
         is_valid &= self.run.get() != ''
-        is_valid &= (self.hpi != dict())
+        is_valid &= (self.hpi != list())
         return is_valid
 
     def get_event_data(self):
@@ -108,7 +108,7 @@ class BIDSFile(FileInfo):
         data['run'] = self.run.get()                                      # run
         data['tsk'] = self.task.get()                                    # task
         # marker coils:
-        data['hpi'] = {key: value.file for key, value in self.hpi.items()}
+        data['hpi'] = [hpi.file for hpi in self.hpi]
         data['ier'] = self.is_empty_room.get()            # is empty room data?
         data['her'] = self.has_empty_room.get()          # has empty room data?
 
@@ -121,6 +121,6 @@ class BIDSFile(FileInfo):
         self.task.options = [task]
         self.task.set(task)
         # support old and new format hpi storage
-        self.hpi = state.get('hpi', dict())
+        self.hpi = state.get('hpi', list())
         self.is_empty_room.set(state.get('ier', False))
         self.has_empty_room.set(state.get('her', False))

@@ -18,7 +18,7 @@ from Biscuit.utils.utils import assign_bids_folder
     # BIDSFile:
     run:    run                 int
     tsk:    task                string
-    hpi:    marker coils        dict
+    hpi:    marker coils        list
     ier:    is empty room       bool
     her:    has empty room      bool
     # BIDSContainer:
@@ -35,9 +35,6 @@ from Biscuit.utils.utils import assign_bids_folder
     # FIFData:
     chs:    channel info        # TODO: move to BIDSContainer
     evt:    event info
-    # mrk_file
-    # TODO: This will probably change at some point once the spec is decided on
-    acq:    acquisition ('pre', 'post' or 'mult', file isn't saved if 'n/a')
 """
 
 
@@ -116,10 +113,6 @@ class SaveManager():
                         file.load_data()
                         # then add the file to the preloaded data
                         _data[file.ID] = file
-                    elif isinstance(file, mrk_file):
-                        sid = self.get_file_id(file.file)
-                        file.ID = sid
-                        _data[file.ID] = file
                     elif isinstance(file, list):
                         # TODO: improve...
                         # In this case it is the BIDSTree data
@@ -158,26 +151,22 @@ class SaveManager():
                     if isinstance(obj, con_file):
                         obj.load_data()
                         mrk_paths = obj.hpi
-                        if isinstance(mrk_paths, dict):
-                            for key, value in mrk_paths.items():
-                                sid = self.get_file_id(value)
-                                try:
-                                    mrk_paths[key] = self.parent.preloaded_data[sid]  # noqa
-                                except KeyError:
-                                    mrk_paths[key] = mrk_file(id_=sid,
-                                                              file=value)
-                        elif isinstance(mrk_paths, list):
-                            new_mrk_data = dict()
-                            for mrk_path in mrk_paths:
+                        new_mrk_data = list()
+                        for mrk_path in mrk_paths:
+                            try:
                                 sid = self.get_file_id(mrk_path)
-                                try:
-                                    mrk = self.parent.preloaded_data[sid]
-                                except KeyError:
-                                    mrk = mrk_file(id_=sid, file=mrk_path)
-                                new_mrk_data[mrk.acquisition.get()] = mrk
-                            obj.hpi = new_mrk_data
-                        # track the mrk's states
-                        obj._track_mrks()
+                            except FileNotFoundError:
+                                # catch a finer error here
+                                # the removed file isn't added
+                                msg = 'The marker file {0} has been deleted'
+                                print(msg.format(mrk_path))
+                                continue
+                            try:
+                                mrk = self.parent.preloaded_data[sid]
+                            except KeyError:
+                                mrk = mrk_file(id_=sid, file=mrk_path)
+                            new_mrk_data.append(mrk)
+                        obj.hpi = new_mrk_data
                         # also validate the con file:
                         obj.validate()
                 except FileNotFoundError:

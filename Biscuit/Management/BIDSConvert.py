@@ -157,7 +157,7 @@ def convert(container, settings, parent=None):
                 modify_dataset_description(
                     op.join(target_folder, 'dataset_description.json'),
                     container.proj_name.get())
-                #update_markers(job, bids_path)
+                update_markers(job, bids_path, bids_name)
                 if subject_id == 'emptyroom':
                     clean_emptyroom(bids_path)
 

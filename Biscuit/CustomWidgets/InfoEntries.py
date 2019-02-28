@@ -155,11 +155,10 @@ class InfoEntry(InfoMaster):
         if bad_values == []:
             self._value = Entry(self._master, textvariable=value)
         else:
-            self._value = ValidatedEntry(self._master, bad_values=bad_values,
-                                         textvariable=value,
-                                         highlightbackground=OSCONST.ENTRY_HLBG,
-                                         validate_cmd=validate_cmd,
-                                         force_dtype=force_dtype)
+            self._value = ValidatedEntry(
+                self._master, bad_values=bad_values, textvariable=value,
+                highlightbackground=OSCONST.ENTRY_HLBG,
+                validate_cmd=validate_cmd, force_dtype=force_dtype)
 
     def check_valid(self):
         if isinstance(self._value, ValidatedEntry):

@@ -147,6 +147,8 @@ class FIFData(BIDSContainer, BIDSFile):
             descriptions.append(lst['description'].get())
         return events, descriptions
 
+
+    # TODO: update this for using current mne_bids
     def prepare(self):
         BIDSContainer.prepare(self)
         ch_name_map = dict()
