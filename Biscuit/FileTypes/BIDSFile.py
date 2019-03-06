@@ -108,7 +108,10 @@ class BIDSFile(FileInfo):
         data['run'] = self.run.get()                                      # run
         data['tsk'] = self.task.get()                                    # task
         # marker coils:
-        data['hpi'] = [hpi.file for hpi in self.hpi]
+        if isinstance(self.hpi, list):
+            data['hpi'] = [hpi.file for hpi in self.hpi]
+        else:
+            data['hpi'] = self.hpi
         data['ier'] = self.is_empty_room.get()            # is empty room data?
         data['her'] = self.has_empty_room.get()          # has empty room data?
 

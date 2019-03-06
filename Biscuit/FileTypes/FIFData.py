@@ -93,8 +93,6 @@ class FIFData(BIDSContainer, BIDSFile):
                         self.raw.info['subject_info']['sex'], 0)
                     self.subject_gender.set(gender)
                 else:
-                    # TODO: raise popup to notify the user that there is no
-                    # subject info and that they need to enter it manually
                     self.subject_ID.set('')
                     for i in self.subject_age:
                         i.set('')

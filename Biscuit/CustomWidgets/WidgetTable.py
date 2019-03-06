@@ -46,8 +46,9 @@ class WidgetTable(Frame):
     widgets_pattern : list of Widget instances
         A list of Widgets that will be drawn in each
         column.
-        These widgets *must* be un-instantiated to allow cloning when
-        creating new rows.
+        These widgets *must* either be un-instantiated to allow cloning when
+        creating new rows or be returned by a lambda statement or function to
+        give the widget specific initial arguments.
     add_options : list, optional
         A fixed length list of options that can be added.
         If None then the rows can just be added arbitrarily using button.
@@ -595,10 +596,7 @@ class WidgetTable(Frame):
                     var = new_dict
                 else:
                     if isinstance(val, Variable):
-                        if hasattr(val, 'copy'):
-                            var = val.copy()
-                        else:
-                            var = val
+                        var = val
                     else:
                         var = self.pattern[i]()
                         var.set(val)
