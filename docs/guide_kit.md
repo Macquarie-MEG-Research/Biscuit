@@ -64,7 +64,7 @@ We can associate a `.con` file with an `.mrk` file in one of 3 different ways, a
 
 Once an `.mrk` has been associated with a `.con` file, selecting a `.con` file will highlight any associated `.mrk` files in blue in the file treeview on the left hand side. You can use this to confirm that you have associated the correct `.mrk` file with the correct `.con` file.
 
-Note that you cannot associate more than 2 `.mrk` files with any given `.con` file. If 2 `.mrk` files are associated with the one `.con` file you will need to select the `.mrk` in the file tree and select the acquisition time, which is one of `"n/a"` (used when you have only one `.mrk` associated with a `.con` file), `'pre'` (indicates the `.mrk` file was recorded *before* the raw data was collected), and `'post'` (indicating the `.mrk` file was recorded *after* the raw data was collected).
+Note that you cannot associate more than 2 `.mrk` files with any given `.con` file.
 
 ![con_complete](images/screenshots/KIT_con_complete.PNG)
 
@@ -75,3 +75,4 @@ When all the required information has been entered, the `Generate BIDS` button w
 
 To export you simply press this button once and a popup will appear which gives the current progress of the export process.
 Once the conversion is done the popup will close and the data will available in the `BIDS` folder in the file view.
+If you close the popup for whatever reason you can re-open it by simply clicking on the `Generate BIDS` button again.

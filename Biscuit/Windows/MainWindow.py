@@ -24,8 +24,8 @@ from Biscuit.Management import ClickContext
 from Biscuit.Management.RightClickManager import RightClick
 from Biscuit.Management.InfoManager import InfoManager
 from Biscuit.Management.SaveManager import SaveManager
-from Biscuit.Windows import (ProjectListWindow, ProgressPopup, CheckSavePopup,
-                             CreditsPopup, SettingsWindow, SendFilesWindow)
+from Biscuit.Windows import (ProjectListWindow, CheckSavePopup, CreditsPopup,
+                             SettingsWindow, SendFilesWindow)
 from Biscuit.utils.utils import threaded, get_object_class, assign_bids_data
 from Biscuit.utils.constants import OSCONST
 

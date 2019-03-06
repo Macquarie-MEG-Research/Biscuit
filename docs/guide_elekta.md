@@ -38,3 +38,4 @@ When all the required information has been entered, the `Generate BIDS` button w
 
 To export you simply press this button once and a popup will appear which gives the current progress of the export process.
 Once the conversion is done the popup will close and the data will available in the `BIDS` folder that will be in the file view.
+If you close the popup for whatever reason you can re-open it by simply clicking on the `Generate BIDS` button again.

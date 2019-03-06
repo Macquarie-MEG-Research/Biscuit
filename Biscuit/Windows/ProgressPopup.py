@@ -9,6 +9,8 @@ class ProgressPopup(Toplevel):
         - maybe a condensed version of the output? Just the 'writeline' parts
     Advanced tab:
         - full output directly from mne-bids
+    Maybe also allow multiple conversions to be run at a time so add a queueing
+    system?
     """
     def __init__(self, master, progress_var, job_name_var):
         self.master = master
