@@ -1,4 +1,4 @@
-from tkinter import DISABLED, StringVar
+from tkinter import DISABLED, StringVar, messagebox
 from tkinter.ttk import Label, Separator, Button, Frame
 
 from Biscuit.CustomWidgets.InfoEntries import InfoEntry, InfoChoice
@@ -104,7 +104,20 @@ class SessionInfoFrame(Frame):
         self.dewar_position_entry.value = self.file.dewar_position
 
     def convert_to_bids(self):
-        convert(self.file, self.settings, self.parent)
+        if self.parent.running_conversion:
+            if self.parent.progress_popup is None:
+                # this should be impossible to reach...
+                return
+            if self.parent.progress_popup.winfo_ismapped():
+                messagebox.showerror("Job Already Running",
+                                     "You already have one job running.\n"
+                                     "Please wait until it has finished before"
+                                     " starting a new one.")
+            else:
+                self.parent.progress_popup.deiconify()
+            return
+        self.current_job_thread = convert(self.file, self.settings,
+                                          self.parent)
 
     @property
     def file(self):

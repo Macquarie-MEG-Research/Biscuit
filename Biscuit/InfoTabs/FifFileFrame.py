@@ -1,5 +1,5 @@
-from tkinter import (StringVar, BooleanVar, DISABLED, NORMAL, Entry,
-                     messagebox, IntVar)
+from tkinter import (StringVar, BooleanVar, DISABLED, Entry, messagebox,
+                     IntVar)
 from tkinter.ttk import Frame, Label, Separator, Button, Combobox
 
 from Biscuit.CustomWidgets.InfoEntries import (InfoEntry, InfoLabel, InfoCheck,
@@ -24,8 +24,6 @@ class FifFileFrame(Frame):
         self.require_verification = []
 
         self._create_widgets()
-
-        self.current_job_thread = None
 
     def _create_widgets(self):
         # recording information
@@ -162,32 +160,21 @@ class FifFileFrame(Frame):
 
         self.grid()
 
-    # !REMOVE
-    def _check_bids_ready(self):
-        """
-        Check to see whether all contained files required to produce a
-        bids-compatible file system have all the necessary data
-        """
-        if self._file.update_treeview():
-            self.bids_gen_btn.config(state=NORMAL)
-        else:
-            self.bids_gen_btn.config(state=DISABLED)
-
     def convert_to_bids(self):
-        if self.current_job_thread is None:
-            self.current_job_thread = convert(self.file, self.settings,
-                                              self.parent)
-        else:
-            if self.current_job_thread.is_alive():      # pylint: disable=E1101
+        if self.parent.running_conversion:
+            if self.parent.progress_popup is None:
+                # this should be impossible to reach...
+                return
+            if self.parent.progress_popup.winfo_ismapped():
                 messagebox.showerror("Job Already Running",
                                      "You already have one job running.\n"
                                      "Please wait until it has finished before"
                                      " starting a new one.")
             else:
-                # in this case the job has ended so we nullify the current
-                # job thread then re-run this function
-                self.current_job_thread = None
-                self.convert_to_bids()
+                self.parent.progress_popup.deiconify()
+            return
+        self.current_job_thread = convert(self.file, self.settings,
+                                          self.parent)
 
     def update_widgets(self):
         # update info

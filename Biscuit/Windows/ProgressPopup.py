@@ -35,4 +35,4 @@ class ProgressPopup(Toplevel):
         main_frame.grid()
 
     def _exit(self):
-        self.destroy()
+        self.withdraw()

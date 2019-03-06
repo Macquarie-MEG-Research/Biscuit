@@ -59,9 +59,12 @@ def convert(container, settings, parent=None):
     has_error = False
 
     p = ProgressPopup(parent, progress, job_name)
+    parent.progress_popup = p
 
     target_folder = op.join(bids_folder_path,
                             container.proj_name.get())
+
+    parent.running_conversion = True
 
     # redict the stout to the StreamedVar as a way of capturing progress
     with redirect_stdout(progress):
@@ -210,6 +213,8 @@ def convert(container, settings, parent=None):
         progress.curr_value.set("Conversion done! Closing window in 1...")
         sleep(1)
         p._exit()
+        parent.running_conversion = False
+        parent.progress_popup = None
 
     # This is essentially useless but it suppresses pylint:E1111
     return True
