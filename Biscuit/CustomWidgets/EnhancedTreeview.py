@@ -4,6 +4,7 @@ from tkinter import Entry as tkEntry
 from tkinter.ttk import Treeview, Scrollbar
 
 import os.path as op
+from platform import system as os_name
 
 from Biscuit.utils.constants import OSCONST
 
@@ -223,6 +224,8 @@ class EnhancedTreeview(Treeview):
     def OnRightClick(self, func):
         # set the event to be processed when an entry is right-clicked
         self.bind(OSCONST.RIGHTCLICK, func, add='+')
+        if os_name() == 'Darwin':
+            self.bind('<Control-Button-1>', func, add='+')
 
     @property
     def OnLeftClick(self):
