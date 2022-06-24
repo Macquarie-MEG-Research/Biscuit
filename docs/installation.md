@@ -22,7 +22,7 @@ If you already have a pre-existing python install and do not want any particular
 
 The complete list of prequisites are as follows:
 
-`numpy`, `scipy`, `matplotlib`, `pandas`, `Pygments`, `Pillow`, `mne (>= 0.17.0)`, `mne-bids (>= 0.1)`*, `requests` and `bidshandler (>= 0.2.1)`
+`numpy`, `scipy`, `matplotlib`, `pandas`, `Pygments`, `Pillow`, `mne (>= 0.17.0)`, `mne-bids (>= 0.10)`*, `requests` and `bidshandler (>= 0.2.1)`
 
 \* see issue below for more.
 
