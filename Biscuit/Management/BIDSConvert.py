@@ -6,10 +6,11 @@ from tkinter import StringVar
 from datetime import date
 import shutil
 from warnings import warn
+import glob
 
 from bidshandler import Session
 
-from mne_bids import write_raw_bids, make_bids_basename, make_bids_folders
+from mne_bids import write_raw_bids, BIDSPath
 
 from Biscuit.Management import StreamedVar
 from Biscuit.utils.bids_postprocess import (update_sidecar, write_readme,
@@ -125,28 +126,23 @@ def convert(container, settings, parent=None):
             job_name.set("Task: {0}, Run: {1}".format(task, run))
 
             try:
-                bids_name = make_bids_basename(
+                bids_path = BIDSPath(
                     subject=subject_id,
                     session=sess_id,
                     task=task,
-                    run=run)
+                    run=run,
+                    root=target_folder,
+                    datatype='meg')
 
                 write_raw_bids(
                     raw=job.raw,
-                    bids_basename=bids_name,
-                    output_path=target_folder,
-                    event_id=event_ids,
+                    bids_path=bids_path,
+                    #event_id=event_ids,
                     overwrite=True,
                     verbose=True)
-                bids_path = make_bids_folders(
-                    subject=subject_id,
-                    session=sess_id,
-                    kind='meg',
-                    output_path=target_folder,
-                    make_dir=False)
 
-                update_sidecar(op.join(bids_path,
-                                       '{0}_meg.json'.format(bids_name)),
+                update_sidecar(op.join(bids_path.directory,
+                                       '{0}_meg.json'.format(bids_path.basename)),
                                extra_data)
                 update_participants(op.join(target_folder,
                                             'participants.tsv'),
@@ -157,9 +153,19 @@ def convert(container, settings, parent=None):
                 modify_dataset_description(
                     op.join(target_folder, 'dataset_description.json'),
                     container.proj_name.get())
-                update_markers(job, bids_path, bids_name)
+                update_markers(job, bids_path.fpath, bids_path.basename)
                 if subject_id == 'emptyroom':
-                    clean_emptyroom(bids_path)
+                    clean_emptyroom(bids_path.directory)
+                
+                # Do some cleaning up
+                # rename hsp file
+                old_name = glob.glob(op.join(bids_path.directory, '*acq-HSP_headshape.pos'))[0]
+                new_name = old_name.replace('acq-HSP_headshape.pos', 'headshape.txt')
+                if os.path.isfile(new_name): # if file already exists, remove it first (otherwise it won't update)
+                    os.remove(new_name)
+                os.rename(old_name, new_name) 
+                # delete elp file
+                os.remove(glob.glob(op.join(bids_path.directory, '*ELP*'))[0]) 
 
             except:  # noqa
                 # We want to actually just catch any error and print a

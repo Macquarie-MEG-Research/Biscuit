@@ -9,7 +9,7 @@ import shutil
 
 from Biscuit.utils.utils import get_mrk_meas_date
 from bidshandler.utils import _get_bids_params, _bids_params_are_subsets
-from mne_bids import make_bids_basename
+from mne_bids import BIDSPath
 
 import pandas as pd
 
@@ -41,16 +41,7 @@ def update_markers(confile, fpath, bids_name):
     all the markers."""
 
     bids_params = _get_bids_params(bids_name)
-    folder = None
-    for f in os.listdir(fpath):
-        if op.isdir(op.join(fpath, f)):
-            if _bids_params_are_subsets(_get_bids_params(f), bids_params):
-                # this is the folder containing the BIDS data we want.
-                folder = op.join(fpath, f)
-                break
-    if folder is None:
-        # In this case it is broken. Do nothing I guess...
-        return
+    folder = os.path.split(fpath)[0]
     fnames = list(os.listdir(folder))   # cache for safety
     # do a check for any existing marker files with acq in their title
     for fname in fnames:
@@ -80,12 +71,13 @@ def update_markers(confile, fpath, bids_name):
         params = _get_bids_params(fname)
         if params['file'] == 'markers':
             params['suffix'] = params.pop('file') + params.pop('ext')
-            bname = make_bids_basename(subject=params.get('sub', None),
+            bids_path = BIDSPath(subject=params.get('sub', None),
                                        session=params.get('ses', None),
                                        run=params.get('run', None),
                                        task=params.get('task', None),
                                        suffix=params.get('suffix', None),
                                        acquisition=order[0])
+            bname = bids_path.basename
             os.rename(op.join(folder, fname), op.join(folder, bname))
             bname = bname.replace('acq-{0}'.format(order[0]),
                                   'acq-{0}'.format(order[1]))
@@ -104,8 +96,8 @@ def update_participants(fname, data):
         df = df.assign(group=[group])
     else:
         for i in range(len(df)):
-            if df.ix[i, 'participant_id'] == participant_id:
-                df.ix[i, 'group'] = group
+            if df.loc[i, 'participant_id'] == participant_id:
+                df.loc[i, 'group'] = group
     df.to_csv(fname, sep='\t', index=False, na_rep='n/a')
 
 
