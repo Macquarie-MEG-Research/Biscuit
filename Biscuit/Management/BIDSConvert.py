@@ -10,6 +10,7 @@ import glob
 
 from bidshandler import Session
 
+import mne
 from mne_bids import write_raw_bids, BIDSPath
 
 from Biscuit.Management import StreamedVar
@@ -123,6 +124,9 @@ def convert(container, settings, parent=None):
             event_ids = dict(zip(descriptions,
                                  [int(i) for i in trigger_channels]))
 
+            #print(job.__dict__) # FOR DEBUG: use this to print out all attributes of the object "job"
+            events_data = _create_events_fiff(getattr(job, 'file'), trigger_channels) 
+            
             job_name.set("Task: {0}, Run: {1}".format(task, run))
 
             try:
@@ -137,7 +141,8 @@ def convert(container, settings, parent=None):
                 write_raw_bids(
                     raw=job.raw,
                     bids_path=bids_path,
-                    #event_id=event_ids,
+                    event_id=event_ids,
+                    events_data=events_data,
                     overwrite=True,
                     verbose=True)
 
@@ -224,3 +229,33 @@ def convert(container, settings, parent=None):
 def _shorten_path(fname):
     """ strip just the final part of the path """
     return op.basename(fname).split("'")[0]
+
+    
+def _create_events_fiff(raw_data_file, trigger_channels):
+    """ automatically detect events in the specified trigger channels """
+    raw = mne.io.read_raw_kit(
+        raw_data_file,
+        stim=trigger_channels, #[*range(trigger_start, trigger_stop)],
+        slope="+",
+        stim_code="channel",
+        stimthresh=1,  # 2 for adults
+        preload=False,
+        allow_unknown_format=False,
+        verbose=True,
+    )
+
+    events = mne.find_events(
+        raw,
+        output="onset",
+        consecutive=False,
+        min_duration=0,
+        shortest_event=1,  
+        mask=None,
+        uint_cast=False,
+        mask_type="and",
+        initial_event=False,
+        verbose=None,
+    )
+    
+    #mne.write_events(output_fname, events, overwrite=False, verbose=None)
+    return events
