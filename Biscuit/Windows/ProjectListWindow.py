@@ -85,7 +85,7 @@ class ProjectListWindow(Toplevel):
     def settings_view(settings):
         # TODO: make this much nicer...
         # returns a condensed view version of the project settings to be passed
-        # to the WidgetTable as the intial values
+        # to the WidgetTable as the initial values
         dt = settings.get('DefaultTriggers', None)
         if dt is not None:
             if dt == [[]]:

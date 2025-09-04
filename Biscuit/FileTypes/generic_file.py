@@ -12,7 +12,7 @@ class generic_file(FileInfo):
         self.requires_save = False
         # any data tpe in the following list will automatically be assigned
         # the .display_raw = True property
-        # they will also be not be specificed as unknown
+        # they will also be not be specified as unknown
         self.types_to_display_raw = ['.txt', '.m', '.py', '', '.xml']
 
     def load_data(self):

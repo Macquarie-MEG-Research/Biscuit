@@ -44,7 +44,7 @@ class SaveManager():
     with the GUI.
     This will take any file that has had any changes made to it and store them
     to the HDD so that the next time a user runs the program they can be
-    retreived and applied to avoid data having to be entered multiple times.
+    retrieved and applied to avoid data having to be entered multiple times.
     """
     def __init__(self, parent=None):
         """

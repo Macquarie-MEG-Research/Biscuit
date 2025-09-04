@@ -9,7 +9,7 @@ from Biscuit.utils.constants import OSCONST
 class ScrollableFrame(Frame):
     """
     A wrapper for the Frame class to make it scrollable.
-    To make use of this fuctionality, pack anything into the .frame Frame of
+    To make use of this functionality, pack anything into the .frame Frame of
     this object
     """
 

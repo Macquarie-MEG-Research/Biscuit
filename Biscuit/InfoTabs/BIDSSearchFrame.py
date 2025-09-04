@@ -22,7 +22,7 @@ class BIDSSearchFrame(Frame):
         self.parent = parent
         super(BIDSSearchFrame, self).__init__(self.master, *args, **kwargs)
 
-        # create some inital variables
+        # create some initial variables
         self.obj_var = OptionsVar(options=['project', 'subject', 'session',
                                            'scan'])
         self.condition_var = OptionsVar(options=['<', '<=', '=', '!=', '!!=',

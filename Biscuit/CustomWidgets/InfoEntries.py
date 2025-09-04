@@ -31,7 +31,7 @@ class InfoMaster():
             self._validate_cmd()
 
     def _set_value(self, value):
-        """ a method to be overwridden by other classes """
+        """ a method to be overridden by other classes """
         pass
 
     def tooltip(self, text):

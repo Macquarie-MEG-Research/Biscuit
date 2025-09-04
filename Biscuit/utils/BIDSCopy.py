@@ -35,7 +35,7 @@ class BIDSCopy():
     file_prog_tracker : Instance of IntVar
         An instance of a tkinter.IntVar which is used to track the transfer
         progress on a file-by-file basis. This is passed to the modified copy
-        function from shutil to track  the rate at whic the indiviual files
+        function from shutil to track  the rate at which the individual files
         themselves are being transferred. This is for tracking purposes in the
         Windows.SendFilesWindow window.)
     """
@@ -65,7 +65,7 @@ class BIDSCopy():
             else:
                 copy(src, dst, tracker=self.file_prog_tracker)
             if os.stat(src).st_size > BUFFER_SIZE:
-                # change the file name to indiciate that it is being verified.
+                # change the file name to indicate that it is being verified.
                 # Only do for files bigger than 1Mb as it isn't worth it for
                 # small files since they will be done instantly.
                 self.file_name_tracker.set(self.file_name_tracker.get() +

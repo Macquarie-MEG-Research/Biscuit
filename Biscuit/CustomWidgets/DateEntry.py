@@ -30,7 +30,7 @@ class DateEntry(Frame):
 
         # we can give the entries some default values if they are provided
         # if the text input is malformed (ie. not a list or doesn't have
-        # 3 entires, just do an empty initial value)
+        # 3 entries, just do an empty initial value)
         if not isinstance(text, list):
             text = DEFAULTVALUE
         else:

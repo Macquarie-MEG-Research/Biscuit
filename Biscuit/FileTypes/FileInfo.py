@@ -27,11 +27,11 @@ class FileInfo():
 #region public methods
 
     def check_valid(self):
-        """ Returns True (method will be overriden by derived classes) """
+        """ Returns True (method will be overridden by derived classes) """
         return True
 
     def load_data(self):
-        # default method to be overidden by inherited classes
+        # default method to be overridden by inherited classes
         pass
 
     def validate(self, *args):
