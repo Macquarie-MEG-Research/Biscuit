@@ -19,12 +19,12 @@ class OSConstMap():
         self.__dict__[name] = value
 
     def __getattr__(self, name):
-        """ Retreive the required value
+        """ Retrieve the required value
 
         Names will be suffixed by '_<OS>', so we want to just get the os
         dependent version
         If the variable is assigned in a non-OS-dependent manner (ie. no
-        suffix then this will not be called and the value will be retreived
+        suffix then this will not be called and the value will be retrieved
         directly)
 
         Parameters

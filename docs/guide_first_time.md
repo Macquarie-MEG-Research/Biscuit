@@ -25,7 +25,7 @@ The BIDS-compliant data exported by Biscuit will be placed in a sub-folder of a 
 To transfer the data off one computer and onto another the easiest way is to use Biscuit's built in file-transfer abilities. This is recommended because it is able to transfer the data in a way that is 'BIDS-safe'. This means that you can transfer the data to another folder containing BIDS-compliant data and the new data will be merged automatically into the file hierarchy.
 
 Transferring your BIDS-compliant data is as easy as selecting the folder you want to transfer, right-click the folder name in the built-in file browser, then selecting 'Send to...'.
-This will display a pop-up which will let you select the location to transfer your files. It is **highly recommnded** that you select the same folder every time you do this. This is most easily achieved by using an external HDD and having a folder on it called `BIDS` (for example). Every time you transfer data off the computer using Biscuit, transfer to this BIDS folder and it will always contain the entire BIDS folder structure of your data.
+This will display a pop-up which will let you select the location to transfer your files. It is **highly recommended** that you select the same folder every time you do this. This is most easily achieved by using an external HDD and having a folder on it called `BIDS` (for example). Every time you transfer data off the computer using Biscuit, transfer to this BIDS folder and it will always contain the entire BIDS folder structure of your data.
 
 *Note*: If you do not see the 'Send to...' option the folder hasn't been specified as a folder containing BIDS formatted data. You can fix this by right-clicking the `BIDS_XX` folder and selecting 'Assign as BIDS folder'.
 

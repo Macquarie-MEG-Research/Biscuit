@@ -31,7 +31,7 @@ class WidgetTable(Frame):
         These variables need to be the appropriate type for the
         entry_type associated with the data, as well as the data passed in
         (if the table is to be initially or automatically populated).
-        The Variable information can be passed in as a dicitonary to allow
+        The Variable information can be passed in as a dictionary to allow
         very specific modification of how the data works.
         The dictionary has the following keys:
         - var: An instantiated Variable object
@@ -52,7 +52,7 @@ class WidgetTable(Frame):
         A fixed length list of options that can be added.
         If None then the rows can just be added arbitrarily using button.
     data_array : list, optional
-        A list of the intial data to populate the table with.
+        A list of the initial data to populate the table with.
         This can either be raw data or an array of the variables
     adder_script : function, optional
         A function that will be called when the Add button is
@@ -63,7 +63,7 @@ class WidgetTable(Frame):
         tkinter.DISABLED.
     remove_script : function, optional
         A callback for when a row is deleted.
-        This function can be used to block deletion. This is acheived by having
+        This function can be used to block deletion. This is achieved by having
         this function return anything. If nothing is returned then the deletion
         occurs as expected.
         To remove the functionality to remove rows set this to
@@ -148,7 +148,7 @@ class WidgetTable(Frame):
         """
         Add the provided row data at the required index
 
-        Paramaters
+        Parameters
         ----------
         idx : int
             Index the data is the be added at.
@@ -389,7 +389,7 @@ class WidgetTable(Frame):
             # assign the row data
             for i in range(len(data)):
                 self.add_row_data(i, data[i])
-            # remove all unneccesary rows
+            # remove all unnecessary rows
             self.delete_rows_and_update(-1, abs(diff), ignore_script=True)
         elif diff > 0:
             # assign the data up to the number of existing widgets
@@ -418,7 +418,7 @@ class WidgetTable(Frame):
                 self.data[idx][i].set(val)
 
     def sort_data(self):
-        """ If a sort column is specified on intialisation of the WidgetTable
+        """ If a sort column is specified on initialisation of the WidgetTable
         then sort by this column."""
         if isinstance(self.sort_column, int):
             if self.sort_column < self.num_columns:
@@ -430,7 +430,7 @@ class WidgetTable(Frame):
         """ Add a new row when the new row keyboard shortcut is pressed
 
         This will only be possible when we don't have a fixed list of
-        possibilites to add.
+        possibilities to add.
 
         """
         if not isinstance(self.add_options, list):
@@ -444,7 +444,7 @@ class WidgetTable(Frame):
         """
         # do columns then rows to save having to check data types repeatedly
         for column in range(self.num_columns):
-            # first, create a lambda which can be re-used for each row
+            # first, create a lambda which can be reused for each row
             w = self.widgets_pattern[column]
             try:
                 if callable(w):

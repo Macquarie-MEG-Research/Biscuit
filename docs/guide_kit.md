@@ -1,10 +1,10 @@
 # Converting KIT data
 
-To convert KIT we require a few steps. It may look like a bit at first, but once you undertsand the process it can be done in a very short amount of time.
+To convert KIT we require a few steps. It may look like a bit at first, but once you understand the process it can be done in a very short amount of time.
 Because KIT data consists of multiple files unlike Elekta data which consists of a single `.fif` file, the main object is the parent folder containing the `.con`, `.mrk`, `.elp`, and `.hsp` files.
 
 ## KIT data folder
-When you first click on a folder containing all the required files the info panel will be populated with a number of info boxes and entires:
+When you first click on a folder containing all the required files the info panel will be populated with a number of info boxes and entries:
 ![kit_initial](images/screenshots/KIT_container_initial.PNG)
 
 If you however select a folder which doesn't contain all the required files, the information panel will inform you of this

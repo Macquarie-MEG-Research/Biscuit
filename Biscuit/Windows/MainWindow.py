@@ -358,7 +358,7 @@ class MainWindow(Frame):
                 self.file_treeview.item(sid, tags=[])
 
     # might want to make this function a bit more general to apply and remove
-    # generic modifcations
+    # generic modifications
     def highlight_associated_mrks(self, event):
         """
         Give any .mrk items that are associated with the selected .con file the

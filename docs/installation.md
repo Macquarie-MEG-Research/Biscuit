@@ -20,7 +20,7 @@ If you already have a pre-existing python install and do not want any particular
 
 <pre><code id="gh_download_command_standard">If you can read this, download the file from the link in the dropdown or from the github source release page.</code></pre>
 
-The complete list of prequisites are as follows:
+The complete list of prerequisites are as follows:
 
 `numpy`, `scipy`, `matplotlib`, `pandas`, `Pygments`, `Pillow`, `mne (>= 0.17.0)`, `mne-bids (>= 0.10)`*, `requests` and `bidshandler (>= 0.2.1)`
 

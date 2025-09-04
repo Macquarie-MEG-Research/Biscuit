@@ -13,4 +13,4 @@ For full installation and usage instructions visit the [Biscuit GitHub page](htt
 Biscuit uses [MNE-Python](https://github.com/mne-tools/mne-python) and [MNE-BIDS](https://github.com/mne-tools/mne-bids) to load the MEG data and convert to BIDS format.
 
 Note:
-Because the BIDS specification is still being developed the output is likely to change over the next few months, so the data generated currently may not be BIDS compliant in the future. This is an unavoidable side-effect of this being developed while the BIDS specifcation is still in active development.
+Because the BIDS specification is still being developed the output is likely to change over the next few months, so the data generated currently may not be BIDS compliant in the future. This is an unavoidable side-effect of this being developed while the BIDS specification is still in active development.

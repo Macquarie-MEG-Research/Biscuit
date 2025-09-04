@@ -31,7 +31,7 @@ def convert(container, settings, parent=None):
     parent is the main GUI object
     """
 
-    # first, make sure that the container obejct is ready for conversion
+    # first, make sure that the container object is ready for conversion
     container.prepare()
 
     # Construct a name for storing 2 weeks worth of BIDS formatted data.
@@ -65,7 +65,7 @@ def convert(container, settings, parent=None):
     target_folder = op.join(bids_folder_path,
                             container.proj_name.get())
 
-    # redict the stout to the StreamedVar as a way of capturing progress
+    # redirect the stout to the StreamedVar as a way of capturing progress
     with redirect_stdout(progress):
         for job in container.jobs:
             if job.is_junk.get():
@@ -93,7 +93,7 @@ def convert(container, settings, parent=None):
             # get the variables for the raw_to_bids conversion function:
             if job.is_empty_room.get():
                 if rec_date is None:
-                    warn('Recording date is not known. Emptry room cannot be '
+                    warn('Recording date is not known. Empty room cannot be '
                          'exported.')
                     continue
                 subject_id = 'emptyroom'
@@ -197,7 +197,7 @@ def convert(container, settings, parent=None):
         if isinstance(parent.preloaded_data.get(sid, None), Session):
             parent.file_treeview.see(sid)
             parent.file_treeview.focus(item=sid)
-            # sid added as a tuple for pre-3.6 compatibilty
+            # sid added as a tuple for pre-3.6 compatibility
             parent.file_treeview.selection_set((sid,))
             break
 

@@ -17,7 +17,7 @@ class BIDSContainer(FileInfo):
     The base object which contains BIDSFiles.
     For KIT data this is the folder that contains the .con, .mrk etc files.
     For Elekta data this is the .fif file itself, so the file is a
-    BIDSContainer and a BIDSFile simultanously.
+    BIDSContainer and a BIDSFile simultaneously.
     """
     def __init__(self, id_=None, file=None, settings=None, parent=None):
         super(BIDSContainer, self).__init__(id_, file, parent)
@@ -61,12 +61,12 @@ class BIDSContainer(FileInfo):
         # Whether the object has had any validation done yet.
         # This will be used to optimise the validation process since once the
         # BIDSContainer has had it's initial validation checks done, we will
-        # only need to check the job for their validation sate, instead of
+        # only need to check the job for their validation state, instead of
         # running validation on them again.
         self.validation_initialised = False
 
     def load_data(self):
-        """ do all the intial data loading and variable assignment """
+        """ do all the initial data loading and variable assignment """
         pass
 
     def init_validation(self):

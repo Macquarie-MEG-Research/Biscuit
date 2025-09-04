@@ -196,7 +196,7 @@ class FileTreeview(EnhancedTreeview):
                         if self.item(child)['values'][1] == fpath:
                             return child
                 _temp_fpath = op.dirname(temp_fpath)
-                # ensure we cannot get stuck in an infinte loop
+                # ensure we cannot get stuck in an infinite loop
                 if _temp_fpath != temp_fpath:
                     temp_fpath = _temp_fpath
                 else:
